@@ -22,8 +22,14 @@
 from __future__ import with_statement
 
 
-REVISION = "0.3.2 2011.06.07 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.2"
+REVISION = "0.3.3 2011.06.16 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.3"
+# Include EPFL's basic config instead from http://enacit1.epfl.ch
+# lowercase case insensitive parameters for CIFS mount
+# GUI_Entry better <ENTER> management & automatique focus
+# 
+#REVISION = "0.3.2 2011.06.07 (EPFL/ENAC-IT SB)"
+#
 # Entry "OK" anchor to WEST when multi-value
 # --help output enhanced
 # ui.exit() : (save_if_needed also done when require instruction not met)
@@ -94,7 +100,6 @@ SHORT_REVISION = "0.3.2"
 # - url-caching
 # 
 # - in GUI :
-#   - focus on first item from the top (password, entry, mount, ...)
 #   - alt-f4 when a password is asked.
 #   - multi-mount without entering password between each will ask
 #     multi-password, even for same auth-realm.
@@ -135,7 +140,7 @@ LOCAL_USERNAME = getpass.getuser()
 LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
 HOME_DIR = os.path.expanduser("~")
 
-# CONFIG_DEFAULTS["method"] can be :
+# CONFIG's method can be :
 # "smb"         -> Generic. This will be transformed into the appropriated
 #                  method depending on the OS
 # "gvfs_smb"    -> Uses GNOME's mechanisms "Connect to Server" for SMB/CIFS
@@ -299,9 +304,6 @@ CONFIG_DEFAULTS = {
         "gvfs_symlink" : True,
     },
     "config" : [
-        # EPFL footprint!
-        { "import" : "http://enacit1.epfl.ch/linux/files/mount_filers.conf" },
-        # /EPFL footprint!
     ],
     "require" : [
     ],
@@ -316,8 +318,58 @@ CONFIG_DEFAULTS = {
     },
 }
 
+# EPFL footprint!
+EPFL_CONFIG = {
+    "global" : {
+        "method" : "smb",
+        "username" : "__USERNAME__",
+        "domain" : "__DOMAIN__",
+        "auth_realm" : "EPFL",
+    },
+    "config" : [
+        { "import" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__" },
+    ],
+    "require" : [
+        {
+            "smb" : "files1.epfl.ch",
+            "msg" : "Couldn't connect to EPFL's filer. Please check that you're connected to the network and using a VPN client if outside the EPFL.",
+            "abort" : True,
+        }
+    ],
+    "substitution" : {
+        "__USERNAME__" :
+            {
+            "ask" : "Enter your EPFL username :",
+            "constraint" : "lowercase",
+            },
+        "__DOMAIN__" :
+            {
+            "ask" : "Enter your EPFL ActiveDirectory domain :",
+            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/domain?username=__USERNAME__",
+            "constraint" : "lowercase",
+            },
+        "__LABO__" :
+            {
+            "ask" : "Enter your EPFL labo :",
+            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/labo?username=__USERNAME__",
+            "constraint" : "lowercase",
+            },
+        "__SCIPER__" :
+            {
+            "ask" : "Enter the last digit of your SCIPER number (0-9) :",
+            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/sciper?username=__USERNAME__",
+            },
+    },
+    "mount" : {
+    },
+}
+# /EPFL footprint!
+
 CONFIG_SRC = [
     CONFIG_DEFAULTS,
+    # EPFL footprint!
+    EPFL_CONFIG,
+    # /EPFL footprint!
 ]
 CONFIG_SRC.extend([c["path"] for c in CONFIG_FILES])
 
@@ -1914,7 +1966,14 @@ class Config(object):
         value = self.raw_get(m_name, option, default)
         if type(value) != type(""):
             return value
-        return self.substitued(value)
+        value = self.substitued(value)
+        
+        # Format value (SMB parameters have to be lowercase)
+        if option in ("server_name", "server_path", "username", "domain") and \
+           self.get(m_name, "method") in ("smb", "mount.cifs", "gvfs_smb", "mount_smbfs"):
+            value = value.lower()
+        
+        return value
     
     def add_subst_filled_callback(self, callback):
         self.subst_filled_callbacks.append(callback)
@@ -2154,6 +2213,8 @@ class GUI_Entry(object):
                     value = e,
                 )
                 rb.grid(row = num_row, column = 0, columnspan = 2, sticky = N+S+W)
+                rb.bind("<Return>", self.__hit_return__)
+                rb.focus_set()
                 num_row += 1
             self.select_pre_filled_var.set(pre_filled[0])
             
@@ -2189,7 +2250,8 @@ class GUI_Entry(object):
             e.bind("<Return>", self.__hit_return__)
             if is_pwd:
                 e.config(show = "*")
-
+            e.focus_set()
+            
             b = Button(f, text = "Ok", command = self.__entry_filled__)
             b.grid(row = num_row, column = 1, sticky=N+E+S)
             b.bind("<Return>", self.__hit_return__)
