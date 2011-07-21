@@ -6,7 +6,8 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('mount_filers.directory',
     (r'^config', 'views.get_config'),
-    (r'^domain', 'views.get_domains'),
+    (r'^full_config', 'views.get_full_config'),
+    (r'^domain', 'views.get_domain'),
     (r'^sciper', 'views.get_sciper'),
     (r'^labo', 'views.get_labos'),
     
