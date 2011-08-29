@@ -22,8 +22,13 @@
 from __future__ import with_statement
 
 
-REVISION = "0.3.4 2011.08.29 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.4"
+REVISION = "0.3.5 2011.08.29 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.5"
+# GUI feature enhancement :
+# - not ask 2 time the same password (if clicked at the same time)
+# - Clean exit if window closed when a password is being asked
+# 
+# REVISION = "0.3.4 2011.08.29 (EPFL/ENAC-IT SB)"
 # New GUI layout : one line per mount (more compact)
 # small fixes
 # 
@@ -845,13 +850,11 @@ class MyTimeout(Exception):
         self.timed_out = False
     
     def __enter__(self):
-        #~ print "ENTER"
         self.timed_out = False
         self.old_handler = signal.signal(signal.SIGALRM, self.signal_handler)
         signal.alarm(self.timeout)
     
     def __exit__(self, type, value, traceback):
-        #~ print "EXIT"
         signal.alarm(0)
         signal.signal(signal.SIGALRM, self.old_handler)
     
@@ -878,7 +881,11 @@ def pexpect_ask_password(d):
     context = d["extra_args"]["context"]
     for search, auth_realm in d["extra_args"]["auth_realm"]:
         if re.search(search, question):
-            return io.read_pwd(auth_realm, context) + "\n"
+            try:
+                return io.read_pwd(auth_realm, context) + "\n"
+            except Exception, inst:
+                print "Exit mount instruction %s - %s" % (context, question)
+                return True # This means : kill current process (used when closing mount_filers)
     
     io.write("Could not find to which authentication realm is '%s'" % question)
     sys.exit(1)
@@ -2286,6 +2293,9 @@ class GUI_Entry(object):
             self.callback(value = self.get(), **self.cb_params)
         self.grid_remove()
     
+    def raise_exit(self):
+        self.value_entered.set(self.get())
+    
     def wait(self):
         self.f.waitvar(self.value_entered)
     
@@ -2402,6 +2412,8 @@ Af8vgYIlIQA7"""
     
     def __mount__(self):
         self.mount.mount()
+        if UI.CLOSE_APPLICATION:
+            return
         self.apply_state()
         self.mount.open_if_needed()
     
@@ -2736,6 +2748,11 @@ Mount filers (rev. %s)
         # Make a Window
         self.root = Tk()
         self.root.title("Mount Filers")
+        
+        # register to know when GUI is closed (kill the pending mount instruction).
+        self.root.protocol("WM_DELETE_WINDOW", self.on_delete)
+        UI.CLOSE_APPLICATION = False
+        
         minimum_sized = Frame(
             self.root,
         )
@@ -2785,6 +2802,9 @@ Mount filers (rev. %s)
         self.mounts_list = []
         self.mount_missing_subst = Substitution_Manager(self.config, self)
         self.__populate_mounts__()
+        
+        # GUI_Entries, not to ask 2 same question at a time
+        self.current_read = {}
         
         self.root.mainloop()
     
@@ -2890,18 +2910,25 @@ Mount filers (rev. %s)
             self.exit(exit_status = exit_status)
     
     def read(self, msg, is_pwd = False, pre_filled = []):
-        gui_entry = GUI_Entry(
-            frame = self.gui_entries["f"],
-            label = msg,
-            pre_filled = pre_filled,
-            is_pwd = is_pwd,
-        )
+        if not self.current_read.get(msg):
+            self.current_read[msg] = GUI_Entry(
+                frame = self.gui_entries["f"],
+                label = msg,
+                pre_filled = pre_filled,
+                is_pwd = is_pwd,
+            )
+            
+            self.current_read[msg].grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
         
-        gui_entry.grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
+        my_current_read = self.current_read[msg]
+        my_current_read.wait()
         
-        gui_entry.wait()
+        if not my_current_read.is_filled:
+            raise Exception("Exit forced")
         
-        return gui_entry.get()
+        self.current_read[msg] = None
+        
+        return my_current_read.get()
     
     def read_pwd(self, msg):
         return self.read(msg, is_pwd = True)
@@ -2917,6 +2944,14 @@ Mount filers (rev. %s)
             io.write(msg)
         
         sys.exit(exit_status)
+    
+    def on_delete(self):
+        UI.CLOSE_APPLICATION = True
+        for gui_entry in self.current_read.itervalues():
+            if gui_entry == None:
+                continue
+            gui_entry.raise_exit()
+        self.root.destroy()
 
 if __name__ == '__main__':
     started_hook()
