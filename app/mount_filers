@@ -22,8 +22,12 @@
 from __future__ import with_statement
 
 
-REVISION = "0.3.3 2011.06.16 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.3"
+REVISION = "0.3.4 2011.08.29 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.4"
+# New GUI layout : one line per mount (more compact)
+# small fixes
+# 
+# REVISION = "0.3.3 2011.06.16 (EPFL/ENAC-IT SB)"
 # Include EPFL's basic config instead from http://enacit1.epfl.ch
 # lowercase case insensitive parameters for CIFS mount
 # GUI_Entry better <ENTER> management & automatique focus
@@ -103,6 +107,12 @@ SHORT_REVISION = "0.3.3"
 #   - alt-f4 when a password is asked.
 #   - multi-mount without entering password between each will ask
 #     multi-password, even for same auth-realm.
+# 
+# new GUI with pyGTK? PyQt? PySide? other?
+
+# TODO : change paradygm :
+#        sequential / Tk -> tasks & state machine
+
 
 import os, sys
 import re
@@ -116,6 +126,8 @@ from contextlib import contextmanager
 import time
 import signal
 import socket
+import base64
+from threading import Lock
 
 try:
     import pexpect
@@ -124,7 +136,7 @@ except ImportError:
     IMPORTED_PEXPECT = False
 
 try:
-    from Tkinter import Tk, Frame, LabelFrame, OptionMenu, Label, Entry, Button, Radiobutton, StringVar, TOP, BOTTOM, LEFT, RIGHT, N, E, S, W, END
+    from Tkinter import Tk, Frame, LabelFrame, OptionMenu, Label, Entry, Button, Radiobutton, StringVar, TOP, BOTTOM, LEFT, RIGHT, N, E, S, W, END, Canvas, ALL, PhotoImage
     IMPORTED_TKINTER = True
 except ImportError:
     IMPORTED_TKINTER = False
@@ -679,11 +691,10 @@ class IO(object):
             msg = "probably mistyped ...\n" + msg
             self.wipe_pwd(auth_realm)
         
-        if self.gui != None:
-            if not self.known_passwd.get(auth_realm):
+        if not self.known_passwd.get(auth_realm):
+            if self.gui != None:
                 self.known_passwd[auth_realm] = self.gui.read_pwd(msg)
-        else:
-            if not self.known_passwd.get(auth_realm):
+            else:
                 with self.__apply_sections_stack__():
                     self.known_passwd[auth_realm] = getpass.getpass(self.__format_msg__(msg))
         
@@ -1249,7 +1260,7 @@ class Mount_SMBFS_Method(GenericMethod):
     
     def has_all_dependencies(self):
         if not which("mount_smbfs"):
-            raiseException(os_switch.msg_for_missing_tool("mount_smbfs"))
+            raise Exception(os_switch.msg_for_missing_tool("mount_smbfs"))
     
     def pre_mount(self):
         conf = self.conf
@@ -1618,7 +1629,7 @@ class Config(object):
             elif section_name == "mount":
                 key = data.get(CONFIG_EXTRACT["mount"]["key"])
                 if key == None:
-                    io.write("Error. Mount instruction without %s option. Source: %s" % src)
+                    io.write("Error. Mount instruction without %s option. Source: %s" % (CONFIG_EXTRACT["mount"]["key"], src))
                     sys.exit(1)
                 del(data[CONFIG_EXTRACT["mount"]["key"]])
                 self.mounts.setdefault(key, {})
@@ -2299,6 +2310,24 @@ class GUI_Entry(object):
         self.f.grid_remove()
 
 class GUI_Mount(object):
+    # gif images (png could not be loaded by this library ... argh!!)
+    # - created with GIMP
+    # - encoded with "base64 red.gif"
+    
+    red_gif = """\
+R0lGODlhDwAPAIQVAP4xMf4yMv8yMv4zM/8zM/42Nv83N/85Of4/P/9AQP5DQ/9ERP5MTP9MTP5k
+ZP9kZP9wcP6Tk/+UlP6qqv/Gxv///////////////////////////////////////////yH+EUNy
+ZWF0ZWQgd2l0aCBHSU1QACH5BAEKAB8ALAAAAAAPAA8AAAVX4CeOZGme56ACAPodiZIUQmsezAM9
+TQEIpUHiEZlIHIhAjTRQQCaUCWRB+DGHEqMjUbWJAIWGA+JoGGrA0a+AWCQMLFaJFSAQalaTAM9K
+n357Xi6DhCIhADs="""
+    
+    green_gif = """\
+R0lGODlhDwAPAIQVAB2jJB6jJR+jJh6kJR+kJiCkJiCkJyOlKSSmKiWnLCypMy2qNDGrNzKsODqv
+QTuvQVW6WmK/Z4nPjaHYpMHmw////////////////////////////////////////////yH+EUNy
+ZWF0ZWQgd2l0aCBHSU1QACH5BAEKAB8ALAAAAAAPAA8AAAVV4CeOZGmeZyEYAIB+ycIsx+CaiQNF
+0HMAg1JhAZFMJBBFwEYSMCITyiTSIABJBqIRubDeRIDDY9dD2IIj4EHRWCBarVIrQCDYrqbBvYU+
+Af8vgYIlIQA7"""
+    
     def __init__(self, frame, mount, label, callback = None, cb_params = None):
         self.mount = mount
         self.label = label
@@ -2306,62 +2335,70 @@ class GUI_Mount(object):
         self.cb_params = cb_params
         value = StringVar()
         
-        self.green = "#6f6"
-        self.red = "#f66"
-        self.white = "#fff"
+        red_file = "/tmp/mount_filers_red.gif"
+        green_file = "/tmp/mount_filers_green.gif"
+        if not os.path.exists(red_file):
+            f_red = open(red_file, "w")
+            f_red.write(base64.b64decode(self.red_gif))
+            f_red.close()
+        if not os.path.exists(green_file):
+            f_green = open(green_file, "w")
+            f_green.write(base64.b64decode(self.green_gif))
+            f_green.close()
         
-        f = LabelFrame(
+        self.red_img = PhotoImage(file = red_file)
+        self.green_img = PhotoImage(file = green_file)
+        
+        self.f = Frame(
             frame,
-            text = label,
-            padx = 10,
-            pady = 10,
+            padx = 2,
+            pady = 2
         )
-        rb1 = Radiobutton(
-            f,
-            text = "mounted",
-            command = self.__mount__,
-            variable = value,
-            value = "mount",
+        self.f.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.f2 = Frame(
+            frame,
+            padx = 2,
+            pady = 2
         )
-        rb2 = Radiobutton(
-            f,
-            text = "unmounted",
-            command = self.__umount__,
-            variable = value,
-            value = "umount",
-        )
-        rb1.grid(row = 0, column = 0, sticky = N+S+W)
-        rb2.grid(row = 1, column = 0, sticky = N+S+W)
-        b = Button(
-            f,
+        
+        self.canvas = Canvas(self.f, width=16, height=16)
+        self.canvas.grid(row = 0, column = 0)#, sticky = N+E+S+W)
+        
+        self.canvas.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.l = Label(self.f, text = label, wraplength = 400, justify=LEFT)
+        self.l.grid(row = 0, column = 1, sticky = N+E+S+W)
+        self.l.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.b = Button(
+            self.f2,
             text = "Open",
             state = "disabled",
             command = self.__browse_button_pressed__,
         )
-        b.grid(row = 0, column = 1, sticky = N+E+S+W)
-        
-        self.f = f
-        self.v = value
-        self.rb1 = rb1
-        self.rb2 = rb2
-        self.b = b
+        self.b.grid(row = 0, column = 2, sticky = N+E+S)
         
         self.apply_state()
     
     def apply_state(self):
         if self.mount.is_mounted():
-            self.v.set("mount")
+            self.canvas.delete(ALL)
+            self.canvas.create_image(8, 8, image=self.green_img)
             self.b.config(state = "normal")
-            self.rb1.config(selectcolor = self.green)
-            self.rb2.config(selectcolor = self.white)
         else:
-            self.v.set("umount")
+            self.canvas.delete(ALL)
+            self.canvas.create_image(8, 8, image=self.red_img)
             self.b.config(state = "disabled")
-            self.rb1.config(selectcolor = self.white)
-            self.rb2.config(selectcolor = self.red)
     
     def __browse_button_pressed__(self):
         self.mount.open()
+    
+    def __toggle_mount__(self, event):
+        if self.mount.is_mounted():
+            self.__umount__()
+        else:
+            self.__mount__()
     
     def __mount__(self):
         self.mount.mount()
@@ -2373,10 +2410,12 @@ class GUI_Mount(object):
         self.apply_state()
     
     def grid(self, num_row, num_col):
-        self.f.grid(row = num_row, column = num_col)
+        self.f.grid(row = num_row, column = num_col, sticky = N+S+W)
+        self.f2.grid(row = num_row, column = num_col+1, sticky = N+E+S)
     
     def grid_remove(self):
-        self.g.grid_remove()
+        self.f.grid_remove()
+        self.f2.grid_remove()
 
 class GUI_Message(object):
     def __init__(self, ui, frame, label, msg, exit_status = None):
