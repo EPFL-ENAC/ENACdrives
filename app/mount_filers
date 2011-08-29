@@ -22,8 +22,12 @@
 from __future__ import with_statement
 
 
-REVISION = "0.3.5 2011.08.29 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.5"
+REVISION = "0.3.6 2011.08.31 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.6"
+# unique password asked correction for the case pwd was mistyped.
+# correction on clean exit if window closed when password is being asked
+# 
+# REVISION = "0.3.5 2011.08.29 (EPFL/ENAC-IT SB)"
 # GUI feature enhancement :
 # - not ask 2 time the same password (if clicked at the same time)
 # - Clean exit if window closed when a password is being asked
@@ -698,7 +702,7 @@ class IO(object):
         
         if not self.known_passwd.get(auth_realm):
             if self.gui != None:
-                self.known_passwd[auth_realm] = self.gui.read_pwd(msg)
+                self.known_passwd[auth_realm] = self.gui.read_pwd(msg, auth_realm)
             else:
                 with self.__apply_sections_stack__():
                     self.known_passwd[auth_realm] = getpass.getpass(self.__format_msg__(msg))
@@ -877,6 +881,8 @@ def pexpect_ask_password(d):
     """
         called directly from pexpect.run when a pattern is found
     """
+    
+    #~ print "Dict : ", pprint.pprint(d)
     question = d["child_result_list"][-1]
     context = d["extra_args"]["context"]
     for search, auth_realm in d["extra_args"]["auth_realm"]:
@@ -885,6 +891,8 @@ def pexpect_ask_password(d):
                 return io.read_pwd(auth_realm, context) + "\n"
             except Exception, inst:
                 print "Exit mount instruction %s - %s" % (context, question)
+                #~ d["child"].close(force = True)
+                d["child"].kill(sig = pexpect.signal.SIGKILL)
                 return True # This means : kill current process (used when closing mount_filers)
     
     io.write("Could not find to which authentication realm is '%s'" % question)
@@ -2909,29 +2917,32 @@ Mount filers (rev. %s)
         if exit_status != None:
             self.exit(exit_status = exit_status)
     
-    def read(self, msg, is_pwd = False, pre_filled = []):
-        if not self.current_read.get(msg):
-            self.current_read[msg] = GUI_Entry(
+    def read(self, msg, is_pwd = False, pre_filled = [], auth_realm = None):
+        question_id = auth_realm
+        if question_id == None:
+            question_id = msg
+        if not self.current_read.get(question_id):
+            self.current_read[question_id] = GUI_Entry(
                 frame = self.gui_entries["f"],
                 label = msg,
                 pre_filled = pre_filled,
                 is_pwd = is_pwd,
             )
             
-            self.current_read[msg].grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
+            self.current_read[question_id].grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
         
-        my_current_read = self.current_read[msg]
+        my_current_read = self.current_read[question_id]
         my_current_read.wait()
         
         if not my_current_read.is_filled:
             raise Exception("Exit forced")
         
-        self.current_read[msg] = None
+        self.current_read[question_id] = None
         
         return my_current_read.get()
     
-    def read_pwd(self, msg):
-        return self.read(msg, is_pwd = True)
+    def read_pwd(self, msg, auth_realm):
+        return self.read(msg, is_pwd = True, auth_realm = auth_realm)
     
     def exit(self, exit_status = 0, msg = None):
         self.config.save_if_needed(CONFIG_SAVE)
