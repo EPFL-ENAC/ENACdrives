@@ -22,6 +22,8 @@
 from __future__ import with_statement
 
 
+# added check http (port 80) in requirements
+# 
 REVISION = "0.3.6 2011.08.31 (EPFL/ENAC-IT SB)"
 SHORT_REVISION = "0.3.6"
 # unique password asked correction for the case pwd was mistyped.
@@ -246,6 +248,7 @@ DOC_CONFIG = """\
 #   Fields concerning the tests :
 #     ping : check ping to server
 #     smb  : check connection to port 139 of the server
+#     http : check connection to port 80 of the server
 #   
 #   Fields concerning action taken when the test is not positive
 #     msg   : message to display
@@ -355,7 +358,12 @@ EPFL_CONFIG = {
             "smb" : "files1.epfl.ch",
             "msg" : "Couldn't connect to EPFL's filer. Please check that you're connected to the network and using a VPN client if outside the EPFL.",
             "abort" : True,
-        }
+        },
+        {
+            "http" : "enacit1adm1.epfl.ch",
+            "msg" : "Couldn't connect to ENAC/EPFL's config server. Doing with cache values (if any).",
+            "abort" : False,
+        },
     ],
     "substitution" : {
         "__USERNAME__" :
@@ -417,6 +425,8 @@ CONFIG_EXTRACT = {
         "ping",
         # test - SMB port 139
         "smb",
+        # test - HTTP port 80
+        "http",
         # action if unmet - message
         "msg",
         # action if unmet - exit
@@ -595,6 +605,16 @@ def ping(server):
 def ping_smb(server):
     timeout = 0.2
     port = 139
+    try:
+        sock = socket.create_connection((server, port), timeout)
+        sock.close()
+    except:
+        return False
+    return True
+
+def ping_http(server):
+    timeout = 0.2
+    port = 80
     try:
         sock = socket.create_connection((server, port), timeout)
         sock.close()
@@ -882,7 +902,6 @@ def pexpect_ask_password(d):
         called directly from pexpect.run when a pattern is found
     """
     
-    #~ print "Dict : ", pprint.pprint(d)
     question = d["child_result_list"][-1]
     context = d["extra_args"]["context"]
     for search, auth_realm in d["extra_args"]["auth_realm"]:
@@ -1860,6 +1879,15 @@ class Config(object):
                         req.get("msg", "smb ping %s failed" % self.substitued(req["smb"])),
                         get_exit_status(req)
                     )
+            if req.get("http"):
+                if len(self.list_subst_labels(req["http"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping_http(self.substitued(req["http"])):
+                    ui.show_msg(
+                        "Requirement check :",
+                        req.get("msg", "http ping %s failed" % self.substitued(req["http"])),
+                        get_exit_status(req)
+                    )
             req["done"] = True
     
     def check_prerequisites(self, ui):
@@ -1876,7 +1904,7 @@ class Config(object):
     def require_list_missing_subst(self, req, blocking = False, only_first_level = False):
         list_s = []
         if not req.get("done"):
-            val = req.get("ping", req.get("smb", ""))
+            val = req.get("ping", req.get("smb", req.get("http", "")))
             list_s = self.list_subst_labels(val, blocking = blocking)
         if only_first_level:
             return self.subst_filter_first_level(list_s)
