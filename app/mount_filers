@@ -22,10 +22,13 @@
 from __future__ import with_statement
 
 
+REVISION = "0.3.7 2011.09.08 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.7"
 # added check http (port 80) in requirements
+# added check_url in requirements
+# added config cache feature (in case config server is down)
 # 
-REVISION = "0.3.6 2011.08.31 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.6"
+# REVISION = "0.3.6 2011.08.31 (EPFL/ENAC-IT SB)"
 # unique password asked correction for the case pwd was mistyped.
 # correction on clean exit if window closed when password is being asked
 # 
@@ -114,11 +117,6 @@ SHORT_REVISION = "0.3.6"
 # 
 # - url-caching
 # 
-# - in GUI :
-#   - alt-f4 when a password is asked.
-#   - multi-mount without entering password between each will ask
-#     multi-password, even for same auth-realm.
-# 
 # new GUI with pyGTK? PyQt? PySide? other?
 
 # TODO : change paradygm :
@@ -195,6 +193,10 @@ CONFIG_FILES = [
     },
 ]
 
+CONFIG_CACHE_FILE = os.path.join(HOME_DIR, ".mount_filers.cache")
+CONFIG_CACHE_SRC_FILTER = ["CONSTANTS"]
+CONFIG_CACHE_SRC_FILTER.extend([c["path"] for c in CONFIG_FILES])
+
 DOC_CONFIG = """\
 # Bancal Samuel
 # %s
@@ -249,10 +251,12 @@ DOC_CONFIG = """\
 #     ping : check ping to server
 #     smb  : check connection to port 139 of the server
 #     http : check connection to port 80 of the server
+#     url  : check download of that url (fails if return code != 200)
 #   
 #   Fields concerning action taken when the test is not positive
-#     msg   : message to display
-#     abort : wheter or not exit the application
+#     load_cache : loads config from cache, if any (default False).
+#     msg        : message to display
+#     abort      : wheter or not exit the application
 # 
 # [substitution]
 #   This section describes a substitution that will be performed at run
@@ -360,8 +364,9 @@ EPFL_CONFIG = {
             "abort" : True,
         },
         {
-            "http" : "enacit1adm1.epfl.ch",
-            "msg" : "Couldn't connect to ENAC/EPFL's config server. Doing with cache values (if any).",
+            "url" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__",
+            "load_cache" : True,
+            "msg" : "Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).",
             "abort" : False,
         },
     ],
@@ -427,6 +432,10 @@ CONFIG_EXTRACT = {
         "smb",
         # test - HTTP port 80
         "http",
+        # test - url download
+        "url",
+        # action if unmet - load the cache (if any)
+        "load_cache",
         # action if unmet - message
         "msg",
         # action if unmet - exit
@@ -473,6 +482,7 @@ CONFIG_EXTRACT = {
 BOOL_CONFIG = {
     "require" : {
         "abort" : True,
+        "load_cache" : True,
     },
     "global" : {
         "open" : True,
@@ -619,6 +629,16 @@ def ping_http(server):
         sock = socket.create_connection((server, port), timeout)
         sock.close()
     except:
+        return False
+    return True
+
+def ping_url(url):
+    try:
+        with MyTimeout(URL_TIMEOUT):
+            f = urllib.urlopen(url)
+        if f.code != 200:
+            return False
+    except (IOError, MyTimeout):
         return False
     return True
 
@@ -1652,6 +1672,11 @@ class Config(object):
         # For substitution purpose
         self.load(CONFIG_SAVE)
         self.already_loaded = set()
+        
+        # Cache
+        self.load_cache_flag = False
+        self.cache_loaded = False
+        self.cache_save_forbidden = False
     
     def load(self, src): # TODO : If globals occurs after mount section ... then it is not taken into account!
         def conclude_section(section_name, data):
@@ -1707,9 +1732,11 @@ class Config(object):
                         f = urllib.urlopen(src)
                     if f.code != 200:
                         io.write("Warning. Could not load url %s" % src)
+                        self.cache_save_forbidden = True
                         return
                 except (IOError, MyTimeout):
                     io.write("Warning. Could not load url %s" % src)
+                    self.cache_save_forbidden = True
                     return
             else:
                 try:
@@ -1838,6 +1865,14 @@ class Config(object):
                 
                 if VERBOSE: io.write("done")
     
+    def load_cache(self):
+        self.cache_save_forbidden = True
+        io.write("load cache ... ", eol = "")
+        self.load(CONFIG_CACHE_FILE)
+        io.write("done.")
+        self.load_cache_flag = False
+        self.cache_loaded = True
+    
     def consolidate(self):
         for m_name in self.mounts:
             method_name = self.mounts[m_name].get("method") or self.globals.get("method", {}).get("value")
@@ -1865,34 +1900,58 @@ class Config(object):
                 if len(self.list_subst_labels(req["ping"], blocking = True)) != 0:
                     return # in case not able to do the check right now...
                 if not ping(self.substitued(req["ping"])):
-                    ui.show_msg(
-                        "Requirement check :",
-                        req.get("msg", "ping %s failed" % self.substitued(req["ping"])),
-                        get_exit_status(req)
-                    )
+                    if req.get("msg") != None:
+                        ui.show_msg(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
             if req.get("smb"):
                 if len(self.list_subst_labels(req["smb"], blocking = True)) != 0:
                     return # in case not able to do the check right now...
                 if not ping_smb(self.substitued(req["smb"])):
-                    ui.show_msg(
-                        "Requirement check :",
-                        req.get("msg", "smb ping %s failed" % self.substitued(req["smb"])),
-                        get_exit_status(req)
-                    )
+                    if req.get("msg") != None:
+                        ui.show_msg(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
             if req.get("http"):
                 if len(self.list_subst_labels(req["http"], blocking = True)) != 0:
                     return # in case not able to do the check right now...
                 if not ping_http(self.substitued(req["http"])):
-                    ui.show_msg(
-                        "Requirement check :",
-                        req.get("msg", "http ping %s failed" % self.substitued(req["http"])),
-                        get_exit_status(req)
-                    )
+                    if req.get("msg") != None:
+                        ui.show_msg(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
+            if req.get("url"):
+                if len(self.list_subst_labels(req["url"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping_url(self.substitued(req["url"])):
+                    if req.get("msg") != None:
+                        ui.show_msg(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
             req["done"] = True
     
     def check_prerequisites(self, ui):
         for req in self.require:
             self.check_prerequisite(req, ui)
+        if self.load_cache_flag and not self.cache_loaded:
+            self.load_cache()
+            self.check_prerequisites(ui)
     
     def require_list(self, done = None):
         return [\
@@ -1904,7 +1963,7 @@ class Config(object):
     def require_list_missing_subst(self, req, blocking = False, only_first_level = False):
         list_s = []
         if not req.get("done"):
-            val = req.get("ping", req.get("smb", req.get("http", "")))
+            val = req.get("ping", req.get("smb", req.get("http", req.get("url", ""))))
             list_s = self.list_subst_labels(val, blocking = blocking)
         if only_first_level:
             return self.subst_filter_first_level(list_s)
@@ -2140,7 +2199,7 @@ class Config(object):
             value = re.sub(subst, self.subst[subst]["value"], value)
         return value
     
-    def save_if_needed(self, filename, force = False):
+    def save_if_needed(self, filename, force = False, is_cache = False):
         for subst in self.subst:
             if self.subst[subst].get("need_to_save"):
                 force = True
@@ -2157,7 +2216,20 @@ class Config(object):
         # Globals
         first = True
         for k in self.globals:
-            if filename in self.globals[k]["src"]:
+            sources = self.globals[k]["src"].copy()
+            save_it = False
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
                 if first:
                     f.write("[global]\n")
                     first = False
@@ -2166,20 +2238,29 @@ class Config(object):
             f.write("\n\n")
         
         # Config
-        first = True
-        for loc in self.dyn_imports:
-            if filename in loc["src"]:
-                if first:
-                    f.write("[config]\n")
-                    first = False
-                f.write("import = %s\n" % loc["l"])
-        if not first:
-            f.write("\n\n")
+        if not is_cache:
+            first = True
+            for loc in self.dyn_imports:
+                if filename in loc["src"]:
+                    if first:
+                        f.write("[config]\n")
+                        first = False
+                    f.write("import = %s\n" % loc["l"])
+            if not first:
+                f.write("\n\n")
         
         # Requirements
         have_one = False
         for req in self.require:
-            if req.get("src") == filename:
+            save_it = False
+            source = req.get("src")
+            if is_cache:
+                if not source in CONFIG_CACHE_SRC_FILTER:
+                    save_it = True
+            else:
+                if filename == source:
+                    save_it = True
+            if save_it:
                 have_one = True
                 f.write("[require]\n")
                 for k, v in req.iteritems():
@@ -2192,8 +2273,21 @@ class Config(object):
         # Substitutions
         have_one = False
         for subst in sorted(self.subst, key=lambda i: self.subst[i]["id"]):
-            if self.subst[subst].get("need_to_save") or \
-               filename in self.subst[subst]["src"]:
+            save_it = False
+            sources = self.subst[subst]["src"].copy()
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if self.subst[subst].get("need_to_save") or \
+                   filename in sources:
+                    save_it = True
+            if save_it:
                 have_one = True
                 f.write("[substitution]\n")
                 f.write("%s = %s\n" % (CONFIG_EXTRACT["substitution"]["key"], subst))
@@ -2208,7 +2302,20 @@ class Config(object):
         # Mounts
         have_one = False
         for m_name in sorted(self.mounts, key=lambda i: self.mounts[i]["id"]):
-            if filename in self.mounts[m_name]["src"]:
+            save_it = False
+            sources = self.mounts[m_name]["src"].copy()
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
                 have_one = True
                 f.write("[mount]\n")
                 f.write("%s = %s\n" % (CONFIG_EXTRACT["mount"]["key"], m_name))
@@ -2222,7 +2329,11 @@ class Config(object):
 
         # 
         f.close()
-        
+    
+    def save_cache(self):
+        if not self.cache_save_forbidden:
+            self.save_if_needed(CONFIG_CACHE_FILE, force = True, is_cache = True)
+    
     def pprint(self):
         with io.write_section("\n" + "-" * 80):
             with io.write_section("Globals :"):
@@ -2974,6 +3085,7 @@ Mount filers (rev. %s)
     
     def exit(self, exit_status = 0, msg = None):
         self.config.save_if_needed(CONFIG_SAVE)
+        self.config.save_cache()
         
         io.wipe_pwds()
         
