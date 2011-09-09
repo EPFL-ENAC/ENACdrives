@@ -21,9 +21,11 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
-
-REVISION = "0.3.7 2011.09.08 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.7"
+REVISION = "0.3.8 2011.09.09 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.8"
+# added InputCache to cache url and files reading
+# 
+# REVISION = "0.3.7 2011.09.08 (EPFL/ENAC-IT SB)"
 # added check http (port 80) in requirements
 # added check_url in requirements
 # added config cache feature (in case config server is down)
@@ -46,8 +48,7 @@ SHORT_REVISION = "0.3.7"
 # lowercase case insensitive parameters for CIFS mount
 # GUI_Entry better <ENTER> management & automatique focus
 # 
-#REVISION = "0.3.2 2011.06.07 (EPFL/ENAC-IT SB)"
-#
+# REVISION = "0.3.2 2011.06.07 (EPFL/ENAC-IT SB)"
 # Entry "OK" anchor to WEST when multi-value
 # --help output enhanced
 # ui.exit() : (save_if_needed also done when require instruction not met)
@@ -55,10 +56,10 @@ SHORT_REVISION = "0.3.7"
 # Exception in thread Thread-1 raised during interpreter shutdown
 # require is evaluated at every step of import process
 # 
-#REVISION = "0.3.1 2011.06.01 (EPFL/ENAC-IT SB)"
+# REVISION = "0.3.1 2011.06.01 (EPFL/ENAC-IT SB)"
 # Fixed in some case script tried to save in /etc/mount_filers.conf
 # 
-#REVISION = "0.3.0 2011.05.26 (EPFL/ENAC-IT SB)"
+# REVISION = "0.3.0 2011.05.26 (EPFL/ENAC-IT SB)"
 # Implements multi-value choice from substitution via url/url_saved
 # added iocharset=utf8 to mount.cifs_options (forgot...)
 # added [require] sections management (aim : check connection possibility to server at startup)
@@ -66,30 +67,30 @@ SHORT_REVISION = "0.3.7"
 # added default subst __MNT_DIR__ to switch OSX->/Volumes LNX->~/Desktop
 # added CLI argument --subst=__LABEL__:value
 # 
-#REVISION = "0.2.0 2011.05.12 (ENAC-IT SB)"
+# REVISION = "0.2.0 2011.05.12 (ENAC-IT SB)"
 # Implements Dynamic config sources
 # rewriten class Config for stronger structure (and dynamic config support)
 # rewriten class UI for dynamic config support
 # removed CONFIG_IMPORT
 # 
-#REVISION = "0.1.4 2011.04.28 (ENAC-IT SB)"
+# REVISION = "0.1.4 2011.04.28 (ENAC-IT SB)"
 # Added OS_Switch (dependencies in function of OS)
 # implements Desktop path (depends on OS)
 # gvfs_smb cache correction
 # 
-#REVISION = "0.1.3 2011.04.27 (ENAC-IT SB)"
+# REVISION = "0.1.3 2011.04.27 (ENAC-IT SB)"
 # Redefined parameters name (from config files)
 # Improved GUI
 # Require Python >= 2.6
 # 
-#REVISION = "0.1.2 2011.04.18 (ENAC-IT SB)"
+# REVISION = "0.1.2 2011.04.18 (ENAC-IT SB)"
 # implement basic GUI with Tkinter
 # 
-#REVISION = "0.1.1 2011.04.14 (ENAC-IT SB)"
+# REVISION = "0.1.1 2011.04.14 (ENAC-IT SB)"
 # Ask all subsitutions questions at the beginning 
 # Better management of IO (added potential sections)
 #
-#REVISION = "0.1.0 2011.04.13 (ENAC-IT SB)"
+# REVISION = "0.1.0 2011.04.13 (ENAC-IT SB)"
 # Implements auth_realm to ask the minimum of time the password (pexpect)
 # Implements nice display (with indentation)
 # Implements --import config from a default url CONFIG_IMPORT
@@ -101,11 +102,11 @@ SHORT_REVISION = "0.3.7"
 # manages pre-requisites
 # beter documentation in config file
 #
-#REVISION = "0.0.2 2011.03.28 (ENAC-IT SB)"
+# REVISION = "0.0.2 2011.03.28 (ENAC-IT SB)"
 # first release
 # supported method : mount.cifs
 #
-#REVISION = "0.0.1 2011.03.14 (ENAC-IT SB)"
+# REVISION = "0.0.1 2011.03.14 (ENAC-IT SB)"
 # Tmp release (all by hand, no dynamic)
 #
 
@@ -114,8 +115,6 @@ SHORT_REVISION = "0.3.7"
 # - methods :
 #   - NFSv3
 #   - SSHFS
-# 
-# - url-caching
 # 
 # new GUI with pyGTK? PyQt? PySide? other?
 
@@ -198,7 +197,7 @@ CONFIG_CACHE_SRC_FILTER = ["CONSTANTS"]
 CONFIG_CACHE_SRC_FILTER.extend([c["path"] for c in CONFIG_FILES])
 
 DOC_CONFIG = """\
-# Bancal Samuel
+# mount_filers
 # %s
 # 
 # mount_filers.conf
@@ -633,14 +632,8 @@ def ping_http(server):
     return True
 
 def ping_url(url):
-    try:
-        with MyTimeout(URL_TIMEOUT):
-            f = urllib.urlopen(url)
-        if f.code != 200:
-            return False
-    except (IOError, MyTimeout):
-        return False
-    return True
+    success = input_cache.load(url)[1]
+    return success
 
 class IO(object):
     def __init__(self):
@@ -912,6 +905,46 @@ class MyTimeout(Exception):
         else:
             return "Timeout of %s seconds" % self.timeout
 
+class InputCache(object):
+    class ContentCache(object):
+        def __init__(self, fh):
+            self.lines = fh.readlines()
+        
+        def readlines(self):
+            return self.lines
+    
+    def __init__(self):
+        self.cache = {}
+    
+    def load(self, src):
+        if self.cache.get(src):
+            return self.cache[src]
+        
+        success = True
+        if src[:4] == "http":
+            try:
+                with MyTimeout(URL_TIMEOUT):
+                    fh = urllib.urlopen(src)
+                if fh.code != 200:
+                    io.write("Warning. Could not load url %s" % src)
+                    success = False
+            except (IOError, MyTimeout):
+                io.write("Warning. Could not load url %s" % src)
+                success = False
+        else:
+            try:
+                fh = open(src, "rU")
+            except IOError:
+                success = False
+        
+        if not success:
+            fh = open("/dev/null", "rU")
+        return self.cache.setdefault(
+            src,
+            (InputCache.ContentCache(fh), success)
+        )
+
+input_cache = InputCache()
 
 os_switch = OS_Switch()
 CONFIG_DEFAULTS["substitution"]["__DESKTOP__"]["value"] = os_switch.get_desktop_folder()
@@ -1726,24 +1759,11 @@ class Config(object):
             self.already_loaded.add(src)
             
             if VERBOSE: io.write("\nParsing %s ... " % src, eol="")
-            if src[:4] == "http":
-                try:
-                    with MyTimeout(URL_TIMEOUT):
-                        f = urllib.urlopen(src)
-                    if f.code != 200:
-                        io.write("Warning. Could not load url %s" % src)
-                        self.cache_save_forbidden = True
-                        return
-                except (IOError, MyTimeout):
-                    io.write("Warning. Could not load url %s" % src)
+            f, success = input_cache.load(src)
+            if not success:
+                if src[:4] == "http":
                     self.cache_save_forbidden = True
-                    return
-            else:
-                try:
-                    f = open(src, "rU")
-                except IOError:
-                    if VERBOSE: io.write("nothing")
-                    return
+                return
             
             num_line = 0
             section_name = ""
@@ -1806,7 +1826,6 @@ class Config(object):
             if section_name in ("mount", "substitution"):
                 conclude_section(section_name, data)
             
-            f.close()
             if VERBOSE: io.write("done")
         
         elif type(src) == type({}): # CONSTANTS
@@ -2135,33 +2154,25 @@ class Config(object):
             if len(dependencies) != 0:
                 return
             src = self.substitued(src)
-            try:
-                with MyTimeout(URL_TIMEOUT):
-                    f = urllib.urlopen(src) # TODO : url_cached ...
-                if f.code == 200:
-                    value = f.read()
-                    multi_value = value.split("\n")
-                    try:
-                        while True:
-                            multi_value.remove("")
-                    except ValueError:
-                        pass
-
-                    if not no_ask and len(multi_value) != 1:
-                        question = self.subst_get_question(subst)
-                        question += "\nSuggested answers are :\n- "
-                        question += "\n- ".join(multi_value)
-                        question += "\nPlease choose : "
-                        value = io.read(question)
-                        force_save = True
-                    if self.subst[subst].get("url_saved") or \
-                       force_save:
-                        self.subst_filled(subst, value)
-                    else:
-                        self.subst_filled(subst, value, save = False)
-                    return
-            except (IOError, MyTimeout):
-                io.write("Warning. Could not load url %s" % src)
+            
+            f, success = input_cache.load(src)
+            if success:
+                multi_value = [val.strip() for val in f.readlines()]
+                value = "\n".join(multi_value)
+                if not no_ask and len(multi_value) != 1:
+                    question = self.subst_get_question(subst)
+                    question += "\nSuggested answers are :\n- "
+                    question += "\n- ".join(multi_value)
+                    question += "\nPlease choose : "
+                    value = io.read(question)
+                    force_save = True
+                if self.subst[subst].get("url_saved") or \
+                   force_save:
+                    self.subst_filled(subst, value)
+                else:
+                    self.subst_filled(subst, value, save = False)
+                return
+            
         if no_ask:
             return
         if self.subst[subst].get("ask"):
