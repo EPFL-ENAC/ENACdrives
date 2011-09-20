@@ -21,6 +21,8 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
+# GUI help instruction : "Click on the desired line to mount/unmount"
+#   or "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator"
 REVISION = "0.3.8 2011.09.09 (EPFL/ENAC-IT SB)"
 SHORT_REVISION = "0.3.8"
 # added InputCache to cache url and files reading
@@ -120,6 +122,9 @@ SHORT_REVISION = "0.3.8"
 
 # TODO : change paradygm :
 #        sequential / Tk -> tasks & state machine
+
+# TODO :
+# - GUI mode : Add a timeout callback to watch mount status
 
 
 import os, sys
@@ -504,7 +509,12 @@ DEFAULT_METHODS = {
 
 URL_TIMEOUT = 1 # seconds
 
-VERBOSE = False # by default. can be changed with -v argument
+VERBOSE = False # default. can be changed with -v argument
+
+# GUI Messages
+MSG_NO_MOUNT_CONFIGURED = "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator."
+# MSG_NO_MOUNT_IN_CACHE = "No mount available in cache ..."
+MSG_CLICK_TO_MOUNT = "Click on the desired line to mount/unmount."
 
 # EPFL footprint!
 import atexit
@@ -2942,9 +2952,23 @@ Mount filers (rev. %s)
             "f" : f,
         }
         
-        # Frame for Mounts
+        # frame for instruction help
         f = Frame(self.main_frame)
         f.grid(row = 2, column = 0)
+        label = Label(
+            f,
+            text = MSG_NO_MOUNT_CONFIGURED,
+            wraplength = 280,
+        )
+        label.grid(row = 0, column = 0, sticky = N+E+S+W)
+        self.help_instruction = {
+            "f" : f,
+            "label" : label,
+        }
+        
+        # Frame for Mounts
+        f = Frame(self.main_frame)
+        f.grid(row = 3, column = 0)
         self.gui_mounts = {
             "f" : f,
             "list" : [],
@@ -3048,6 +3072,8 @@ Mount filers (rev. %s)
         )
         
         gui_mount.grid(num_row = self.config.get(m_name, "id"), num_col = 0)
+        
+        self.help_instruction["label"].config(text = MSG_CLICK_TO_MOUNT)
     
     def show_msg(self, label, msg, exit_status = None):
         if self.is_gui:
