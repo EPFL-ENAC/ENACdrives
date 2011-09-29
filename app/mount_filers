@@ -21,10 +21,14 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
+REVISION = "0.3.9 2011.09.29 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.3.9"
+# cache usage is transparent
+# config file : /etc/mounts_filers.conf -> /etc/mount_filers.conf
 # GUI help instruction : "Click on the desired line to mount/unmount"
 #   or "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator"
-REVISION = "0.3.8 2011.09.09 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.8"
+#
+# REVISION = "0.3.8 2011.09.09 (EPFL/ENAC-IT SB)"
 # added InputCache to cache url and files reading
 # 
 # REVISION = "0.3.7 2011.09.08 (EPFL/ENAC-IT SB)"
@@ -124,7 +128,9 @@ SHORT_REVISION = "0.3.8"
 #        sequential / Tk -> tasks & state machine
 
 # TODO :
-# - GUI mode : Add a timeout callback to watch mount status
+# - GUI mode : Add a timeout callback to watch mount status (problem : gvfs is so slow!)
+# - substitution validation url (ok | error message)
+# - header with label, condition, reset, abort
 
 
 import os, sys
@@ -188,7 +194,7 @@ HOME_DIR = os.path.expanduser("~")
 
 CONFIG_FILES = [
     {
-        "path" : "/etc/mounts_filers.conf",
+        "path" : "/etc/mount_filers.conf",
         "description" : "System wide config file",
     },
     {
@@ -340,6 +346,7 @@ CONFIG_DEFAULTS = {
     "require" : [
     ],
     "substitution" : {
+        "__VERSION__" : { "value" : SHORT_REVISION },
         "__LOCAL_USERNAME__" : { "value" : LOCAL_USERNAME },
         "__LOCAL_GROUPNAME__" : { "value" : LOCAL_GROUPNAME },
         "__HOME__" : { "value" : HOME_DIR },
@@ -370,7 +377,7 @@ EPFL_CONFIG = {
         {
             "url" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__",
             "load_cache" : True,
-            "msg" : "Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).",
+            # "msg" : "Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).",
             "abort" : False,
         },
     ],
@@ -809,7 +816,7 @@ class OS_Switch(object):
     #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
     """
     def __init__(self):
-        platform.linux_distribution()
+        #platform.linux_distribution()
         self.os = platform.system()
         if self.os == "Linux":
             self.distrib, self.version = platform.linux_distribution()[:2]
@@ -1896,9 +1903,9 @@ class Config(object):
     
     def load_cache(self):
         self.cache_save_forbidden = True
-        io.write("load cache ... ", eol = "")
+        #io.write("load cache ... ", eol = "")
         self.load(CONFIG_CACHE_FILE)
-        io.write("done.")
+        #io.write("done.")
         self.load_cache_flag = False
         self.cache_loaded = True
     
@@ -2228,7 +2235,8 @@ class Config(object):
         if not force:
             if VERBOSE: io.write("No need to save")
             return
-        io.write("Saving to %s" % filename)
+        if VERBOSE:
+            io.write("Saving to %s" % filename)
         f = open(filename, "w")
         
         # Documentation
@@ -2557,17 +2565,21 @@ Af8vgYIlIQA7"""
         )
         self.b.grid(row = 0, column = 2, sticky = N+E+S)
         
+        self.gui_state = None
         self.apply_state()
     
     def apply_state(self):
-        if self.mount.is_mounted():
+        mounted = self.mount.is_mounted()
+        if mounted and self.gui_state != True:
             self.canvas.delete(ALL)
             self.canvas.create_image(8, 8, image=self.green_img)
             self.b.config(state = "normal")
-        else:
+            self.gui_state = True
+        elif not mounted and self.gui_state != False:
             self.canvas.delete(ALL)
             self.canvas.create_image(8, 8, image=self.red_img)
             self.b.config(state = "disabled")
+            self.gui_state = False
     
     def __browse_button_pressed__(self):
         self.mount.open()
@@ -3072,6 +3084,7 @@ Mount filers (rev. %s)
         )
         
         gui_mount.grid(num_row = self.config.get(m_name, "id"), num_col = 0)
+        self.gui_mounts["list"].append(gui_mount)
         
         self.help_instruction["label"].config(text = MSG_CLICK_TO_MOUNT)
     
