@@ -21,8 +21,15 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
-REVISION = "0.3.9 2011.09.29 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.3.9"
+REVISION = "0.4.0 2011.10.11 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.0"
+# added message with label, rank, condition, reset, abort to be displayed
+# as a header. Gives the ability to reset some parameters (substitutions).
+# added substitution's validate instruction (to check user's input)
+# strict parsing of local files (/etc/mount_filers.conf & ~/.mount_filers.conf)
+#   and just warning when parsing other (e.g. http configs)
+# 
+# REVISION = "0.3.9 2011.09.29 (EPFL/ENAC-IT SB)"
 # cache usage is transparent
 # config file : /etc/mounts_filers.conf -> /etc/mount_filers.conf
 # GUI help instruction : "Click on the desired line to mount/unmount"
@@ -121,6 +128,7 @@ SHORT_REVISION = "0.3.9"
 # - methods :
 #   - NFSv3
 #   - SSHFS
+#   - WebDAV
 # 
 # new GUI with pyGTK? PyQt? PySide? other?
 
@@ -129,8 +137,6 @@ SHORT_REVISION = "0.3.9"
 
 # TODO :
 # - GUI mode : Add a timeout callback to watch mount status (problem : gvfs is so slow!)
-# - substitution validation url (ok | error message)
-# - header with label, condition, reset, abort
 
 
 import os, sys
@@ -217,12 +223,13 @@ DOC_CONFIG = """\
 # 
 # Config file for mount_filers
 # 
-# 5 categories of sections are expected :
+# 6 categories of sections are expected :
 #   [global]
 #   [config]
 #   [require]
 #   [substitution]
 #   [mount]
+#   [message]
 # 
 # [global]
 #   This section describes settings that will be used for all mount
@@ -266,7 +273,7 @@ DOC_CONFIG = """\
 #   Fields concerning action taken when the test is not positive
 #     load_cache : loads config from cache, if any (default False).
 #     msg        : message to display
-#     abort      : wheter or not exit the application
+#     abort      : whether or not exit the application
 # 
 # [substitution]
 #   This section describes a substitution that will be performed at run
@@ -285,6 +292,11 @@ DOC_CONFIG = """\
 #                  then ask this question to the user
 #     constraint : force the value to follow this constraint
 #                  can be : lowercase, uppercase
+#     validate   : url to be used to validate what the user typed. The 
+#                  value is concatenated to that url. The answers are :
+#                  "ok" means ok.
+#                  "anything else" means not ok. That message is shown
+#                  to the user.
 # 
 # [mount]
 #   This section describes one mount instruction. The fields necessary
@@ -324,6 +336,18 @@ DOC_CONFIG = """\
 #                    "local_path" afer mount (default : True)
 #     local_path : the location where the mount will be made available
 #                  via a symlink (only when gvfs_symlink is set to True)
+# 
+# [message]
+#   This section describes one message that is displayed to the user.
+#   
+#   Fields :
+#     label     : what is displayed
+#     condition : what has to be met to display this message (e.g.
+#                 __VERSION__ < 0.4.0)
+#     reset     : enables a button to reset one substitution value (can
+#                 be repeated)
+#     abort     : enables a "quit" button
+#     rank      : to order different messages
 
 
 """ % (
@@ -359,54 +383,9 @@ CONFIG_DEFAULTS = {
 
 # EPFL footprint!
 EPFL_CONFIG = {
-    "global" : {
-        "method" : "smb",
-        "username" : "__USERNAME__",
-        "domain" : "__DOMAIN__",
-        "auth_realm" : "EPFL",
-    },
     "config" : [
-        { "import" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__" },
+        { "import" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?version=__VERSION__" },
     ],
-    "require" : [
-        {
-            "smb" : "files1.epfl.ch",
-            "msg" : "Couldn't connect to EPFL's filer. Please check that you're connected to the network and using a VPN client if outside the EPFL.",
-            "abort" : True,
-        },
-        {
-            "url" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__",
-            "load_cache" : True,
-            # "msg" : "Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).",
-            "abort" : False,
-        },
-    ],
-    "substitution" : {
-        "__USERNAME__" :
-            {
-            "ask" : "Enter your EPFL username :",
-            "constraint" : "lowercase",
-            },
-        "__DOMAIN__" :
-            {
-            "ask" : "Enter your EPFL ActiveDirectory domain :",
-            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/domain?username=__USERNAME__",
-            "constraint" : "lowercase",
-            },
-        "__LABO__" :
-            {
-            "ask" : "Enter your EPFL labo :",
-            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/labo?username=__USERNAME__",
-            "constraint" : "lowercase",
-            },
-        "__SCIPER__" :
-            {
-            "ask" : "Enter the last digit of your SCIPER number (0-9) :",
-            "url_saved" : "http://enacit1adm1.epfl.ch/mount_filers/dir/sciper?username=__USERNAME__",
-            },
-    },
-    "mount" : {
-    },
 }
 # /EPFL footprint!
 
@@ -465,6 +444,8 @@ CONFIG_EXTRACT = {
             "ask",
            # what is the constraint (lowercase, uppercase)
             "constraint",
+           # an url to be used to validate what the user typed
+            "validate",
         ],
     },
     "mount" : {
@@ -488,6 +469,18 @@ CONFIG_EXTRACT = {
             "gvfs_symlink",
         ]
     },
+    "message" : [
+        # message output to be displayed
+        "label",
+        # condition to be met to display it
+        "condition",
+        # what position
+        "rank",
+        # enables reset button to clear some substitution parameters
+        "reset",
+        # enables abort button
+        "abort",
+    ]
 }
 
 BOOL_CONFIG = {
@@ -503,6 +496,9 @@ BOOL_CONFIG = {
         "open" : True,
         "gvfs_symlink" : True,
     },
+    "message" : {
+        "abort" : True,
+    }
 }
 
 DEFAULT_METHODS = {
@@ -960,6 +956,12 @@ class InputCache(object):
             src,
             (InputCache.ContentCache(fh), success)
         )
+    
+    def invalidate(self, src):
+        try:
+            del(self.cache[src])
+        except KeyError:
+            pass
 
 input_cache = InputCache()
 
@@ -1718,6 +1720,7 @@ class Config(object):
         self.dyn_imports = []
         self.already_loaded = set()
         self.subst_filled_callbacks = []
+        self.messages = []
         
         # For substitution purpose
         self.load(CONFIG_SAVE)
@@ -1728,7 +1731,10 @@ class Config(object):
         self.cache_loaded = False
         self.cache_save_forbidden = False
     
-    def load(self, src): # TODO : If globals occurs after mount section ... then it is not taken into account!
+    def clear(self):
+        self.__init__()
+    
+    def load(self, src):
         def conclude_section(section_name, data):
             if section_name == "require":
                 data["src"] = src
@@ -1765,12 +1771,40 @@ class Config(object):
                 self.subst[key].setdefault("src", set())
                 self.subst[key]["src"].add(src)
                 self.subst[key].setdefault("id", len(self.subst) - 1)
+            
+            elif section_name == "message":
+                if not data.get("label"):
+                    io.write("Error, message section without \"label\" option. Line %s of %s" % (num_line, src))
+                    sys.exit(1)
+                found = False
+                for m in self.messages:
+                    if data["label"] == m["label"]:
+                        found = True
+                        for k in data.iterkeys():
+                            if k == "reset":
+                                m.setdefault(k, [])
+                                for elem in data[k]:
+                                    if not elem in m[k]:
+                                        m[k].append(elem)
+                            else:
+                                m[k] = data[k]
+                        m["src"].add(src)
+                if not found:
+                    data.setdefault("src", set())
+                    data["src"].add(src)
+                    self.messages.append(data)
         
         def to_bool(value):
-            value = value.lower()
-            return value in ("yes", "y", "true", "1", "on")
+            if type(value) == type(""):
+                value = value.lower()
+            return value in ("yes", "y", "true", "1", "on", 1)
         
         if type(src) == type(""): # filename or url
+            if src in [c["path"] for c in CONFIG_FILES]:
+                strict_parsing = True
+            else:
+                strict_parsing = False
+            
             if src in self.already_loaded:
                 return
             self.already_loaded.add(src)
@@ -1796,19 +1830,27 @@ class Config(object):
                 m = re.match(r'\[\s*(\S+)\s*\]', line)
                 if m:
                     if m.group(1) in CONFIG_EXTRACT.keys():
-                        if section_name in ("require", "mount", "substitution"):
+                        if section_name in ("require", "mount", "substitution", "message"):
                             conclude_section(section_name, data)
                         section_name = m.group(1)
                         data = {}
                     else:
-                        io.write("Error. Unknown section %s" % m.group(1))
-                        sys.exit(1)
+                        if strict_parsing:
+                            io.write("Error. Unknown section %s" % m.group(1))
+                            sys.exit(1)
+                        else:
+                            io.write("Warning. Unknown section %s" % m.group(1))
+                            section_name = ""
                     continue
                 
                 m = re.match(r'(\S+)\s*[=:]\s*(\S.*)$', line)
                 if not m:
-                    io.write("Error. Unrecognized line %d of %s" % (num_line, src))
-                    sys.exit(1)
+                    if strict_parsing:
+                        io.write("Error. Unrecognized line %d of %s" % (num_line, src))
+                        sys.exit(1)
+                    else:
+                        io.write("Warning. Unrecognized line %d of %s" % (num_line, src))
+                        continue
                 key = m.group(1)
                 value = m.group(2)
                 if BOOL_CONFIG.get(section_name, {}).get(key, False):
@@ -1838,9 +1880,17 @@ class Config(object):
                         io.write("Skipping %s at line %d of %s" % (key, num_line, src))
                         continue
                     self.dyn_import_add(value, src)
-            
+                elif section_name == "message":
+                    if key not in CONFIG_EXTRACT[section_name]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    if key == "reset":
+                        data.setdefault(key, []).append(value)
+                    else:
+                        data[key] = value
+                    
             # Finaly conclude what has been started
-            if section_name in ("mount", "substitution"):
+            if section_name in ("require", "mount", "substitution", "message"):
                 conclude_section(section_name, data)
             
             if VERBOSE: io.write("done")
@@ -1864,8 +1914,9 @@ class Config(object):
                         if not k in CONFIG_EXTRACT["require"]:
                             io.write("Error. %s option not recognized from constants" % k)
                             sys.exit(1)
-                    req["src"] = "CONSTANTS"
-                    self.require.append(req)
+                    r = req.copy()
+                    r["src"] = "CONSTANTS"
+                    self.require.append(r)
                 
                 for m_name in src.get("mount", {}):
                     key = src["mount"][m_name].get(CONFIG_EXTRACT["mount"]["key"])
@@ -1875,7 +1926,7 @@ class Config(object):
                     self.mounts.setdefault(key, {})
                     self.mounts[key].setdefault("id", len(self.mounts) - 1)
                     self.mounts[key].setdefault("src", set())
-                    self.moutns[key]["src"].add("CONSTANTS")
+                    self.mounts[key]["src"].add("CONSTANTS")
                     for k, v in src["mount"][m_name].iteritems():
                         self.mounts[key][k] = v
                 
@@ -1898,6 +1949,14 @@ class Config(object):
                 for cfg in src.get("config", []):
                     if cfg.get("import"):
                         self.dyn_import_add(cfg["import"], "CONSTANTS")
+                
+                for msg in src.get("message", []):
+                    for k in BOOL_CONFIG.get("message", {}).iterkeys():
+                        if msg.get(k) != None:
+                            msg[k] = to_bool(msg[k])
+                    msg.setdefault("src", set())
+                    msg["src"].add("CONSTANTS")
+                    self.messages.append(msg.copy())
                 
                 if VERBOSE: io.write("done")
     
@@ -1937,7 +1996,7 @@ class Config(object):
                     return # in case not able to do the check right now...
                 if not ping(self.substitued(req["ping"])):
                     if req.get("msg") != None:
-                        ui.show_msg(
+                        ui.show_notification(
                             "Requirement check :",
                             req["msg"],
                             get_exit_status(req)
@@ -1949,7 +2008,7 @@ class Config(object):
                     return # in case not able to do the check right now...
                 if not ping_smb(self.substitued(req["smb"])):
                     if req.get("msg") != None:
-                        ui.show_msg(
+                        ui.show_notification(
                             "Requirement check :",
                             req["msg"],
                             get_exit_status(req)
@@ -1961,7 +2020,7 @@ class Config(object):
                     return # in case not able to do the check right now...
                 if not ping_http(self.substitued(req["http"])):
                     if req.get("msg") != None:
-                        ui.show_msg(
+                        ui.show_notification(
                             "Requirement check :",
                             req["msg"],
                             get_exit_status(req)
@@ -1973,7 +2032,7 @@ class Config(object):
                     return # in case not able to do the check right now...
                 if not ping_url(self.substitued(req["url"])):
                     if req.get("msg") != None:
-                        ui.show_msg(
+                        ui.show_notification(
                             "Requirement check :",
                             req["msg"],
                             get_exit_status(req)
@@ -2153,6 +2212,9 @@ class Config(object):
     def subst_get_multi_value(self, subst):
         return self.subst.get(subst, {}).get("multi_value", [])
     
+    def subst_get_validate_url(self, subst):
+        return self.subst[subst].get("validate", "")
+    
     def subst_solve(self, subst, no_ask = False):
         force_save = False
         if not self.subst.get(subst):
@@ -2193,7 +2255,16 @@ class Config(object):
         if no_ask:
             return
         if self.subst[subst].get("ask"):
-            value = io.read(self.subst_get_question(subst))
+            success = False
+            error_msg = ""
+            while not success:
+                value = io.read(error_msg + self.subst_get_question(subst))
+                validation_url = self.subst[subst].get("validate")
+                if validation_url:
+                    success, error_msg = self.subst_validation(validation_url + value)
+                    error_msg += "\n"
+                else:
+                    success = True
             self.subst_filled(subst, value)
         
     def subst_filled(self, subst, value, save = True):
@@ -2219,6 +2290,17 @@ class Config(object):
         
         self.subst_apply_constraints(subst)
     
+    def subst_validation(self, url):
+        f, success = input_cache.load(url)
+        if not success:
+            io.write("Warning, could not validate with %s" % url)
+            return (True, "Could not check, assuming ok.")
+        lines = f.readlines()
+        if lines == ["ok"]:
+            return (True, "")
+        else:
+            return (False, "\n".join(lines))
+    
     def substitued(self, value):
         l_subst = self.list_subst_labels(value)
         for subst in l_subst:
@@ -2226,6 +2308,51 @@ class Config(object):
                 self.subst_solve(subst)
             value = re.sub(subst, self.subst[subst]["value"], value)
         return value
+    
+    def reset_and_save_subst(self, list_subst):
+        for subst in list_subst:
+            if not subst in self.subst:
+                continue
+            try:
+                del(self.subst[subst]["value"])
+            except KeyError:
+                pass
+        self.save_if_needed(CONFIG_SAVE, force = True)
+        try:
+            os.unlink(CONFIG_CACHE_FILE)
+            input_cache.invalidate(CONFIG_CACHE_FILE)
+        except OSError:
+            pass
+        self.clear()
+    
+    def get_messages(self):
+        list_messages = []
+        for mesg in sorted(self.messages, key=lambda m:m.get("rank", "z")):
+            condition = mesg.get("condition", "true")
+            if condition.lower() in ("no", "n", "false", "o", "off"):
+                continue
+            elif condition.lower() not in ("yes", "y", "true", "1", "on"):
+                m = re.search(r'^([^<>=!]+)\s*([<>=!]+)\s*([^<>=!]+)$', condition)
+                if not m:
+                    io.write("Warning, could not evaluate condition \"%s\". Skipping." % (condition))
+                    continue
+                left, criterion, right = m.groups()
+                left = self.substitued(left.strip())
+                right = self.substitued(right.strip())
+                if criterion == "<":
+                    if not left < right:
+                        continue
+                elif criterion == ">":
+                    if not left > right:
+                        continue
+                elif criterion == "==":
+                    if not left == right:
+                        continue
+                elif criterion == "!=":
+                    if not left != right:
+                        continue
+            list_messages.append(mesg)
+        return list_messages
     
     def save_if_needed(self, filename, force = False, is_cache = False):
         for subst in self.subst:
@@ -2266,6 +2393,37 @@ class Config(object):
         if not first:
             f.write("\n\n")
         
+        # Message
+        have_one = False
+        for msg in self.messages:
+            sources = msg["src"].copy()
+            save_it = False
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
+                f.write("[message]\n")
+                have_one = True
+                for k, v in msg.iteritems():
+                    if k not in CONFIG_EXTRACT["message"]:
+                        continue
+                    if k == "reset":
+                        for reset_value in v:
+                            f.write("%s = %s\n" % (k, reset_value))
+                    else:
+                        f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        if have_one:
+            f.write("\n")
+        
         # Config
         if not is_cache:
             first = True
@@ -2296,8 +2454,9 @@ class Config(object):
                     if k in ("src", "done"):
                         continue
                     f.write("%s = %s\n" % (k, v))
+                f.write("\n")
         if have_one:
-            f.write("\n\n")
+            f.write("\n")
         
         # Substitutions
         have_one = False
@@ -2358,6 +2517,8 @@ class Config(object):
 
         # 
         f.close()
+        
+        input_cache.invalidate(filename)
     
     def save_cache(self):
         if not self.cache_save_forbidden:
@@ -2381,13 +2542,17 @@ class Config(object):
                     io.write("sub %d : %s = %s %s" % (self.subst[sub]["id"], sub, self.subst[sub].get("value", ""), need_to_save))
             with io.write_section("Dynamic Config Locations"):
                 io.write(pprint.pformat(self.dyn_imports))
+            with io.write_section("Messages"):
+                io.write(pprint.pformat(self.messages))
 
 class GUI_Entry(object):
-    def __init__(self, frame, label, pre_filled = [], callback = None, cb_params = None, is_pwd = False):
+    def __init__(self, frame, label, pre_filled = [], callback = None, cb_params = None, is_pwd = False, validate_url = ""):
         self.callback = callback
         self.cb_params = cb_params
         value_live = StringVar()
         self.value_entered = StringVar()
+        self.validate_url = validate_url
+        self.label = label
         
         f = LabelFrame(
             frame,
@@ -2464,6 +2629,17 @@ class GUI_Entry(object):
     
     def __entry_filled__(self):
         self.value_entered.set(self.get())
+        if self.validate_url != "":
+            url = self.validate_url + self.get()
+            f, success = input_cache.load(url)
+            if not success:
+                io.write("Warning, could not validate with %s" % url) # assuming ok.
+            else:
+                lines = f.readlines()
+                if lines != ["ok"]:
+                    error_msg = "\n".join(lines) + "\n"
+                    self.f.config(text = error_msg + self.label)
+                    return
         self.is_filled = True
         if self.callback != None:
             self.callback(value = self.get(), **self.cb_params)
@@ -2610,19 +2786,40 @@ Af8vgYIlIQA7"""
         self.f2.grid_remove()
 
 class GUI_Message(object):
-    def __init__(self, ui, frame, label, msg, exit_status = None):
+    def __init__(self, ui, frame, label, msg, reset_subst = None, exit_status = None):
         self.ui = ui
         self.exit_status = exit_status
+        self.reset_subst = reset_subst
         
-        f = LabelFrame(
-            frame,
-            text = label,
-            padx = 10,
-            pady = 10,
-        )
+        import Tkinter
+        
+        if label != None:
+            f = LabelFrame(
+                frame,
+                text = label,
+                padx = 10,
+                pady = 10,
+            )
+        else:
+            f = Frame(
+                frame,
+                padx = 10,
+                pady = 10,
+                borderwidth = 2,
+                relief = Tkinter.RIDGE,
+            )
         
         l = Label(f, text = msg, wraplength = 200)
         l.grid(row = 0, column = 0, sticky = N+E+S+W)
+        
+        if reset_subst != None:
+            b = Button(
+                f,
+                state = "active",
+                text = "reset",
+                command = self.reset_triggered,
+            )
+            b.grid(row = 1, column = 0, sticky = E+S)
         
         if exit_status != None:
             b = Button(
@@ -2631,9 +2828,12 @@ class GUI_Message(object):
                 text = "Ok",
                 command = self.ok_triggered,
             )
-            b.grid(row = 1, column = 0, sticky = E+S)
+            b.grid(row = 2, column = 0, sticky = E+S)
         
         self.f = f
+    
+    def reset_triggered(self):
+        self.ui.reset_subst(self.reset_subst)
     
     def ok_triggered(self):
         if self.exit_status != None:
@@ -2778,7 +2978,13 @@ Mount filers (rev. %s)
             sys.exit()
         
         self.__cli_load_config__()
-        #config.pprint()
+        #~ config.pprint()
+        
+        # Messages
+        messages = config.get_messages()
+        with io.write_potential_section("Messages :"):
+            for mesg in messages:
+                io.write("- %s -" % config.substitued(mesg["label"]))
         
         if options.action == "list":
             io.write("Configured mounts are : %s" % ", ".join(config.list_mounts()))
@@ -2925,14 +3131,18 @@ Mount filers (rev. %s)
     def __gui_run__(self):
         io.redirect_to_gui(self)
         
-        # Make a Window
-        self.root = Tk()
-        self.root.title("Mount Filers")
-        
-        # register to know when GUI is closed (kill the pending mount instruction).
-        self.root.protocol("WM_DELETE_WINDOW", self.on_delete)
-        UI.CLOSE_APPLICATION = False
-        
+        try:
+            self.root
+            self.main_frame.destroy()
+        except AttributeError:
+            # Make a Window
+            self.root = Tk()
+            self.root.title("Mount Filers")
+            
+            # register to know when GUI is closed (kill the pending mount instruction).
+            self.root.protocol("WM_DELETE_WINDOW", self.on_delete)
+            UI.CLOSE_APPLICATION = False
+            
         minimum_sized = Frame(
             self.root,
         )
@@ -2964,9 +3174,16 @@ Mount filers (rev. %s)
             "f" : f,
         }
         
-        # frame for instruction help
+        # Frame for Notifications
         f = Frame(self.main_frame)
         f.grid(row = 2, column = 0)
+        self.gui_notification = {
+            "f" : f,
+        }
+        
+        # frame for instruction help
+        f = Frame(self.main_frame)
+        f.grid(row = 3, column = 0)
         label = Label(
             f,
             text = MSG_NO_MOUNT_CONFIGURED,
@@ -2980,7 +3197,7 @@ Mount filers (rev. %s)
         
         # Frame for Mounts
         f = Frame(self.main_frame)
-        f.grid(row = 3, column = 0)
+        f.grid(row = 4, column = 0)
         self.gui_mounts = {
             "f" : f,
             "list" : [],
@@ -2999,6 +3216,8 @@ Mount filers (rev. %s)
         
         # GUI_Entries, not to ask 2 same question at a time
         self.current_read = {}
+        
+        self.show_messages()
         
         self.root.mainloop()
     
@@ -3025,6 +3244,8 @@ Mount filers (rev. %s)
         self.subst_asked.append(subst)
         
         msg = self.config.subst_get_question(subst)
+        validate_url = self.config.subst_get_validate_url(subst)
+        
         gui_entry = GUI_Entry(
             frame = self.gui_entries["f"],
             label = msg,
@@ -3032,7 +3253,8 @@ Mount filers (rev. %s)
             callback = self.substitution_filled,
             cb_params = {
                 "subst" : subst,
-            }
+            },
+            validate_url = validate_url,
         )
         
         gui_entry.grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
@@ -3060,6 +3282,8 @@ Mount filers (rev. %s)
         for m_name in self.mount_missing_subst.get_the_ready(order_dependency = False):
             self.mount_missing_subst.set_done(m_name)
             self.show_mount(m_name)
+        
+        self.show_messages()
     
     def show_mount(self, m_name):
         if len(self.config.mount_list_missing_subst(m_name)) != 0:
@@ -3070,7 +3294,7 @@ Mount filers (rev. %s)
             m.check_prerequisites()
         except Exception, inst:
             self.all_success = False
-            self.show_msg(
+            self.show_notification(
                 label = self.config.get(m_name, "label"),
                 msg = inst.args[0] + "\nSkipping...",
             )
@@ -3088,23 +3312,47 @@ Mount filers (rev. %s)
         
         self.help_instruction["label"].config(text = MSG_CLICK_TO_MOUNT)
     
-    def show_msg(self, label, msg, exit_status = None):
+    def show_notification(self, label, msg, exit_status = None):
         if self.is_gui:
-            message = GUI_Message(
+            notification = GUI_Message(
                 ui = self,
-                frame = self.gui_messages["f"],
+                frame = self.gui_notification["f"],
                 label = label,
                 msg = msg,
                 exit_status = exit_status,
             )
-            message.grid(num_row = self.gui_messages["f"].grid_size()[1],num_col = 0)
+            notification.grid(num_row = self.gui_notification["f"].grid_size()[1],num_col = 0)
             return
         else:
             with io.write_section(label):
                 io.write(msg)
-        
         if exit_status != None:
             self.exit(exit_status = exit_status)
+    
+    def show_messages(self):
+        if self.is_gui:
+            num_row = -1
+            for mesg in self.config.get_messages():
+                num_row += 1
+                if self.config.list_subst_labels(mesg["label"], blocking = True) == []:
+                    if mesg.get("reset", []) != []:
+                        message = GUI_Message(
+                            ui = self,
+                            frame = self.gui_messages["f"],
+                            label = None,
+                            msg = self.config.substitued(mesg["label"]),
+                            reset_subst = mesg["reset"],
+                        )
+                    else:
+                        message = GUI_Message(
+                            ui = self,
+                            frame = self.gui_messages["f"],
+                            label = None,
+                            msg = self.config.substitued(mesg["label"]),
+                        )
+                    message.grid(num_row = num_row, num_col = 0)
+        else:
+            pass # not intended for this.
     
     def read(self, msg, is_pwd = False, pre_filled = [], auth_realm = None):
         question_id = auth_realm
@@ -3132,6 +3380,11 @@ Mount filers (rev. %s)
     
     def read_pwd(self, msg, auth_realm):
         return self.read(msg, is_pwd = True, auth_realm = auth_realm)
+    
+    def reset_subst(self, list_subst):
+        self.config.reset_and_save_subst(list_subst)
+        self.config.clear()
+        self.__gui_run__()
     
     def exit(self, exit_status = 0, msg = None):
         self.config.save_if_needed(CONFIG_SAVE)

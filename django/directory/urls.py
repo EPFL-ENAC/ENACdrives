@@ -5,11 +5,12 @@ from django.conf.urls.defaults import *
 # admin.autodiscover()
 
 urlpatterns = patterns('mount_filers.directory',
-    (r'^config', 'views.get_config'),
-    (r'^full_config', 'views.get_full_config'),
-    (r'^domain', 'views.get_domain'),
-    (r'^sciper', 'views.get_sciper'),
-    (r'^labo', 'views.get_labos'),
+    url(r'^config', 'views.get_config', name='get_config'),
+    url(r'^full_config', 'views.get_full_config'),
+    url(r'^domain', 'views.get_domain', name='get_domain'),
+    url(r'^sciper', 'views.get_sciper', name='get_sciper'),
+    url(r'^labo', 'views.get_labos'),
+    url(r'^validate', 'views.validate', name='validate'),
     
     # Example:
     # (r'^mount_filers/', include('mount_filers.foo.urls')),

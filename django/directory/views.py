@@ -8,6 +8,7 @@
 #        
 
 from django.http import HttpResponse
+from django.core.urlresolvers import reverse
 
 import re
 import ldap
@@ -26,6 +27,14 @@ class Ldap(object):
             filterstr = l_filter,
             attrlist = l_attrs
         )
+    
+    def is_ldap(self, username):
+        l_attrs = ["uidNumber"]
+        ldap_res = self.read_ldap(
+            l_filter = "uid=%s" % username,
+            l_attrs = l_attrs
+        )
+        return len(ldap_res) != 0
     
     def get_uid_number(self, username):
         l_attrs = ["uidNumber"]
@@ -91,6 +100,22 @@ class Ldap(object):
                 labos.append(l)
         
         return labos
+    
+    def get_full_username(self, username):
+        uid_number = self.get_uid_number(username)
+        if uid_number == None:
+            return ""
+        
+        ldap_res = self.read_ldap(
+            l_filter = "uidNumber=%s" % uid_number,
+            l_attrs = ["displayName"]
+        )
+        
+        try:
+            return ldap_res[0][1]["displayName"][0]
+        except IndexError:
+            return ""
+
 
 class AD(object):
     def __init__(self):
@@ -150,11 +175,6 @@ def get_domain(request):
     if domain == None:
         return non_ldap_user()
     return HttpResponse(domain, mimetype="text/plain")
-    #~ epfl_ldap = Ldap()
-    #~ domains = epfl_ldap.get_domains(username)
-    #~ if len(domains) == 0:
-        #~ return non_ldap_user()
-    #~ return HttpResponse("\n".join(domains), mimetype="text/plain")
 
 def get_sciper(request):
     username = request.GET.get('username', None)
@@ -180,66 +200,198 @@ def get_labos(request):
 
 def get_config(request):
     """
+        ######################
+        ?version=
+        
+        [global]
+        username = __USERNAME__
+        domain = __DOMAIN__
+        method = smb
+        auth_realm = EPFL
+        
+        [config]
+        import = http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__
+        
+        [require]
+        url = http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__
+        load_cache = True
+        # msg = Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).
+        abort = False
+        
+        [substitution]
+        label = __USERNAME__
+        ask = Enter your EPFL username :
+        constraint = lowercase
+        validate = http://enacit1adm1.epfl.ch/mount_filers/dir/validate?username=
+        
+        [substitution]
+        label = __DOMAIN__
+        constraint = lowercase
+        url_saved = http://enacit1adm1.epfl.ch/mount_filers/dir/domain?username=__USERNAME__
+        ask = Enter your EPFL ActiveDirectory domain :
+        
+        [substitution]
+        label = __SCIPER__
+        url_saved = http://enacit1adm1.epfl.ch/mount_filers/dir/sciper?username=__USERNAME__
+        ask = Enter the last digit of your SCIPER number (0-9) :
+        
+        
+        ######################
+        ?username=
+        
+        # For all
+        [message]
+        label = user : {full_username} ({username})
+        rank = 1
+        reset = __USERNAME__
+        reset = __SCIPER__
+        reset = __DOMAIN__
+        
+        # for all
+        [require] 
+        smb = files{sciper}.epfl.ch
+        msg = Couldn't connect to EPFL's filer. Please check that you're connected to the network and using a VPN client if outside the EPFL.
+        abort = True
+        
         # for all
         [mount]
+        username = {username}
+        domain = {domain}
         name = priv
-        label = __USERNAME__@files__SCIPER__ (individuel)
-        server_name = files__SCIPER__.epfl.ch
-        server_path = data/__USERNAME__
-        local_path = __MNT_DIR__/__USERNAME___on_files__SCIPER__
+        label = {username}@files{sciper} (individuel)
+        server_name = files{sciper}.epfl.ch
+        server_path = data/{username}
+        local_path = __MNT_DIR__/{username}_on_files{sciper}
         
-        # only for employees
+        # only for employees, one per labo
         [mount]
-        name = lab1
-        label = __LABO__@enacfiles1 (collectif tier1)
+        name = lab_{labo}_tier1
+        label = {labo}@enacfiles1 (collectif tier1)
         server_name = enacfiles1.epfl.ch
-        server_path = __LABO__
-        local_path = __MNT_DIR__/__LABO___on_enacfiles1
+        server_path = {labo}
+        local_path = __MNT_DIR__/{labo}_on_enacfiles1
         
-        # only for employees
+        # only for employees, one per labo
         [mount]
-        name = lab2
-        label = __LABO__@enacfiles2 (collectif tier2)
+        name = lab_{labo}_tier2
+        label = {labo}@enacfiles2 (collectif tier2)
         server_name = enacfiles2.epfl.ch
-        server_path = __LABO__
-        local_path = __MNT_DIR__/__LABO___on_enacfiles2
+        server_path = {labo}
+        local_path = __MNT_DIR__/{labo}_on_enacfiles2
+        
     """
+    version = request.GET.get('version', None)
     username = request.GET.get('username', None)
-    if username == None:
+    if version == None and username == None:
         return HttpResponse('', mimetype="text/plain")
     
-    ad = AD()
-    domain = ad.get_domain(username)
+    answer = ""
     
-    if len(domain) == 0:
-        return non_ldap_user()
-    
-    answer = """\
-[mount]
-name = priv
-label = __USERNAME__@files__SCIPER__ (individuel)
-server_name = files__SCIPER__.epfl.ch
-server_path = data/__USERNAME__
-local_path = __MNT_DIR__/__USERNAME___on_files__SCIPER__
-
-"""
-    if domain != "students":
+    if version != None:
         answer += """\
+[global]
+username = __USERNAME__
+domain = __DOMAIN__
+method = smb
+auth_realm = EPFL
+
+[config]
+import = {url_config_user}
+
+[require]
+url = {url_config_user}
+load_cache = True
+# msg = Couldn't get EPFL/ENAC's online config. Doing with cache values (if any).
+abort = False
+
+[substitution]
+label = __USERNAME__
+ask = Enter your EPFL username :
+constraint = lowercase
+validate = {url_validate_username}
+
+[substitution]
+label = __DOMAIN__
+constraint = lowercase
+url_saved = {url_get_domain}
+ask = Enter your EPFL ActiveDirectory domain :
+
+[substitution]
+label = __SCIPER__
+url_saved = {url_get_sciper}
+ask = Enter the last digit of your SCIPER number (0-9) :
+
+
+""".format(
+        # http://enacit1adm1.epfl.ch/mount_filers/dir/config?username=__USERNAME__
+        url_config_user = request.build_absolute_uri(reverse('get_config')) + "?username=__USERNAME__",
+        # http://enacit1adm1.epfl.ch/mount_filers/dir/validate?username=
+        url_validate_username = request.build_absolute_uri(reverse('validate')) + "?username=",
+        # http://enacit1adm1.epfl.ch/mount_filers/dir/domain?username=__USERNAME__
+        url_get_domain = request.build_absolute_uri(reverse('get_domain')) + "?username=__USERNAME__",
+        # http://enacit1adm1.epfl.ch/mount_filers/dir/sciper?username=__USERNAME__
+        url_get_sciper = request.build_absolute_uri(reverse('get_sciper')) + "?username=__USERNAME__",
+    )
+    
+    if username != None:
+        ad = AD()
+        epfl_ldap = Ldap()
+        
+        domain = ad.get_domain(username)
+        labos = epfl_ldap.get_labos(username)
+        last_sciper = epfl_ldap.get_sciper(username)
+        full_username = epfl_ldap.get_full_username(username)
+        
+        if len(domain) == 0:
+            return non_ldap_user()
+        
+        answer += """\
+[message]
+label = user : {full_username} ({username})
+rank = 1
+reset = __USERNAME__
+reset = __SCIPER__
+reset = __DOMAIN__
+
+[require] 
+smb = files{last_sciper}.epfl.ch
+msg = Couldn't connect to EPFL's filer. Please check that you're connected to the network and using a VPN client if outside the EPFL.
+abort = True
+
 [mount]
-name = lab1
-label = __LABO__@enacfiles1 (collectif tier1)
+name = private
+label = {username}@files{last_sciper} (individuel)
+server_name = files{last_sciper}.epfl.ch
+server_path = data/{username}
+local_path = __MNT_DIR__/{username}_on_files{last_sciper}
+
+""".format(
+        username = username,
+        last_sciper = last_sciper,
+        full_username = full_username,
+    )
+        
+        if domain != "students":
+            for labo in labos:
+                answer += """\
+[mount]
+name = lab_{labo}_tier1
+label = {labo}@enacfiles1 (collectif tier1)
 server_name = enacfiles1.epfl.ch
-server_path = __LABO__
-local_path = __MNT_DIR__/__LABO___on_enacfiles1
+server_path = {labo}
+local_path = __MNT_DIR__/{labo}_on_enacfiles1
 
 [mount]
-name = lab2
-label = __LABO__@enacfiles2 (collectif tier2)
+name = lab_{labo}_tier2
+label = {labo}@enacfiles2 (collectif tier2)
 server_name = enacfiles2.epfl.ch
-server_path = __LABO__
-local_path = __MNT_DIR__/__LABO___on_enacfiles2
+server_path = {labo}
+local_path = __MNT_DIR__/{labo}_on_enacfiles2
 
-"""
+""".format(
+        labo = labo,
+    )
+    
     return HttpResponse(answer, mimetype="text/plain")
 
 def get_full_config(request):
@@ -310,6 +462,18 @@ local_path = __MNT_DIR__/{labo}_on_enacfiles2
 
 """.format(labo = labo)
     return HttpResponse(answer, mimetype="text/plain")
+
+def validate(request):
+    username = request.GET.get('username', None)
+    if username == None:
+        return HttpResponse('No information given.', mimetype="text/plain")
+    if "\\" in username:
+        return HttpResponse('Do not prefix your username with the domain.', mimetype="text/plain")
+    epfl_ldap = Ldap()
+    if not epfl_ldap.is_ldap(username):
+        return HttpResponse('Username mistyped.', mimetype="text/plain")
+    return HttpResponse('ok', mimetype="text/plain")
+
 
 if __name__ == '__main__':
     ld = Ldap()
