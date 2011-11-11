@@ -21,8 +21,16 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
-REVISION = "0.4.0 2011.10.11 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.4.0"
+REVISION = "0.4.1 2011.11.11 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.1"
+# bugfix : (GUI) All import when process is interrupted by subst question
+# standard check_condition function
+# new message when user has to answer questions
+# Set messages to take less space and be more one-line
+# bugfix : messages with abort now work
+# Nice message in case there is no network
+# 
+# REVISION = "0.4.0 2011.10.11 (EPFL/ENAC-IT SB)"
 # added message with label, rank, condition, reset, abort to be displayed
 # as a header. Gives the ability to reset some parameters (substitutions).
 # added substitution's validate instruction (to check user's input)
@@ -254,7 +262,7 @@ DOC_CONFIG = """\
 # 
 # [config]
 #   This section allows to import config from other sources
-#   Repeate this section how often as necessary.
+#   Repeat this section how often as necessary.
 # 
 #   Fields :
 #     import   : gives the path to an other source of configuration
@@ -264,7 +272,7 @@ DOC_CONFIG = """\
 #   This section describes things that have to be met before letting user mount/umount filers
 #   Repeat this section how often as necessary.
 # 
-#   Fields concerning the tests :
+#   Fields that describe what to check :
 #     ping : check ping to server
 #     smb  : check connection to port 139 of the server
 #     http : check connection to port 80 of the server
@@ -385,6 +393,12 @@ CONFIG_DEFAULTS = {
 EPFL_CONFIG = {
     "config" : [
         { "import" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?version=__VERSION__" },
+    ],
+    "require" : [
+        {
+            "http" : "enacit1adm1.epfl.ch",
+            "msg" : "Could not connect to config server. Please check that you're connected to the network and using a VPN client if outside the EPFL.",
+        }
     ],
 }
 # /EPFL footprint!
@@ -515,9 +529,9 @@ URL_TIMEOUT = 1 # seconds
 VERBOSE = False # default. can be changed with -v argument
 
 # GUI Messages
+MSG_SUBST_WAITING = "No mount available. Please answer questions or edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator."
 MSG_NO_MOUNT_CONFIGURED = "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator."
-# MSG_NO_MOUNT_IN_CACHE = "No mount available in cache ..."
-MSG_CLICK_TO_MOUNT = "Click on the desired line to mount/unmount."
+MSG_CLICK_TO_MOUNT = "Click on the desired line to (u)mount :"
 
 # EPFL footprint!
 import atexit
@@ -617,6 +631,50 @@ def which(program):
             if is_exe(exe_file):
                 return exe_file
     return None
+
+def check_condition(condition):
+    def format_version_for_comparision(version):
+        result = []
+        for v in version.split("."):
+            try:
+                result.append(int(v))
+            except:
+                m = re.match(r'(\d*)(.*)', v)
+                i = m.group(1)
+                try:
+                    i = int(i)
+                except:
+                    pass
+                s = m.group(2)
+                result.append((i, s))
+        return result
+    
+    m = re.search(r'^([^<>=!]+)\s*([<>=!]+)\s*([^<>=!]+)$', condition)
+    if not m:
+        raise Exception ("Error, could not evaluate condition \"%s\"." % (condition))
+    left, criterion, right = m.groups()
+    left = format_version_for_comparision(left.strip())
+    right = format_version_for_comparision(right.strip())
+    if criterion == "<":
+        if left < right:
+            return True
+    if criterion == "<=":
+        if left <= right:
+            return True
+    elif criterion == ">":
+        if left > right:
+            return True
+    elif criterion == ">=":
+        if left >= right:
+            return True
+    elif criterion == "==":
+        if left == right:
+            return True
+    elif criterion == "!=":
+        if left != right:
+            return True
+    return False
+
 
 def ping(server):
     cmd = "%s -c 1 %s" % (which("ping"), server)
@@ -1555,6 +1613,8 @@ class Options(object):
 -s|--summary             : Print a summary of all mountpoints configured
 
 --subst __LABEL__:value  : Let define a default substitution value
+
+Man pages : mount_filers(1), mount_filers.conf(5)
 """ % (name, name, name, name, name, name, name, list_config_src()))
     
     @classmethod
@@ -2332,25 +2392,12 @@ class Config(object):
             if condition.lower() in ("no", "n", "false", "o", "off"):
                 continue
             elif condition.lower() not in ("yes", "y", "true", "1", "on"):
-                m = re.search(r'^([^<>=!]+)\s*([<>=!]+)\s*([^<>=!]+)$', condition)
-                if not m:
+                try:
+                    if not check_condition(self.substitued(condition)):
+                        continue
+                except Exception:
                     io.write("Warning, could not evaluate condition \"%s\". Skipping." % (condition))
                     continue
-                left, criterion, right = m.groups()
-                left = self.substitued(left.strip())
-                right = self.substitued(right.strip())
-                if criterion == "<":
-                    if not left < right:
-                        continue
-                elif criterion == ">":
-                    if not left > right:
-                        continue
-                elif criterion == "==":
-                    if not left == right:
-                        continue
-                elif criterion == "!=":
-                    if not left != right:
-                        continue
             list_messages.append(mesg)
         return list_messages
     
@@ -2793,24 +2840,26 @@ class GUI_Message(object):
         
         import Tkinter
         
+        current_row = 0
+        
         if label != None:
             f = LabelFrame(
                 frame,
                 text = label,
-                padx = 10,
-                pady = 10,
+                padx = 5,
+                pady = 5,
             )
         else:
             f = Frame(
                 frame,
-                padx = 10,
-                pady = 10,
+                padx = 5,
+                pady = 5,
                 borderwidth = 2,
                 relief = Tkinter.RIDGE,
             )
         
-        l = Label(f, text = msg, wraplength = 200)
-        l.grid(row = 0, column = 0, sticky = N+E+S+W)
+        l = Label(f, text = msg, wraplength = 500)
+        l.grid(row = current_row, column = 0, sticky = N+E+S+W)
         
         if reset_subst != None:
             b = Button(
@@ -2819,7 +2868,8 @@ class GUI_Message(object):
                 text = "reset",
                 command = self.reset_triggered,
             )
-            b.grid(row = 1, column = 0, sticky = E+S)
+            b.grid(row = current_row, column = 1, sticky = E+S)
+            current_row += 1
         
         if exit_status != None:
             b = Button(
@@ -2828,7 +2878,8 @@ class GUI_Message(object):
                 text = "Ok",
                 command = self.ok_triggered,
             )
-            b.grid(row = 2, column = 0, sticky = E+S)
+            b.grid(row = current_row, column = 1, sticky = E+S)
+            current_row += 1
         
         self.f = f
     
@@ -2939,7 +2990,7 @@ class UI(object):
         self.config = Config.create_config_instance()
         self.mounts = []
         
-        # CLI substitutions entries!
+        # Insert commandline options substitutions!
         cli_subst = {}
         cli_subst["substitution"] = self.options.substs
         CONFIG_SRC.append(cli_subst)
@@ -3122,10 +3173,14 @@ Mount filers (rev. %s)
             self.import_missing_subst.pop()
         
         if len(self.import_missing_subst) == 0:
-            # all loaded!
-            self.config.check_prerequisites(self)
+            self.config.check_prerequisites(self) # all loaded!
         
         self.config.subst_apply_all_constraints()
+        
+        if len(self.import_missing_subst) == 0 and \
+           len(self.gui_mounts["list"]) == 0:
+            self.help_instruction["label"].config(text = MSG_NO_MOUNT_CONFIGURED)
+        
         return True
     
     def __gui_run__(self):
@@ -3186,7 +3241,7 @@ Mount filers (rev. %s)
         f.grid(row = 3, column = 0)
         label = Label(
             f,
-            text = MSG_NO_MOUNT_CONFIGURED,
+            text = MSG_SUBST_WAITING,
             wraplength = 280,
         )
         label.grid(row = 0, column = 0, sticky = N+E+S+W)
@@ -3262,7 +3317,14 @@ Mount filers (rev. %s)
     def substitution_filled(self, subst, value):
         self.config.subst_filled(subst, value)
         # Dynamic Imports
+        nb_import_missing_subst_obj = len(self.import_missing_subst)
         self.__gui_load_config__()
+        while 0 < len(self.import_missing_subst) and \
+              len(self.import_missing_subst) < nb_import_missing_subst_obj:
+            nb_import_missing_subst_obj = len(self.import_missing_subst)
+            self.__gui_load_config__() # workaround ... __gui_load_config__ is
+            #~ self.__gui_load_config__() # not doing enough iteration in the case
+            #~ self.__gui_load_config__() # a substitution is filled :( TODO !
         
         self.__populate_mounts__()
         
@@ -3333,6 +3395,10 @@ Mount filers (rev. %s)
         if self.is_gui:
             num_row = -1
             for mesg in self.config.get_messages():
+                if mesg.get("abort"):
+                    exit_status = 1
+                else:
+                    exit_status = None
                 num_row += 1
                 if self.config.list_subst_labels(mesg["label"], blocking = True) == []:
                     if mesg.get("reset", []) != []:
@@ -3342,6 +3408,7 @@ Mount filers (rev. %s)
                             label = None,
                             msg = self.config.substitued(mesg["label"]),
                             reset_subst = mesg["reset"],
+                            exit_status = exit_status,
                         )
                     else:
                         message = GUI_Message(
@@ -3349,6 +3416,7 @@ Mount filers (rev. %s)
                             frame = self.gui_messages["f"],
                             label = None,
                             msg = self.config.substitued(mesg["label"]),
+                            exit_status = exit_status,
                         )
                     message.grid(num_row = num_row, num_col = 0)
         else:

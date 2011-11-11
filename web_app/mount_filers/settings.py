@@ -6,14 +6,15 @@ ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 if os.uname()[1] == "enacit1pc8":
     DEBUG = True
-    DEV = True
+    CONTEXT = "dev"
 else:
-    DEBUG = True
-    DEV = False
     if ROOT_PATH.find('django_test') != -1:
-        TEST = True
+        DEBUG = True
+        CONTEXT = "test"
     else:
-        TEST = False
+        DEBUG = False
+        CONTEXT = "prod"
+
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -23,31 +24,16 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if DEV:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': '%s/mount_filers_db_dev.sqlite' % ROOT_PATH,    # Or path to database file if using sqlite3.
-            'USER': '',      # Not used with sqlite3.
-            'PASSWORD': '',  # Not used with sqlite3.
-            'HOST': '',      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',      # Set to empty string for default. Not used with sqlite3.
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',   # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',     # Or path to database file if using sqlite3.
+        'USER': '',     # Not used with sqlite3.
+        'PASSWORD': '', # Not used with sqlite3.
+        'HOST': '',     # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',     # Set to empty string for default. Not used with sqlite3.
     }
-elif TEST:
-        DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': '%s/mount_filers_db_test.sqlite' % ROOT_PATH,    # Or path to database file if using sqlite3.
-        }
-    }
-else:
-        DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': '%s/mount_filers_db_prod.sqlite' % ROOT_PATH,    # Or path to database file if using sqlite3.
-        }
-    }
+}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -87,7 +73,7 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '6dl-_v%t0qi=*+z=5!75c+r(sl_d8#g(eubp-^yul#h-n2frnc'
+SECRET_KEY = '' # SB : done later 
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -106,10 +92,18 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'mount_filers.urls'
 
+
+# SB : added to enable django.contrib.admin
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.messages.context_processors.messages',
+    'django.contrib.auth.context_processors.auth',
+)
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    "%s/templates" % ROOT_PATH
 )
 
 INSTALLED_APPS = (
@@ -119,8 +113,18 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admindocs',
     'mount_filers.directory',
 )
+
+
+# SB : Overwrite with EPFL's specific settings :
+if CONTEXT == "dev":
+    from epfl_settings_dev import *
+elif CONTEXT == "test":
+    from epfl_settings_test import *
+else:
+    from epfl_settings_prod import *
+

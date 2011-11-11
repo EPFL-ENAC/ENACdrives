@@ -1,0 +1,78 @@
+<style type="text/css">
+    body
+        { font-size:80%; }
+    div.entry
+        { display: table; margin-bottom: -1px; }
+    
+    div#form
+        { border: solid 1px; padding: 5px; }
+    .field
+        { font-weight:bold; float: left; width: 100px; padding: 5px; }
+    .value
+        { float: left; width: 145px; padding: 5px; }
+    div#cancel
+        { float: right; }
+    div#submit
+        { float: right; }
+</style>
+
+
+<h1>Edit</h1>
+
+<div id="form">
+    <form action={% url mount_filers.directory.adm_views.http_adm_edit 'save' %} method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ prefilled.id }}" />
+        <div class="entry">
+            <div class="field">Description :</div>
+            <div class="value">
+                <input type="text" name="description" size="100" value="{{ prefilled.description }}" />
+            </div>
+        </div>
+        <div class="entry">
+            <div class="field">Context :</div>
+            <select name="context">
+                {% for context in context_choices %}
+                <option value="{{ context.0 }}" {% if prefilled.context == context.0 %}selected="selected"{% endif %}>{{ context.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="entry">
+            <div class="field">Users :</div>
+            <div class="value">
+                <input type="text" name="users" value="{{ prefilled.users }}" />
+            </div>
+        </div>
+        <div class="entry">
+            <div class="field">Groups :</div>
+            <div class="value">
+                <input type="text" name="groups" value="{{ prefilled.groups }}" />
+            </div>
+        </div>
+        <div class="entry">
+            <div class="field">Profile :</div>
+            <div class="value">
+                <input type="text" name="profile" value="{{ prefilled.profile }}" />
+            </div>
+        </div>
+        <div class="entry">
+            <div class="field">Version :</div>
+            <div class="value">
+                <input type="text" name="version" value="{{ prefilled.version }}" />
+            </div>
+        </div>
+        <div class="entry">
+            <div class="field">Config :</div>
+            <div class="value">
+                <textarea rows="30" cols="50" name="config">{{ prefilled.config }}</textarea>
+            </div>
+        </div>
+        <div id="submit">
+            <input type="submit" value="save" />
+        </div>
+        <div id="cancel">
+            <input type="button" value="cancel" onclick="location.href='{% url mount_filers.directory.adm_views.http_adm_browse %}'" />
+        </div>
+    </form>
+</div>
+

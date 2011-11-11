@@ -1,3 +1,5 @@
+web_app/mount_filers/epfl_settings_test.py
+web_app/mount_filers/epfl_settings_prod.py
 *.pyc
 NOTES
 mount_filers.mm

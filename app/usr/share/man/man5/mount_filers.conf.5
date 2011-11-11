@@ -1,0 +1,166 @@
+.TH mount_filers.conf 5  "November 14, 2011" "version 0.4.1" "FILE FORMAT"
+.SH NAME
+mount_filers.conf \- local configuration to set up filers facility access
+.SH SYNOPSIS
+The mount_filers.conf is a configuration file for the mount_filers tool.
+It contains runtime configuration information that describes what mount has to be
+available for the users.
+.SH "FILE FORMAT"
+.PP
+The file consists of sections and parameters\&. A section begins with the name of the section in square brackets and continues until the next section begins\&. Sections contain parameters of the form:
+.sp
+.if n \{\
+.RS 4
+.\}
+.fam C
+.ps -1
+.nf
+.if t \{\
+.sp -1
+.\}
+.BB lightgray adjust-for-leading-newline
+.sp -1
+
+\fIname\fR = \fIvalue \fR
+.EB lightgray adjust-for-leading-newline
+.if t \{\
+.sp 1
+.\}
+.fi
+.fam
+.ps +1
+.if n \{\
+.RE
+.\}
+.PP
+The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter\&.
+.PP
+A comment starts with a # character
+.SH "SECTION DESCRIPTIONS"
+.PP
+6 categories of sections are expected :
+   [global]
+   [config]
+   [require]
+   [substitution]
+   [mount]
+   [message]
+.SS "The [global] section"
+This section describes settings that will be used for all mount sections.
+It must be unique.
+.PP
+Fields :
+   \fImethod\fR     : which method to use (smb, gvfs_smb, mount.cifs, mount_smbfs, ...)
+   \fIusername\fR   : for authtication while mounting
+   \fIdomain\fR     : for authtication while mounting
+   \fIauth_realm\fR : not the password, but the realm associated to it.
+                If several mounts use the same auth_realm, then the
+                password is only asked once.
+   \fImount.cifs_filemode\fR : option given to mount.cifs
+   \fImount.cifs_dirmode\fR  : option given to mount.cifs
+   \fImount.cifs_options\fR  : option given to mount.cifs
+   \fIgvfs_symlink\fR : specific to methods gvfs_*. Enables the creation
+                  of a symbolic link to "local_path" after mount.
+                  default : True
+   \fIopen\fR     : Whether or not to open the folder after mount
+   \fIopen_cmd\fR : what to use to open it (set to default will use the OS dependent tool)
+.SS "The [config] section"
+This section allows to import config from other sources
+Repeat this section how often as necessary.
+.PP
+Fields :
+   \fIimport\fR   : gives the path to an other source of configuration
+              can be a local file or a url. Substitutions are applied.
+.SS "The [require] section"
+This section describes things that have to be met before letting user mount/umount filers
+Repeat this section how often as necessary.
+.PP
+Fields that describe what to check :
+   \fIping\fR : check ping to server
+   \fIsmb\fR  : check connection to port 139 of the server
+   \fIhttp\fR : check connection to port 80 of the server
+   \fIurl\fR  : check download of that url (fails if return code != 200)
+.PP
+Fields concerning action taken when the test is not positive
+   \fIload_cache\fR : loads config from cache, if any (default False).
+   \fImsg\fR        : message to display
+   \fIabort\fR      : whether or not exit the application
+.SS "The [substitution] section"
+This section describes a substitution that will be performed at run time by the script.
+Repeat this section how often as necessary.
+.PP
+Fields :
+   \fIlabel\fR      : what will be substituted
+   \fIvalue\fR      : the value that will be used               (priority 1)
+   \fIurl\fR        : if no value, get the value from this url  (priority 2)
+                note : in case of multi-value given by the server
+                (with "\n"), the user's choice is saved localy
+   \fIurl_saved\fR  : same as url but always saves the value    (priority 3)
+                localy for later use
+   \fIask\fR        : if no value yet for this substitution     (priority 4)
+                then ask this question to the user
+   \fIconstraint\fR : force the value to follow this constraint
+                can be : lowercase, uppercase
+   \fIvalidate\fR   : url to be used to validate what the user typed. The 
+                value is concatenated to that url. The answers are :
+                "ok" means ok.
+                "anything else" means not ok. That message is shown
+                to the user.
+.SS "The [mount] section"
+This section describes one mount instruction. The fields necessary depends on the method (protocol) choosen. Those methods supported
+yet are :
+  \fIsmb\fR : generic SMB/CIFS (will depend on the Operating System)
+  \fIgvfs_smb\fR   : uses gvfs-mount for CIFS/SMB shares in background (default for Linux)
+  \fImount.cifs\fR : uses mount.cifs in background
+  \fImount_smbfs\fR : uses mount_smbfs in background (default for MacOSX)
+Repeat this section how often as necessary.
+.PP
+Fields for all :
+  \fImethod\fR : which method to use (smb, gvfs_smb, mount.cifs, mount_smbfs, ...)
+.PP
+Fields for mount.cifs :
+  \fIusername\fR   : for authtication while mounting
+  \fIdomain\fR     : for authtication while mounting
+  \fIauth_realm\fR : not the password, but the realm associated to it.
+               If several mounts use the same auth_realm, then the
+               password is only asked once.
+  \fIserver_name\fR   : the fileserver
+  \fIserver_path\fR   : the path (including share name) to mount
+  \fIlocal_path\fR    : the path which will contain the mountpoint
+  \fImount.cifs_filemode\fR : option given to mount.cifs
+  \fImount.cifs_dirmode\fR  : option given to mount.cifs
+  \fImount.cifs_options\fR  : option given to mount.cifs
+.PP
+Fields for gvfs_smb :
+  \fIusername\fR   : for authtication while mounting
+  \fIdomain\fR     : for authtication while mounting
+  \fIauth_realm\fR : not the password, but the realm associated to it.
+               If several mounts use the same auth_realm, then the
+               password is only asked once.
+  \fIserver_name\fR : the fileserver
+  \fIserver_path\fR : the path (including share name) to mount
+  \fIgvfs_symlink\fR : Enables the creation of a symbolic link to
+                 "local_path" afer mount (default : True)
+  \fIlocal_path\fR : the location where the mount will be made available
+               via a symlink (only when gvfs_symlink is set to True)
+.SS "The [message] section"
+This section describes one message that is displayed to the user.
+.PP
+Fields :
+  \fIlabel\fR     : what is displayed
+  \fIcondition\fR : what has to be met to display this message (e.g. __VERSION__ < 0.4.0)
+  \fIreset\fR     : enables a button to reset one substitution value (can
+              be repeated)
+  \fIabort\fR     : enables a "quit" button
+  \fIrank\fR      : to order different messages
+.SH FILES
+.I /etc/mount_filers.conf
+: System wide config file
+.PP
+.I $HOME/.mount_filers.conf
+: Personal config file
+.SH "SEE ALSO"
+.BR mount_filers (1),
+.SH AUTHOR
+Samuel Bancal - EPFL/ENACIT (Samuel (dot) Bancal (at) epfl (dot) ch)
+

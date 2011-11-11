@@ -1,0 +1,126 @@
+<style type="text/css">
+    body
+        { font-size: 80%}
+    div.line
+        { display: table; border: solid 1px; margin-bottom: -1px; }
+    div.line.odd
+        { background: #F9FFFB none repeat scroll 0 0; }
+    div.line.even
+        { background: #ffffff none repeat scroll 0 0; }
+    
+    div.header
+        { font-weight:bold; }
+    div.description_cell
+        { float: none; width: 830px; padding: 5px; }
+    div.context_cell
+        { float: left; width: 80px; padding: 5px; }
+    div.users_cell
+        { float: left; width: 145px; padding: 5px; }
+    div.groups_cell
+        { float: left; width: 145px; padding: 5px; }
+    div.profile_cell
+        { float: left; width: 80px; padding: 5px; }
+    div.version_cell
+        { float: left; width: 80px; padding: 5px; }
+    div.config_cell
+        { float: left; width: 300px; padding: 5px; }
+    div.add_new_cell
+        { font-weight:bold; }
+    div.actions_cell
+        { float: right; padding: 5px; }
+    div.delete_cell
+        { font-weight:bold; }
+    div.data
+        { font-size: 80%; }
+    
+    div.add_box
+        { border: solid 1px; border-radius: 3px; -moz-border-radius: 3px;
+          padding: 3px; width: 13px; height: 13px;
+          text-align : center; vertical-align: middle; }
+    div.delete_box
+        { border: solid 1px; border-radius: 3px; -moz-border-radius: 3px;
+          padding: 3px; width: 13px; height: 13px;
+          text-align : center; vertical-align: middle; }
+    div.rank_up_box
+        { border: solid 1px; border-radius: 3px; -moz-border-radius: 3px;
+          padding: 3px; width: 13px; height: 13px;
+          text-align : center; vertical-align: middle; }
+    div.rank_down_box
+        { border: solid 1px; border-radius: 3px; -moz-border-radius: 3px;
+          padding: 3px; width: 13px; height: 13px;
+          text-align : center; vertical-align: middle; }
+    
+    a.edit
+        { text-decoration:none; }
+    .black
+        { color: #000000; }
+    .red
+        { color: #FF0000; }
+    .green
+        { color: #3A9D69; }
+    .grey1
+        { color: #828282; }
+</style>
+
+<div id="configs_table">
+    <div class="line header">
+        <div class="context_cell">Context</div>
+        <div class="users_cell">Users</div>
+        <div class="groups_cell">Groups</div>
+        <div class="profile_cell">Profile</div>
+        <div class="version_cell">Version</div>
+        <div class="config_cell">Config</div>
+        <div class="actions_cell">
+            <a href="{% url mount_filers.directory.adm_views.http_adm_edit 'new' %}" class="edit green">
+                <div class="add_new_cell">
+                    <div class="add_box">+</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    {% for conf in config %}
+    <div class="line {%cycle 'odd' 'even' %}">
+        <a href="{% url mount_filers.directory.adm_views.http_adm_edit conf.id %}" class="edit black">
+            <div class="description_cell data grey1">{{ conf.description }}</div>
+            <div class="context_cell data">{{ conf.context }}</div>
+            <div class="users_cell data">{{ conf.users }}</div>
+            <div class="groups_cell data">{{ conf.groups }}</div>
+            <div class="profile_cell data">{{ conf.profile }}</div>
+            <div class="version_cell data">{{ conf.version }}</div>
+            <div class="config_cell data">{{ conf.config|linebreaksbr }}</div>
+            <div class="actions_cell">
+                <a href="javascript:document.delete_form_{{ conf.id }}.submit()" class="edit red">
+                    <div class="delete_cell data">
+                        <div class="delete_box">X</div>
+                    </div>
+                </a>
+                <a href="javascript:document.rank_up_form_{{ conf.id }}.submit()" class="edit black">
+                    <div class="rank_up data">
+                        <div class="rank_up_box">^</div>
+                    </div>
+                </a>
+                <a href="javascript:document.rank_down_form_{{ conf.id }}.submit()" class="edit black">
+                    <div class="rank_down data">
+                        <div class="rank_down_box">v</div>
+                    </div>
+                </a>
+            </div>
+        </a>
+    </div>
+    <div style="display:none;">
+        <form name="delete_form_{{ conf.id }}" action="{% url mount_filers.directory.adm_views.http_adm_edit 'delete' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ conf.id }}" />
+        </form>
+        <form name="rank_up_form_{{ conf.id }}" action="{% url mount_filers.directory.adm_views.http_adm_edit 'rank_up' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ conf.id }}" />
+        </form>
+        <form name="rank_down_form_{{ conf.id }}" action="{% url mount_filers.directory.adm_views.http_adm_edit 'rank_down' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ conf.id }}" />
+        </form>
+    </div>
+    {% endfor %}
+</div>

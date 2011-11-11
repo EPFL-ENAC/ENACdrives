@@ -1,0 +1,56 @@
+.TH mount_filers 1  "November 14, 2011" "version 0.4.1"
+.SH NAME
+mount_filers \- Mount several filers with automated configuration
+.SH SYNOPSIS
+\fImount_filers\fP [-h|--help] [-H|--config_help]
+.br
+\fImount_filers\fP -l|--list
+.br
+\fImount_filers\fP -s|--summary
+.br
+\fImount_filers\fP [-u] -a|--all
+.br
+\fImount_filers\fP [-u] {-n|name \fIname\fP}
+.SH DESCRIPTION
+The mount_filers tool is aimed to let the user choose what to mount without worrying of the servername and all settings needed.
+All configuration can be defined at different level :
+.br
+- Company centralised config servers
+.br
+- Machine global config ( \fI/etc/mount_filers.conf\fP )
+.br
+- User specific config ( \fI$HOME/.mount_filers.conf\fP )
+.sp
+Launched without option will run in GUI mode
+.SS Options
+.TP
+\fB-h|--help\fP
+Display help
+.TP
+\fB-H|--config_help\fP
+Display help about configuration files
+.TP
+\fB-v|--verbose\fP
+Add verbosity
+.TP
+\fB-a|--all\fP
+(u)Mounts all
+.TP
+\fB-n|--name name\fP
+(u)Mounts only named one
+.TP
+\fB-u\fP
+Umounts instead of mounts
+.TP
+\fB-l|--list\fP
+Lists all mount name configured (other can be set in /etc/mount_filers.conf, $HOME/.mount_filers.conf)
+.TP
+\fB-s|--summary\fP
+Print a summary of all mountpoints configured
+.TP
+\fB--subst __LABEL__:value\fP
+Let define a default substitution value
+.SH "SEE ALSO"
+.BR mount_filers.conf (5),
+.SH AUTHOR
+Samuel Bancal - EPFL/ENACIT (Samuel (dot) Bancal (at) epfl (dot) ch)
