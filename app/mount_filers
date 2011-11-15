@@ -21,8 +21,16 @@
 # Special for Python 2.5
 from __future__ import with_statement
 
-REVISION = "0.4.1 2011.11.11 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.4.1"
+# New release's README :
+# edit usr/share/man/man1/mount_filers.1
+# edit usr/share/man/man5/mount_filers.conf.5
+
+REVISION = "0.4.2 2011.11.16 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.2"
+# bugfix : mount_filer -h raised AttributeError in some race condition
+# because of EPFL's Enacit1Logs
+# 
+# REVISION = "0.4.1 2011.11.11 (EPFL/ENAC-IT SB)"
 # bugfix : (GUI) All import when process is interrupted by subst question
 # standard check_condition function
 # new message when user has to answer questions
@@ -161,6 +169,7 @@ import signal
 import socket
 import base64
 from threading import Lock
+import gc
 
 try:
     import pexpect
@@ -170,6 +179,7 @@ except ImportError:
 
 try:
     from Tkinter import Tk, Frame, LabelFrame, OptionMenu, Label, Entry, Button, Radiobutton, StringVar, TOP, BOTTOM, LEFT, RIGHT, N, E, S, W, END, Canvas, ALL, PhotoImage
+    import Tkinter
     IMPORTED_TKINTER = True
 except ImportError:
     IMPORTED_TKINTER = False
@@ -609,10 +619,14 @@ def finished_hook():
     # EPFL footprint!
     t = Enacit1Logs.get_instance()
     t.stop()
-    t.join(1.2)
+    t.join() # 20.0)
     #~ if not t.is_completed():
         #~ time.sleep(0.2)
     # /EPFL footprint!
+
+def sys_exit(returncode = 0):
+    finished_hook()
+    sys.exit(returncode)
 
 def which(program):
     """
@@ -832,7 +846,6 @@ class IO(object):
             self.known_passwd[auth_realm] = "foooooooo"
             del(self.known_passwd[auth_realm])
         self.known_passwd = {}
-        import gc
         gc.collect()
 
 io = IO()
@@ -878,7 +891,7 @@ class OS_Switch(object):
             self.version = platform.mac_ver()[0]
         else:
             io.write("Error: Operating System (%s) not supported" % self.os)
-            sys.exit(1)
+            sys_exit(1)
     
     def msg_for_missing_tool(self, tool):
         ubuntu_install_instruction = "Run the following to install it :\nsudo apt-get install"
@@ -1045,7 +1058,7 @@ def pexpect_ask_password(d):
                 return True # This means : kill current process (used when closing mount_filers)
     
     io.write("Could not find to which authentication realm is '%s'" % question)
-    sys.exit(1)
+    sys_exit(1)
 
 
 class GenericMethod(object):
@@ -1248,7 +1261,7 @@ class GVFS_SMB_Method(GenericMethod):
         stdout, stderr = subproc.communicate()
         if subproc.returncode != 0:
             io.write("\nError. %s\n%s\n" % (stdout, stderr))
-            sys.exit(1)
+            sys_exit(1)
         
         i_search = r'%s \S+ %s -> smb://%s;%s@%s/%s' % (share, server_name, domain, username, server_name, share)
         for line in stdout.split("\n"):
@@ -1534,7 +1547,7 @@ class Options(object):
             opts, args = getopt.getopt(args, "hHvlan:su", ["help", "config_help", "verbose", "list", "all", "name=", "summary", "subst="])
         except getopt.GetoptError:
             Options.usage()
-            sys.exit(2)
+            sys_exit(2)
         
         action = "gui" # default (GUI)
         scope = "all"  # default
@@ -1805,7 +1818,7 @@ class Config(object):
                 key = data.get(CONFIG_EXTRACT["mount"]["key"])
                 if key == None:
                     io.write("Error. Mount instruction without %s option. Source: %s" % (CONFIG_EXTRACT["mount"]["key"], src))
-                    sys.exit(1)
+                    sys_exit(1)
                 del(data[CONFIG_EXTRACT["mount"]["key"]])
                 self.mounts.setdefault(key, {})
                 for k, v in data.iteritems():
@@ -1817,12 +1830,12 @@ class Config(object):
             elif section_name == "substitution":
                 if not data.get(CONFIG_EXTRACT["substitution"]["key"]):
                     io.write("Error, substitution section without %s option. Line %s of %s" % (CONFIG_EXTRACT["substitution"]["key"], num_line, src))
-                    sys.exit(1)
+                    sys_exit(1)
                 if not data.get("value") and \
                    not data.get("ask") and \
                    not data.get("url"):
                     io.write("Error, substitution section without \"value\", \"url\" and \"ask\" options. Line %s of %s" % (num_line, src))
-                    sys.exit(1)
+                    sys_exit(1)
                 key = data[CONFIG_EXTRACT["substitution"]["key"]]
                 del(data[CONFIG_EXTRACT["substitution"]["key"]])
                 self.subst.setdefault(key, {})
@@ -1835,7 +1848,7 @@ class Config(object):
             elif section_name == "message":
                 if not data.get("label"):
                     io.write("Error, message section without \"label\" option. Line %s of %s" % (num_line, src))
-                    sys.exit(1)
+                    sys_exit(1)
                 found = False
                 for m in self.messages:
                     if data["label"] == m["label"]:
@@ -1897,7 +1910,7 @@ class Config(object):
                     else:
                         if strict_parsing:
                             io.write("Error. Unknown section %s" % m.group(1))
-                            sys.exit(1)
+                            sys_exit(1)
                         else:
                             io.write("Warning. Unknown section %s" % m.group(1))
                             section_name = ""
@@ -1907,7 +1920,7 @@ class Config(object):
                 if not m:
                     if strict_parsing:
                         io.write("Error. Unrecognized line %d of %s" % (num_line, src))
-                        sys.exit(1)
+                        sys_exit(1)
                     else:
                         io.write("Warning. Unrecognized line %d of %s" % (num_line, src))
                         continue
@@ -1963,7 +1976,7 @@ class Config(object):
                 for k, v in src.get("global", {}).iteritems():
                     if not k in CONFIG_EXTRACT["global"]:
                         io.write("Error. %s option not recognized from constants" % k)
-                        sys.exit(1)
+                        sys_exit(1)
                     self.globals.setdefault(k, {})
                     self.globals[k].setdefault("src", set())
                     self.globals[k]["src"].add("CONSTANTS")
@@ -1973,7 +1986,7 @@ class Config(object):
                     for k, v in req.iteritems():
                         if not k in CONFIG_EXTRACT["require"]:
                             io.write("Error. %s option not recognized from constants" % k)
-                            sys.exit(1)
+                            sys_exit(1)
                     r = req.copy()
                     r["src"] = "CONSTANTS"
                     self.require.append(r)
@@ -1982,7 +1995,7 @@ class Config(object):
                     key = src["mount"][m_name].get(CONFIG_EXTRACT["mount"]["key"])
                     if key == None:
                         io.write("Error. Mount instruction without %s option. Source: CONSTANTS" % CONFIG_EXTRACT["mount"]["key"])
-                        sys.exit(1)
+                        sys_exit(1)
                     self.mounts.setdefault(key, {})
                     self.mounts[key].setdefault("id", len(self.mounts) - 1)
                     self.mounts[key].setdefault("src", set())
@@ -1999,11 +2012,11 @@ class Config(object):
                        not src["substitution"][s].get("ask") and \
                        not src["substitution"][s].get("url"):
                         io.write("Error, substitution section without \"value\" \"url\" and \"ask\" options from constants")
-                        sys.exit(1)
+                        sys_exit(1)
                     for k, v in src["substitution"][s].iteritems():
                         if not k in CONFIG_EXTRACT["substitution"]["values"]:
                             io.write("Error, substitution should not have %s option (from constants)" % k)
-                            sys.exit(1)
+                            sys_exit(1)
                         self.subst[s][k] = v
                 
                 for cfg in src.get("config", []):
@@ -2033,7 +2046,7 @@ class Config(object):
             method_name = self.mounts[m_name].get("method") or self.globals.get("method", {}).get("value")
             if method_name == None:
                 io.write("Error, mount section without a method instruction. Source : %s" % (", ".join(self.mounts[m_name]["src"])))
-                sys.exit(1)
+                sys_exit(1)
             method = os_switch.get_matching_method(method_name)
             for option in method.get_options():
                 if option == CONFIG_EXTRACT["mount"]["key"]:
@@ -2041,7 +2054,7 @@ class Config(object):
                 self.mounts[m_name].setdefault(option, self.globals.get(option, {}).get("value"))
                 if self.mounts[m_name][option] == None:
                     io.write("Error, mount section with method %s is missing option %s. Source : %s" % (method_name, option, ", ".join(self.mounts[m_name]["src"])))
-                    sys.exit(1)
+                    sys_exit(1)
     
     def check_prerequisite(self, req, ui):
         def get_exit_status(req):
@@ -2330,7 +2343,7 @@ class Config(object):
     def subst_filled(self, subst, value, save = True):
         if value == None:
             io.write("Error. Could not get substitution value for %s\n%s" % (subst, pprint.pformat(self.subst[subst])))
-            sys.exit(1)
+            sys_exit(1)
         
         multi_value = value.split("\n") # for multi-values ... -> choices
         if len(multi_value) != 1:
@@ -2838,8 +2851,6 @@ class GUI_Message(object):
         self.exit_status = exit_status
         self.reset_subst = reset_subst
         
-        import Tkinter
-        
         current_row = 0
         
         if label != None:
@@ -3023,10 +3034,10 @@ Mount filers (rev. %s)
         
         if options.action == "help":
             Options.usage()
-            sys.exit()
+            sys_exit()
         elif options.action == "config_help":
             Options.config_help()
-            sys.exit()
+            sys_exit()
         
         self.__cli_load_config__()
         #~ config.pprint()
@@ -3460,12 +3471,10 @@ Mount filers (rev. %s)
         
         io.wipe_pwds()
         
-        finished_hook()
-        
         if msg != None:
             io.write(msg)
         
-        sys.exit(exit_status)
+        sys_exit(exit_status)
     
     def on_delete(self):
         UI.CLOSE_APPLICATION = True
