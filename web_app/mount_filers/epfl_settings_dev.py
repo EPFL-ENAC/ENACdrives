@@ -5,6 +5,9 @@ import os
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
+EMAIL_HOST = "mail.epfl.ch"
+EMAIL_SUBJECT_PREFIX = "[mount_filers - Django app - DEV] "
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
