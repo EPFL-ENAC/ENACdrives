@@ -2,6 +2,7 @@
 
 # Bancal Samuel
 # 111103
+# 120222
 
 # source : /home/bancal/projects/mount_filers/check_mount_filers_config.py
 # deploy to enacitmon1 :
@@ -51,23 +52,28 @@ def list_smb_shares(servername):
             if valid_share:
                 shares.append(share.lower())
     
-    return ", ".join(sorted(shares))
+    return set(shares)
 
 REQUISITE = (
-    {
-        "description": r"Group Storage Tier1",
-        "groups": list_smb_shares("enacfiles1.epfl.ch")
-    },
-    {
-        "description": r"Group Storage Tier2",
-        "groups": list_smb_shares("enacfiles2.epfl.ch")
-    },
-    {
-        "description": r"Group Storage Tier4",
-        "groups": list_smb_shares("enacfiles4.epfl.ch")
-    },
+    (
+        "description", "Group Storage Tier1", # SELECT
+        {
+            "groups": list_smb_shares("enacfiles1.epfl.ch"), # REQUIRE
+        },
+    ),
+    (
+        "description", "Group Storage Tier2",
+        {
+            "groups": list_smb_shares("enacfiles2.epfl.ch"),
+        },
+    ),
+    (
+        "description", "Group Storage Tier4",
+        {
+            "groups": list_smb_shares("enacfiles4.epfl.ch"),
+        },
+    ),
 )
-
 
 class MyTimeout(Exception):
     def __init__(self, timeout):
@@ -117,25 +123,42 @@ def http_get(url):
     
     return "".join(fh.readlines())
 
+def compare(expected, value):
+    """
+        Compares 2 elements
+        type list -> will return msg with "+item" and/or "-item"
+        returns bool, msg
+    """
+    msg = ""
+    if expected == value:
+        return True, msg
+    if type(expected) == type(set()) and type(value) == type(set()):
+        msg += "".join(["+ %s\n" % item for item in expected - value])
+        msg += "".join(["- %s\n" % item for item in value - expected])
+        msg += "Expected : \n%s\n" % ", ".join(expected)
+    else:
+        msg += "Expected : \n%s" % expected
+    return False, msg
+
 def check_config(config):
     success = True
     
     for req in REQUISITE:
         all_match = False
+        output = ""
         for conf in config:
+            if conf[req[0]] != req[1]:
+                continue
             all_match = True
-            for key in req:
-                if req[key] != conf.get(key):
+            for key in req[2]:
+                match, msg = compare(req[2][key], conf.get(key))
+                if not match:
+                    output += "Error, %s[%s]; %s :\n%s" % (req[0], req[1], key, msg)
                     all_match = False
-                    break
-            if all_match:
-                break
         if not all_match:
             success = False
             print "*"*30
-            print "Error, mismatch requisite :"
-            pprint.pprint(req)
-            print
+            print output
     
     return success
 

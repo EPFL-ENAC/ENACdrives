@@ -124,8 +124,8 @@ def http_get_config_dump(request):
         result.append({
             "description": conf.description,
             "rank": conf.rank,
-            "users": conf.get_users(),
-            "groups": conf.get_groups(),
+            "users": conf.get_users(as_set = True),
+            "groups": conf.get_groups(as_set = True),
             "context": conf.context,
             "profile": conf.profile,
             "version": conf.version,

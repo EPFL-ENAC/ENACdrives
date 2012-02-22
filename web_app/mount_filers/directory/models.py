@@ -44,12 +44,16 @@ class Config(models.Model):
     
     config = models.TextField(max_length=10000)
     
-    def get_users(self):
+    def get_users(self, as_set = False):
         users = [u.__unicode__() for u in self.username.iterator()]
+        if as_set:
+            return set(users)
         return ", ".join(sorted(users))
     
-    def get_groups(self):
+    def get_groups(self, as_set = False):
         groups = [g.__unicode__() for g in self.groupname.iterator()]
+        if as_set:
+            return set(groups)
         return ", ".join(sorted(groups))
     
     def set_users(self, users):
