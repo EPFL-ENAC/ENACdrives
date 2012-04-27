@@ -114,11 +114,13 @@ def get_user_settings(username):
         # auth_domain
         ldap_res = my_ad.read_ldap(
             l_filter = "sAMAccountName=%s" % username,
-            l_attrs = ["userPrincipalName"]
+            l_attrs = ["dn"]
+            #l_attrs = ["userPrincipalName"]
         )
-        userPrincipalName = ldap_res[0][1]['userPrincipalName'][0]
-        domain = re.search(r'@([^.]+)', userPrincipalName).group(1)
-        settings["auth_domain"] = smart_unicode(domain.lower())
+        #~ userPrincipalName = ldap_res[0][1]['userPrincipalName'][0]
+        #~ domain = re.search(r'@([^.]+)', userPrincipalName).group(1)
+        #~ settings["auth_domain"] = smart_unicode(domain.lower())
+        settings["auth_domain"] = re.findall(r'DC=(\w+)', ldap_res[0][0])[0]
     except (IndexError, KeyError):
         raise Exception("Non ldap user")
     
