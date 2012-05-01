@@ -23,8 +23,8 @@ class AD(object):
         self.server = "ldap://intranet.epfl.ch:3268"
         self.base_dn = "DC=intranet,DC=epfl,DC=ch"
         self.scope = ldap.SCOPE_SUBTREE
-        self.dn = "enac\enacit-svcshareauth"
-        self.secret = "P4$Sw0Rd1965-2+10"
+        self.dn = "intranet\enacmoni"
+        self.secret = "It5Mon5Nag"
         self.l = ldap.initialize(self.server)
         self.l.set_option(ldap.OPT_REFERRALS, 0)
         self.l.protocol_version = 3
