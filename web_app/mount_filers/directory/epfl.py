@@ -120,7 +120,7 @@ def get_user_settings(username):
         #~ userPrincipalName = ldap_res[0][1]['userPrincipalName'][0]
         #~ domain = re.search(r'@([^.]+)', userPrincipalName).group(1)
         #~ settings["auth_domain"] = smart_unicode(domain.lower())
-        settings["auth_domain"] = re.findall(r'DC=(\w+)', ldap_res[0][0])[0]
+        settings["auth_domain"] = re.findall(r'DC=(\w+)', ldap_res[0][0])[0].upper()
     except (IndexError, KeyError):
         raise Exception("Non ldap user")
     

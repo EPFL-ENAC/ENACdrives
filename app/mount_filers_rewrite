@@ -1,0 +1,1096 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Special for Python 2.5
+from __future__ import with_statement
+
+import os,sys
+import getpass, grp, pwd
+import re
+import copy
+import pprint
+import platform
+import subprocess
+import signal
+import urllib
+
+########################################################################
+# VERSIONING
+
+REVISION = "0.5.0-dev 2011.12.09 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.5.0-dev"
+# Full rewrite of :
+# - Config
+# - substitution mecanism
+# - Added substitution's field "choice" :
+#   can be multi-mentionned. Let the user choose between them.
+
+UNIT_TEST = True
+
+# Check Python's version
+if sys.version_info < (2, 6):
+    print "Please consider using Python 2.6 or newer"
+    sys.exit(1)
+
+########################################################################
+# DEFINITIONS PRE-CONSTANTS
+
+def which(program):
+    """
+        from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+    """
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
+class OS_Switch(object):
+    """
+    # ------------------------------------------------------------------
+    # Ubuntu 10.04
+    # - python 2.6.5
+    # - install requirement :
+    #  - smbfs (cifs-utils)
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 10.10
+    # - python 2.6.6
+    # - install requirement :
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    #  - smbfs (cifs-utils)
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 11.04
+    # - python 2.7.1
+    # - install requirement :
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    #  - smbfs (cifs-utils)
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 11.10
+    # - python 2.7.2+
+    # - install requirement :
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    #  - smbfs (cifs-utils)
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
+    # OSX 10.6.6
+    # - mount_smbfs (already installed)
+    # - python 2.6.1
+    # - install requirement :
+    #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
+    
+    # ------------------------------------------------------------------
+    # OSX 10.7
+    # - mount_smbfs (already installed)
+    # - python 2.7.1
+    # - install requirement :
+    #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
+    """
+    
+    @classmethod
+    def __init_if_needed__(cls):
+        #platform.linux_distribution()
+        cls.os = platform.system()
+        if cls.os == "Linux":
+            cls.distrib, cls.version = platform.linux_distribution()[:2]
+        elif cls.os == "Darwin":
+            cls.version = platform.mac_ver()[0]
+        else:
+            io.write("Error: Operating System (%s) not supported" % cls.os)
+            sys_exit(1)
+    
+    @classmethod
+    def msg_for_missing_tool(cls, tool):
+        cls.__init_if_needed__()
+        ubuntu_install_instruction = "Run the following to install it :\nsudo apt-get install"
+        if tool in ("mount.cifs", "gvfs-mount"):
+            msg = "Error: binary %s is missing." % tool
+        elif tool in ("pexpect", "Tkinter"):
+            msg = "Error: library %s is missing." % tool
+        else:
+            msg = "Error: %s is missing." % tool
+        if cls.os == "Linux":
+            if cls.distrib == "Ubuntu":
+                if tool == "mount.cifs":
+                    msg += " %s smbfs" % ubuntu_install_instruction
+                elif tool == "gvfs-mount":
+                    msg += " %s gvfs-bin" % ubuntu_install_instruction
+                elif tool == "Tkinter":
+                    msg += " %s python-tk" % ubuntu_install_instruction
+                elif tool == "pexpect":
+                    msg += " %s python-pexpect" % ubuntu_install_instruction
+            else:
+                pass
+        elif cls.os == "Darwin":
+            pass
+        return msg
+    
+    @classmethod
+    def get_matching_method_name(cls, protocol):
+        cls.__init_if_needed__()
+        return DEFAULT_METHODS.get(cls.os, {}).get(protocol, protocol)
+    
+    @classmethod
+    def get_matching_method(cls, protocol):
+        cls.__init_if_needed__()
+        return SUPPORTED_METHODS[cls.get_matching_method_name(protocol)]
+    
+    @classmethod
+    def get_open_cmd(cls, cmd):
+        cls.__init_if_needed__()
+        if cmd == "default":
+            if cls.os == "Linux":
+                cmd = which("nautilus")
+            elif cls.os == "Darwin":
+                cmd = "%s -a Finder" % which("open")
+        return cmd
+    
+    @classmethod
+    def get_desktop_folder(cls):
+        cls.__init_if_needed__()
+        default_desktop_path = os.path.expanduser("~/Desktop")
+        if cls.os == "Linux":
+            cmd = which("xdg-user-dir")
+            if cmd != None:
+                cmd = "%s DESKTOP" % cmd
+                subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = subproc.communicate()
+                if subproc.returncode == 0:
+                    return stdout.strip()
+        return default_desktop_path
+    
+    @classmethod
+    def get_default_mnt_folder(cls):
+        cls.__init_if_needed__()
+        default_mnt_folder = cls.get_desktop_folder()
+        if cls.os == "Darwin":
+            default_mnt_folder = "/Volumes"
+        return default_mnt_folder
+    
+    @classmethod
+    def get_smart_name(cls):
+        cls.__init_if_needed__()
+        return "%s %s" % (cls.get_smart_os(), cls.get_smart_version())
+    
+    @classmethod
+    def get_smart_os(cls):
+        cls.__init_if_needed__()
+        if cls.os == "Linux":
+            return cls.distrib
+        elif cls.os == "Darwin":
+            return "MacOSX"
+        return cls.os
+    
+    @classmethod
+    def get_smart_version(cls):
+        cls.__init_if_needed__()
+        return cls.version
+    
+    @classmethod
+    def get_smart_os_version(cls):
+        cls.__init_if_needed__()
+        return "%s_%s" % (cls.get_smart_os(), cls.get_smart_version())
+
+class MyTimeout(Exception):
+    def __init__(self, timeout):
+        self.timeout = timeout
+        self.timed_out = False
+    
+    def __enter__(self):
+        self.timed_out = False
+        self.old_handler = signal.signal(signal.SIGALRM, self.signal_handler)
+        signal.alarm(self.timeout)
+    
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, self.old_handler)
+    
+    def signal_handler(self, signum, frame):
+        self.timed_out = True
+        raise self
+    
+    def __str__(self):
+        if self.timed_out :
+            return "Instructions lasted more than %d seconds" % self.timeout
+        else:
+            return "Timeout of %s seconds" % self.timeout
+
+class Unified_Cached_Input(object):
+    class ContentCache(object):
+        def __init__(self, fh = None, value = None):
+            if fh != None:
+                self.lines = fh.readlines()
+            elif value != None:
+                self.lines = ["%s\n" % line for line in value.split("\n")]
+                if value.endswith("\n"): # remove the too much "\n"
+                    self.lines = self.lines[:-1]
+                else:
+                    self.lines[-1] = self.lines[-1][:-1]
+            else:
+                self.lines = ""
+        
+        def readlines(self):
+            return self.lines
+        
+        def __repr__(self):
+            return "'%s'" % "".join(self.lines)
+    
+    @classmethod
+    def __init_if_needed__(cls):
+        try:
+            cls.cache
+        except AttributeError:
+            cls.cache = {}
+            cls.constant_index = 0
+    
+    @classmethod
+    def pprint(cls):
+        cls.__init_if_needed__()
+        print "-" * 30
+        print "Unified_Cached_Input :"
+        pprint.pprint(cls.cache)
+    
+    @classmethod
+    def insert_constant_input(cls, value):
+        """
+            Add a string in cache
+            return the "url" that refers to it
+        """
+        cls.__init_if_needed__()
+        ref = "constant://%i" % cls.constant_index
+        cls.constant_index += 1
+        cls.cache[ref] = {
+            "content": Unified_Cached_Input.ContentCache(value = value),
+            "success": True,
+        }
+        return ref
+        
+    @classmethod
+    def load(cls, src):
+        """
+            loads urls & files (in case not already in cache
+            - url :
+              if code 200: content=data & success=True
+              else: content=error msg & success=False
+            - file :
+              if can read: content=data & success=True
+              else: content=empty & success=False
+        """
+        cls.__init_if_needed__()
+        if cls.cache.get(src) == None:
+            if src[:4] == "http":
+                try:
+                    with MyTimeout(URL_TIMEOUT):
+                        fh = urllib.urlopen(src)
+                        if fh.code == 200:
+                            cls.cache[src] = {
+                                "content": Unified_Cached_Input.ContentCache(fh = fh),
+                                "success": True,
+                            }
+                        else:
+                            cls.cache[src] = {
+                                "content": Unified_Cached_Input.ContentCache(value = "Error %s, could not load url %s" % (fh.code, src)),
+                                "success": False,
+                            }
+                        fh.close()
+                except (IOError, MyTimeout):
+                    cls.cache[src] = {
+                        "content": Unified_Cached_Input.ContentCache(value = "Error, could not load url %s" % src),
+                        "success": False,
+                    }
+            else:
+                try:
+                    fh = open(src, "rU")
+                    cls.cache[src] = {
+                        "content": Unified_Cached_Input.ContentCache(fh = fh),
+                        "success": True,
+                    }
+                    fh.close()
+                except IOError:
+                    cls.cache[src] = {
+                        "content": Unified_Cached_Input.ContentCache(fh = None),
+                        "success": False,
+                    }
+        
+        return cls.cache[src]
+    
+    @classmethod
+    def invalidate(cls, src):
+        cls.__init_if_needed__()
+        try:
+            del(cls.cache[src])
+        except KeyError:
+            pass
+
+########################################################################
+# CONSTANTS
+
+VERBOSE = False # default. can be changed with -v argument
+
+URL_TIMEOUT = 1 # seconds
+
+LOCAL_USERNAME = getpass.getuser()
+LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+HOME_DIR = os.path.expanduser("~")
+
+CONFIG_FILES = [
+    {
+        "path" : "/etc/mount_filers.conf",
+        "description" : "System wide config file",
+    },
+    {
+        "path" : os.path.join(HOME_DIR, ".mount_filers.conf"),
+        "description" : "Personal config file",
+    },
+]
+CONFIG_SAVE = CONFIG_FILES[-1]["path"]
+
+DOC_CONFIG = """\
+# mount_filers
+# %s
+# 
+# mount_filers.conf
+# Default locations in :
+#   %s
+# 
+# Config file for mount_filers
+# 
+# 6 categories of sections are expected :
+#   [global]
+#   [config]
+#   [require]
+#   [substitution]
+#   [mount]
+#   [message]
+# 
+# [global]
+#   This section describes settings that will be used for all mount
+#   sections.
+#   It must be unique.
+#   
+#   Fields :
+#       method : which method to use (smb, gvfs_smb, mount.cifs, mount_smbfs, ...)
+#       username   : for authtication while mounting
+#       domain     : for authtication while mounting
+#       auth_realm : not the password, but the realm associated to it.
+#                    If several mounts use the same auth_realm, then the
+#                    password is only asked once.
+#       mount.cifs_filemode : option given to mount.cifs
+#       mount.cifs_dirmode  : option given to mount.cifs
+#       mount.cifs_options  : option given to mount.cifs
+#       gvfs_symlink : specific to methods gvfs_*. Enables the creation
+#                      of a symbolic link to "local_path" after mount.
+#                      default : True
+#       open     : Whether or not to open the folder after mount
+#       open_cmd : what to use to open it (set to default will use the OS dependent tool)
+# 
+# [config]
+#   This section allows to import config from other sources
+#   Repeat this section how often as necessary.
+# 
+#   Fields :
+#     import   : gives the path to an other source of configuration
+#                can be a local file or a url. Substitutions are applied.
+# 
+# [require]
+#   This section describes things that have to be met before letting user mount/umount filers
+#   Repeat this section how often as necessary.
+# 
+#   Fields that describe what to check :
+#     ping : check ping to server
+#     smb  : check connection to port 139 of the server
+#     http : check connection to port 80 of the server
+#     url  : check download of that url (fails if return code != 200)
+#   
+#   Fields concerning action taken when the test is not positive
+#     load_cache : loads config from cache, if any (default False).
+#     msg        : message to display
+#     abort      : whether or not exit the application
+# 
+# [substitution]
+#   This section describes a substitution that will be performed at run
+#   time by the script.
+#   Repeat this section how often as necessary.
+#   
+#   Fields :
+#     label      : what will be substituted
+#     value      : the value that will be used               (priority 1)
+#     url        : if no value, get the value from this url  (priority 2)
+#                  note : in case of multi-value given by the server
+#                  (with "\\n"), the user's choice is saved localy
+#     url_saved  : same as url but always saves the value    (priority 3)
+#                  localy for later use
+#     choice     : multi-mentionned field. Let the user      (priority 4)
+#                  choose between them.
+#     ask        : if no value yet for this substitution     (priority 5)
+#                  then ask this question to the user
+#     constraint : force the value to follow this constraint
+#                  can be : lowercase, uppercase
+#     validate   : url to be used to validate what the user typed. The 
+#                  value is concatenated to that url. The answers are :
+#                  "ok" means ok.
+#                  "anything else" means not ok. That message is shown
+#                  to the user.
+# 
+# [mount]
+#   This section describes one mount instruction. The fields necessary
+#   depends on the method (protocol) choosen. Those methods supported
+#   yet are :
+#     smb : generic SMB/CIFS (will depend on the Operating System)
+#     gvfs_smb   : uses gvfs-mount for CIFS/SMB shares in background (default for Linux)
+#     mount.cifs : uses mount.cifs in background
+#     mount_smbfs : uses mount_smbfs in background (default for MacOSX)
+#   Repeat this section how often as necessary.
+#   
+#   Fields for all :
+#     method : which method to use (smb, gvfs_smb, mount.cifs, mount_smbfs, ...)
+#   
+#   Fields for mount.cifs :
+#     username   : for authtication while mounting
+#     domain     : for authtication while mounting
+#     auth_realm : not the password, but the realm associated to it.
+#                  If several mounts use the same auth_realm, then the
+#                  password is only asked once.
+#     server_name   : the fileserver
+#     server_path   : the path (including share name) to mount
+#     local_path    : the path which will contain the mountpoint
+#     mount.cifs_filemode : option given to mount.cifs
+#     mount.cifs_dirmode  : option given to mount.cifs
+#     mount.cifs_options  : option given to mount.cifs
+#     
+#   Fields for gvfs_smb :
+#     username   : for authtication while mounting
+#     domain     : for authtication while mounting
+#     auth_realm : not the password, but the realm associated to it.
+#                  If several mounts use the same auth_realm, then the
+#                  password is only asked once.
+#     server_name : the fileserver
+#     server_path : the path (including share name) to mount
+#     gvfs_symlink : Enables the creation of a symbolic link to
+#                    "local_path" afer mount (default : True)
+#     local_path : the location where the mount will be made available
+#                  via a symlink (only when gvfs_symlink is set to True)
+# 
+# [message]
+#   This section describes one message that is displayed to the user.
+#   
+#   Fields :
+#     label     : what is displayed
+#     condition : what has to be met to display this message (e.g.
+#                 __VERSION__ < 0.4.0)
+#     reset     : enables a button to reset one substitution value (can
+#                 be repeated)
+#     abort     : enables a "quit" button
+#     rank      : to order different messages
+
+
+""" % (
+    REVISION,
+    "\n#   ".join(["%s : %s" % (c["path"], c["description"]) for c in CONFIG_FILES])
+)
+
+CONFIG_DEFAULTS = """\
+[global]
+    method = smb
+    mount.cifs_filemode = 0770
+    mount.cifs_dirmode = 0770
+    mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
+    open = False
+    open_cmd = default
+    gvfs_symlink = True
+
+[substitution]
+    label = __VERSION__
+    value = %s
+
+[substitution]
+    label = __LOCAL_USERNAME__
+    value = %s
+
+[substitution]
+    label = __LOCAL_GROUPNAME__
+    value = %s
+
+[substitution]
+    label = __HOME__
+    value = %s
+    
+[substitution]
+    label = __MNT_DIR__
+    value = %s
+    
+[substitution]
+    label = __DESKTOP__
+    value = %s
+
+""" % (SHORT_REVISION, LOCAL_USERNAME, LOCAL_GROUPNAME, HOME_DIR, OS_Switch.get_default_mnt_folder(), OS_Switch.get_desktop_folder())
+
+# EPFL footprint!
+EPFL_CONFIG = """\
+[config]
+    import = http://enacit1adm1.epfl.ch/mount_filers/dir/config?version=__VERSION__
+
+[require]
+    http = enacit1adm1.epfl.ch
+    msg = Could not connect to config server. Please check that you're connected to the network and using a VPN client if outside the EPFL.
+
+"""
+# /EPFL footprint!
+
+CONFIG_SRC = [
+    Unified_Cached_Input.insert_constant_input(CONFIG_DEFAULTS),
+    # EPFL footprint!
+    Unified_Cached_Input.insert_constant_input(EPFL_CONFIG),
+    # /EPFL footprint!
+]
+CONFIG_SRC.extend([c["path"] for c in CONFIG_FILES])
+
+CONFIG_EXTRACT = {
+    "global" : [
+       # How to mount (mount.cifs, gvfs_smb, ...)
+        "method",
+       # how to authenticate
+        "username", "domain", "auth_realm", 
+       # mount.cifs specific options
+        "mount.cifs_filemode", "mount.cifs_dirmode", "mount.cifs_options",
+       # open the mounted folder after mounting
+        "open", "open_cmd",
+       # gvfs_* specific : create symbolic link to "local_path" after mounting
+        "gvfs_symlink",
+    ],
+    "config" : [
+        "import",
+    ],
+    "require" : [
+        # test - Ping
+        "ping",
+        # test - SMB port 139
+        "smb",
+        # test - HTTP port 80
+        "http",
+        # test - url download
+        "url",
+        # action if unmet - load the cache (if any)
+        "load_cache",
+        # action if unmet - message
+        "msg",
+        # action if unmet - exit
+        "abort",
+    ],
+    "substitution" : {
+        "key" : "label", # name required
+        "values" : [
+           # value to substitute by (optional)
+            "value",
+           # multi-values to let the user choose
+            "choice",
+           # where to download the value (has priority over ask)
+            "url",
+           # same as url but saves value localy for later use (has priority over url)
+            "url_saved",
+           # what to ask the user if no value already
+            "ask",
+           # what is the constraint (lowercase, uppercase)
+            "constraint",
+           # an url to be used to validate what the user typed
+            "validate",
+        ],
+    },
+    "mount" : {
+        "key" : "name", # technical name - required
+        "values" : [
+            # user friendly label
+            "label",
+            # how to mount
+            "method",
+            # what to mount
+            "server_name", "server_path",
+            # where to mount
+            "local_path",
+            # how to authenticate
+            "username", "domain", "auth_realm",
+            # mount.cifs specific options
+            "mount.cifs_filemode", "mount.cifs_dirmode", "mount.cifs_options",
+            # open after mounting
+            "open",
+            # create symbolic link after mounting (gvfs_* specific)
+            "gvfs_symlink",
+        ]
+    },
+    "message" : [
+        # message output to be displayed
+        "label",
+        # condition to be met to display it
+        "condition",
+        # what position
+        "rank",
+        # enables reset button to clear some substitution parameters
+        "reset",
+        # enables abort button
+        "abort",
+    ]
+}
+
+BOOL_CONFIG = {
+    "require" : {
+        "abort" : True,
+        "load_cache" : True,
+    },
+    "global" : {
+        "open" : True,
+        "gvfs_symlink" : True,
+    },
+    "mount" : {
+        "open" : True,
+        "gvfs_symlink" : True,
+    },
+    "message" : {
+        "abort" : True,
+    }
+}
+
+########################################################################
+# DEFINITIONS
+
+class Substitution_Error(Exception):
+    def __init__(self, l_missing = [], d_validation = {}):
+        Exception.__init__(self)
+        self.l_missing = copy.deepcopy(l_missing)
+        self.d_validation = copy.deepcopy(d_validation)
+    
+    def pprint(self):
+        print "-"*30
+        print "Substitution_Error"
+        print "missing : %s" % self.l_missing
+        print "validation : %s" % self.d_validation
+    
+    def __add__(self, other):
+        result = Substitution_Error(
+            l_missing = self.l_missing,
+            d_validation = self.d_validation
+        )
+        for other_missing in other.l_missing:
+            if not other_missing in result.l_missing:
+                result.l_missing.append(other_missing)
+        result.d_validation.update(other.d_validation)
+        return result
+    
+    def is_empty(self):
+        if len(self.l_missing) != 0 or len(self.d_validation) != 0:
+            return False
+        return True
+
+class Config(object):
+    
+    ####################################################################
+    class ConfigSrcStack(object):
+        """
+            Manages Config sources (which have already been loaded and
+            which not) and the ability to add new ones.
+        """
+        def __init__(self, init_stack = []):
+            self.stack = copy.deepcopy(init_stack)
+            self.insert_index = len(self.stack)
+        
+        def pprint(self):
+            print "-" * 30
+            print "ConfigSrcStack :"
+            pprint.pprint(self.stack)
+        
+        def add(self, src):
+            self.stack.insert(self.insert_index, src)
+            self.insert_index += 1
+        
+        def next(self):
+            self.insert_index = 1
+            return self.stack[0]
+        
+        def set_done(self):
+            self.stack.pop(0)
+            self.insert_index = 0
+        
+        def is_finished(self):
+            return len(self.stack) == 0
+    
+    ####################################################################
+    class SubstitutionsManager(object):
+        """
+            Manages Substitution things
+        """
+        def __init__(self):
+            self.subst_list = []
+        
+        def pprint(self):
+            print "-" * 30
+            print "SubstitutionsManager :"
+            pprint.pprint(self.subst_list)
+        
+        def add(self, label, src, value = None, choices = [], url = None, url_saved = None, ask = None, constraint = None, validate = None):
+            """
+                Add new substitution
+                or
+                Add new informations on a substitution
+                When a value is entered, use subst_answered instead.
+            """
+            for subst in self.subst_list:
+                if subst["label"] == label:
+                    subst["value"]      = (value, subst["value"])[value == None]
+                    subst["choices"].update(choices)
+                    subst["url"]        = (url, subst["url"])[url == None]
+                    subst["url_saved"]   = (url_saved, subst["url_saved"])[url_saved == None]
+                    subst["ask"]        = (ask, subst["ask"])[ask == None]
+                    subst["constraint"] = (constraint, subst["constraint"])[constraint == None]
+                    subst["validate"]   = (validate, subst["validate"])[validate == None]
+                    subst["src"].append(src)
+                    if subst["value"] != None:
+                        subst["blocking"] = False
+                    return
+            if ask == None:
+                ask = "Please enter value for %s" % label
+            self.subst_list.append({
+                "label": label,
+                "value": value,
+                "choices": set(choices),
+                "url": url,
+                "url_saved": url_saved,
+                "ask": ask,
+                "constraint": constraint,
+                "validate": validate,
+                "blocking": False,
+                "src": [src],
+                "previous_validation_missed": {},
+            })
+        
+        def silent_fix_substitution(self, subst_label):
+            """
+                Tries to find the value of a substitution
+                
+                raise Substitution_Error in case could not fix it silently
+            """
+            for subst in self.subst_list:
+                if subst["label"] == subst_label:
+                    if subst["value"] != None:
+                        return
+                    subst["blocking"] = True
+                    
+                    if subst["url"] != None:
+                        url = self.str_substitued(subst["url"])
+                        Config.get_instance().load_src_config(url)
+                    elif subst["url_saved"] != None:
+                        url = self.str_substitued(subst["url_saved"])
+                        Config.get_instance().load_src_config(url)
+                    if subst["value"] == None:
+                        raise Substitution_Error(l_missing = [subst_label])
+        
+        def subst_answered(self, subst_label, subst_value):
+            """
+                store value for that substitution
+                
+                raise Substitution_Error in case a substitution
+                  is missing to validate that value.
+                  In that case, subst_label and subst_value are kept for
+                  later refill (when missing substs are filled)
+                
+                raise Substitution_Error in case "validate"
+                  gives something different from "ok".
+            """
+            for subst in self.subst_list:
+                if subst["label"] == subst_label:
+                    old_value = subst["value"]
+                    subst["value"] = subst_value
+                    subst["blocking"] = False
+                    if subst["validate"] != None:
+                        try:
+                            url = self.str_substitued(subst["validate"])
+                            validation_msg = "\n".join(Unified_Cached_Input.load(url)["content"].readlines())
+                            if validation_msg.strip().lower() != "ok":
+                                subst["value"] = old_value
+                                subst["blocking"] = True
+                                raise Substitution_Error(d_validation = {subst_label: validation_msg})
+                        except Substitution_Error, inst:
+                            subst["value"] = old_value
+                            subst["blocking"] = True
+                            for miss_subst in self.subst_list:
+                                if miss_subst["label"] in inst.l_missing:
+                                    miss_subst["previous_validation_missed"][subst_label] = subst_value
+                            raise inst
+                    previous_validation_missed = subst["previous_validation_missed"]
+                    subst["previous_validation_missed"] = {}
+                    error = Substitution_Error() # cumulate all potential exception
+                    for label, value in previous_validation_missed.iteritems():
+                        try:
+                            self.subst_answered(label, value)
+                        except Substitution_Error, inst:
+                            error += inst
+                    if not error.is_empty():
+                        raise error
+        
+        def str_substitued(self, val):
+            """
+                Make all necessary substitution on a value
+                
+                May raise Substitution_Error
+            """
+            for subst in self.subst_list:
+                if re.search(subst["label"], val):
+                    if subst["value"] == None or subst["blocking"]:
+                        self.silent_fix_substitution(subst["label"])
+                    val = re.sub(subst["label"], subst["value"], val)
+            return val
+        
+        def str_needs_blocking_substitution(self, val):
+            """
+                returns True if val needs a substitution that has no value yet
+                returns False instead
+            """
+            try:
+                self.str_substitued(val)
+            except Substitution_Error:
+                return True
+            return False
+        
+        def list_blocking_substitutions(self):
+            """
+                returns a list of the current blocking substitutions
+                (may include substs that have already been answered but
+                not validated because another substitution is missing).
+            """
+            list_block = []
+            for subst in self.subst_list:
+                if subst["blocking"]:
+                    list_block.append(subst["label"])
+            return list_block
+        
+    ####################################################################
+    @classmethod
+    def __store_instance__(cls, instance):
+        cls.instance = instance
+    
+    @classmethod
+    def get_instance(cls):
+        return cls.instance
+    
+    def __init__(self):
+        Config.__store_instance__(self)
+        self.config_src_stack = self.ConfigSrcStack(CONFIG_SRC)
+        self.substs_manager = Config.SubstitutionsManager()
+    
+    def load(self):
+        """
+            will start to load all sources of CONFIG_SRC skipping those
+            which were already loaded before.
+            
+            return True if all done
+            return False in case it can not load one source (substitution missing).
+        """
+        print "Config . load"
+        while True:
+            if self.config_src_stack.is_finished():
+                break
+            src = self.config_src_stack.next()
+            try:
+                src = self.substs_manager.str_substitued(src)
+            except Substitution_Error:
+                return False
+            self.load_src_config(src)
+            self.config_src_stack.set_done()
+    
+    def load_src_config(self, src):
+        print "-"*30
+        print "loading src : %s" % src
+        for line in Unified_Cached_Input.load(src)["content"].readlines():
+            print line,
+
+########################################################################
+# TESTS
+import unittest
+
+class Test_Unified_Cached_Input(unittest.TestCase):
+    def setUp(self):
+        pass
+    
+    def test_constants(self):
+        cache = Unified_Cached_Input.load("constant://0")
+        lines = cache["content"].readlines()
+        success = cache["success"]
+        self.assertEqual("".join(lines).strip(), CONFIG_DEFAULTS.strip())
+        self.assertTrue(success)
+        
+        cache = Unified_Cached_Input.load("constant://1")
+        lines = cache["content"].readlines()
+        success = cache["success"]
+        self.assertEqual("".join(lines).strip(), EPFL_CONFIG.strip())
+        self.assertTrue(success)
+        
+        cache = Unified_Cached_Input.load("constant://2")
+        lines = cache["content"].readlines()
+        success = cache["success"]
+        self.assertEqual("".join(lines).strip(), '')
+        self.assertFalse(success)
+
+class Test_Substitutions(unittest.TestCase):
+    def setUp(self):
+        pass
+    
+    def test_basic_substs(self):
+        subst_man = Config.SubstitutionsManager()
+        self.assertEqual(subst_man.subst_list, [])
+        self.assertEqual(subst_man.list_blocking_substitutions(), [])
+        
+        cache_ok = Unified_Cached_Input.insert_constant_input("ok")
+        cache_ko = Unified_Cached_Input.insert_constant_input("Wrong value. Please re-enter")
+        
+        subst_man.add(
+            label = "__A__",
+            src = "src1",
+            validate = cache_ko,
+        )
+        
+        self.assertEqual(subst_man.str_substitued("hello"), "hello")
+        self.assertRaises(Substitution_Error, subst_man.str_substitued, "hello__A__")
+        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__"])
+        self.assertRaises(Substitution_Error, subst_man.silent_fix_substitution, "__A__")
+        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__A__", "one value") # validation
+        try:
+            subst_man.subst_answered("__A__", "one value")
+            self.assertEqual(True, False)
+        except Substitution_Error, inst:
+            #~ Unified_Cached_Input.pprint()
+            self.assertEqual(inst.d_validation, {"__A__": "Wrong value. Please re-enter"})
+        
+        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__"])
+        
+        subst_man.add(
+            label = "__A__",
+            src = "src1",
+            validate = cache_ok,
+        )
+        
+        subst_man.subst_answered("__A__", "one value")
+        self.assertEqual(subst_man.list_blocking_substitutions(), [])
+        
+    def test_dependent_substs_validation(self):
+        subst_man = Config.SubstitutionsManager()
+        cache_ok = Unified_Cached_Input.insert_constant_input("ok")
+        cache_ko = Unified_Cached_Input.insert_constant_input("Wrong value. Please re-enter")
+        subst_man.add(
+            label = "__A__",
+            ask = "Enter a nice word",
+            src = "src1",
+            validate = "__B__",
+        )
+        subst_man.add(
+            label = "__B__",
+            src = "src1",
+            validate = "__D__",
+        )
+        subst_man.add(
+            label = "__C__",
+            src = "src1",
+            validate = "__D__",
+        )
+        subst_man.add(
+            label = "__D__",
+            src = "src1",
+            validate = cache_ko,
+        )
+        
+        self.assertEqual(subst_man.list_blocking_substitutions(), [])
+        self.assertRaises(Substitution_Error, subst_man.str_substitued, "hello __A__")
+        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__A__", "answerA1")
+        try:
+            subst_man.subst_answered("__A__", "WORLD!")
+        except Substitution_Error, inst:
+            self.assertEqual(inst.l_missing, ["__B__"])
+        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__", "__B__"])
+        
+        
+        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__B__", cache_ok)
+        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__C__", cache_ok)
+        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__", "__B__", "__C__", "__D__"])
+        
+        self.assertRaises(Substitution_Error, subst_man.str_substitued, "__C__ABC__C__")
+        
+        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__D__", "fooo")
+        try:
+            subst_man.subst_answered("__D__", "fooo2")
+            self.assertEqual(True, False)
+        except Substitution_Error, inst:
+            self.assertEqual(inst.d_validation, {"__D__": "Wrong value. Please re-enter"})
+        
+        subst_man.add(
+            label = "__B__",
+            src = "src2",
+            validate = cache_ko,
+        )
+        subst_man.add(
+            label = "__C__",
+            src = "src2",
+            validate = cache_ko,
+        )
+        subst_man.add(
+            label = "__D__",
+            src = "src2",
+            validate = cache_ok,
+        )
+        try:
+            subst_man.subst_answered("__D__", cache_ok)
+        except Substitution_Error, inst:
+            self.assertEqual(inst.l_missing, [])
+            self.assertEqual(inst.d_validation, {
+                "__B__": "Wrong value. Please re-enter",
+                "__C__": "Wrong value. Please re-enter",
+            })
+        
+        subst_man.add(
+            label = "__B__",
+            src = "src3",
+            validate = cache_ok,
+        )
+        subst_man.add(
+            label = "__C__",
+            src = "src3",
+            validate = cache_ok,
+        )
+        
+        subst_man.subst_answered("__B__", cache_ok)
+        subst_man.subst_answered("__C__", "valueC")
+        self.assertEqual(subst_man.list_blocking_substitutions(), [])
+        self.assertEqual(subst_man.str_substitued("Hello __A__"), "Hello WORLD!")
+
+def tests():
+    # unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_Unified_Cached_Input)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+    
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_Substitutions)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+    return True # TODO !?!
+    
+
+########################################################################
+# MAIN
+
+if __name__ == '__main__':
+    if UNIT_TEST:
+        success = tests()
+        if success:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+    config = Config()
+    config.load()

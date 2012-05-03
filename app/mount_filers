@@ -1,351 +1,229 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  mount_filers - mounting tool with dynamic centralized configuration.
+#  Copyright (C) 2011  Bancal Samuel
+#  
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 # Special for Python 2.5
 from __future__ import with_statement
 
-import os,sys
-import getpass, grp, pwd
+# New release's README :
+# edit usr/share/man/man1/mount_filers.1
+# edit usr/share/man/man5/mount_filers.conf.5
+
+REVISION = "0.4.3 2012.05.02 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.3"
+# - evolution for Ubuntu 12.04 (precise pangolin)
+#   - mount.cifs uses numeric uid & gid
+#   - domain is always uppercase
+# - substitution reset makes a full reset (not only the value)
+# - need_to_save not triggered if constraint already correct
+# 
+# REVISION = "0.4.2 2011.11.16 (EPFL/ENAC-IT SB)"
+# bugfix : mount_filer -h raised AttributeError in some race condition
+# because of EPFL's Enacit1Logs
+# 
+# REVISION = "0.4.1 2011.11.11 (EPFL/ENAC-IT SB)"
+# bugfix : (GUI) All import when process is interrupted by subst question
+# standard check_condition function
+# new message when user has to answer questions
+# Set messages to take less space and be more one-line
+# bugfix : messages with abort now work
+# Nice message in case there is no network
+# 
+# REVISION = "0.4.0 2011.10.11 (EPFL/ENAC-IT SB)"
+# added message with label, rank, condition, reset, abort to be displayed
+# as a header. Gives the ability to reset some parameters (substitutions).
+# added substitution's validate instruction (to check user's input)
+# strict parsing of local files (/etc/mount_filers.conf & ~/.mount_filers.conf)
+#   and just warning when parsing other (e.g. http configs)
+# 
+# REVISION = "0.3.9 2011.09.29 (EPFL/ENAC-IT SB)"
+# cache usage is transparent
+# config file : /etc/mounts_filers.conf -> /etc/mount_filers.conf
+# GUI help instruction : "Click on the desired line to mount/unmount"
+#   or "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator"
+#
+# REVISION = "0.3.8 2011.09.09 (EPFL/ENAC-IT SB)"
+# added InputCache to cache url and files reading
+# 
+# REVISION = "0.3.7 2011.09.08 (EPFL/ENAC-IT SB)"
+# added check http (port 80) in requirements
+# added check_url in requirements
+# added config cache feature (in case config server is down)
+# 
+# REVISION = "0.3.6 2011.08.31 (EPFL/ENAC-IT SB)"
+# unique password asked correction for the case pwd was mistyped.
+# correction on clean exit if window closed when password is being asked
+# 
+# REVISION = "0.3.5 2011.08.29 (EPFL/ENAC-IT SB)"
+# GUI feature enhancement :
+# - not ask 2 time the same password (if clicked at the same time)
+# - Clean exit if window closed when a password is being asked
+# 
+# REVISION = "0.3.4 2011.08.29 (EPFL/ENAC-IT SB)"
+# New GUI layout : one line per mount (more compact)
+# small fixes
+# 
+# REVISION = "0.3.3 2011.06.16 (EPFL/ENAC-IT SB)"
+# Include EPFL's basic config instead from http://enacit1.epfl.ch
+# lowercase case insensitive parameters for CIFS mount
+# GUI_Entry better <ENTER> management & automatique focus
+# 
+# REVISION = "0.3.2 2011.06.07 (EPFL/ENAC-IT SB)"
+# Entry "OK" anchor to WEST when multi-value
+# --help output enhanced
+# ui.exit() : (save_if_needed also done when require instruction not met)
+# in CLI added check of [require] after all substitutions resolved
+# Exception in thread Thread-1 raised during interpreter shutdown
+# require is evaluated at every step of import process
+# 
+# REVISION = "0.3.1 2011.06.01 (EPFL/ENAC-IT SB)"
+# Fixed in some case script tried to save in /etc/mount_filers.conf
+# 
+# REVISION = "0.3.0 2011.05.26 (EPFL/ENAC-IT SB)"
+# Implements multi-value choice from substitution via url/url_saved
+# added iocharset=utf8 to mount.cifs_options (forgot...)
+# added [require] sections management (aim : check connection possibility to server at startup)
+# added constraint option to substitution section (lowercase | uppercase)
+# added default subst __MNT_DIR__ to switch OSX->/Volumes LNX->~/Desktop
+# added CLI argument --subst=__LABEL__:value
+# 
+# REVISION = "0.2.0 2011.05.12 (ENAC-IT SB)"
+# Implements Dynamic config sources
+# rewriten class Config for stronger structure (and dynamic config support)
+# rewriten class UI for dynamic config support
+# removed CONFIG_IMPORT
+# 
+# REVISION = "0.1.4 2011.04.28 (ENAC-IT SB)"
+# Added OS_Switch (dependencies in function of OS)
+# implements Desktop path (depends on OS)
+# gvfs_smb cache correction
+# 
+# REVISION = "0.1.3 2011.04.27 (ENAC-IT SB)"
+# Redefined parameters name (from config files)
+# Improved GUI
+# Require Python >= 2.6
+# 
+# REVISION = "0.1.2 2011.04.18 (ENAC-IT SB)"
+# implement basic GUI with Tkinter
+# 
+# REVISION = "0.1.1 2011.04.14 (ENAC-IT SB)"
+# Ask all subsitutions questions at the beginning 
+# Better management of IO (added potential sections)
+#
+# REVISION = "0.1.0 2011.04.13 (ENAC-IT SB)"
+# Implements auth_realm to ask the minimum of time the password (pexpect)
+# Implements nice display (with indentation)
+# Implements --import config from a default url CONFIG_IMPORT
+# Prepared generic calls to mount/umount different methods (mount.cifs, gvfs_smb, ...)
+# Implements --summary
+# Implements -u
+# supported methods : mount.cifs, gvfs_smb
+# cache status for gvfs_smb (speed up performance)
+# manages pre-requisites
+# beter documentation in config file
+#
+# REVISION = "0.0.2 2011.03.28 (ENAC-IT SB)"
+# first release
+# supported method : mount.cifs
+#
+# REVISION = "0.0.1 2011.03.14 (ENAC-IT SB)"
+# Tmp release (all by hand, no dynamic)
+#
+
+
+# TODO :
+# - methods :
+#   - NFSv3
+#   - SSHFS
+#   - WebDAV
+# 
+# new GUI with pyGTK? PyQt? PySide? other?
+
+# TODO : change paradygm :
+#        sequential / Tk -> tasks & state machine
+
+# TODO :
+# - GUI mode : Add a timeout callback to watch mount status (problem : gvfs is so slow!)
+
+
+import os, sys
 import re
-import copy
-import pprint
 import platform
+import getpass, grp, pwd
+import getopt
 import subprocess
-import signal
+import pprint
 import urllib
+from contextlib import contextmanager
+import time
+import signal
+import socket
+import base64
+from threading import Lock
+import gc
 
-########################################################################
-# VERSIONING
+try:
+    import pexpect
+    IMPORTED_PEXPECT = True
+except ImportError:
+    IMPORTED_PEXPECT = False
 
-REVISION = "0.5.0-dev 2011.12.09 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.5.0-dev"
-# Full rewrite of :
-# - Config
-# - substitution mecanism
-# - Added substitution's field "choice" :
-#   can be multi-mentionned. Let the user choose between them.
+try:
+    from Tkinter import Tk, Frame, LabelFrame, OptionMenu, Label, Entry, Button, Radiobutton, StringVar, TOP, BOTTOM, LEFT, RIGHT, N, E, S, W, END, Canvas, ALL, PhotoImage
+    import Tkinter
+    IMPORTED_TKINTER = True
+except ImportError:
+    IMPORTED_TKINTER = False
 
-UNIT_TEST = True
 
 # Check Python's version
 if sys.version_info < (2, 6):
     print "Please consider using Python 2.6 or newer"
     sys.exit(1)
 
-########################################################################
-# DEFINITIONS PRE-CONSTANTS
-
-def which(program):
-    """
-        from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
-    """
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-    return None
-
-class OS_Switch(object):
-    """
-    # ------------------------------------------------------------------
-    # Ubuntu 10.04
-    # - python 2.6.5
-    # - install requirement :
-    #  - smbfs (cifs-utils)
-    #  - python-tk (blt, tcl8.5, tk8.5)
-    
-    # ------------------------------------------------------------------
-    # Ubuntu 10.10
-    # - python 2.6.6
-    # - install requirement :
-    #  - python-tk (blt, tcl8.5, tk8.5)
-    #  - smbfs (cifs-utils)
-    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
-    
-    # ------------------------------------------------------------------
-    # Ubuntu 11.04
-    # - python 2.7.1
-    # - install requirement :
-    #  - python-tk (blt, tcl8.5, tk8.5)
-    #  - smbfs (cifs-utils)
-    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
-    
-    # ------------------------------------------------------------------
-    # Ubuntu 11.10
-    # - python 2.7.2+
-    # - install requirement :
-    #  - python-tk (blt, tcl8.5, tk8.5)
-    #  - smbfs (cifs-utils)
-    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
-    
-    # ------------------------------------------------------------------
-    # OSX 10.6.6
-    # - mount_smbfs (already installed)
-    # - python 2.6.1
-    # - install requirement :
-    #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
-    
-    # ------------------------------------------------------------------
-    # OSX 10.7
-    # - mount_smbfs (already installed)
-    # - python 2.7.1
-    # - install requirement :
-    #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
-    """
-    
-    @classmethod
-    def __init_if_needed__(cls):
-        #platform.linux_distribution()
-        cls.os = platform.system()
-        if cls.os == "Linux":
-            cls.distrib, cls.version = platform.linux_distribution()[:2]
-        elif cls.os == "Darwin":
-            cls.version = platform.mac_ver()[0]
-        else:
-            io.write("Error: Operating System (%s) not supported" % cls.os)
-            sys_exit(1)
-    
-    @classmethod
-    def msg_for_missing_tool(cls, tool):
-        cls.__init_if_needed__()
-        ubuntu_install_instruction = "Run the following to install it :\nsudo apt-get install"
-        if tool in ("mount.cifs", "gvfs-mount"):
-            msg = "Error: binary %s is missing." % tool
-        elif tool in ("pexpect", "Tkinter"):
-            msg = "Error: library %s is missing." % tool
-        else:
-            msg = "Error: %s is missing." % tool
-        if cls.os == "Linux":
-            if cls.distrib == "Ubuntu":
-                if tool == "mount.cifs":
-                    msg += " %s smbfs" % ubuntu_install_instruction
-                elif tool == "gvfs-mount":
-                    msg += " %s gvfs-bin" % ubuntu_install_instruction
-                elif tool == "Tkinter":
-                    msg += " %s python-tk" % ubuntu_install_instruction
-                elif tool == "pexpect":
-                    msg += " %s python-pexpect" % ubuntu_install_instruction
-            else:
-                pass
-        elif cls.os == "Darwin":
-            pass
-        return msg
-    
-    @classmethod
-    def get_matching_method_name(cls, protocol):
-        cls.__init_if_needed__()
-        return DEFAULT_METHODS.get(cls.os, {}).get(protocol, protocol)
-    
-    @classmethod
-    def get_matching_method(cls, protocol):
-        cls.__init_if_needed__()
-        return SUPPORTED_METHODS[cls.get_matching_method_name(protocol)]
-    
-    @classmethod
-    def get_open_cmd(cls, cmd):
-        cls.__init_if_needed__()
-        if cmd == "default":
-            if cls.os == "Linux":
-                cmd = which("nautilus")
-            elif cls.os == "Darwin":
-                cmd = "%s -a Finder" % which("open")
-        return cmd
-    
-    @classmethod
-    def get_desktop_folder(cls):
-        cls.__init_if_needed__()
-        default_desktop_path = os.path.expanduser("~/Desktop")
-        if cls.os == "Linux":
-            cmd = which("xdg-user-dir")
-            if cmd != None:
-                cmd = "%s DESKTOP" % cmd
-                subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = subproc.communicate()
-                if subproc.returncode == 0:
-                    return stdout.strip()
-        return default_desktop_path
-    
-    @classmethod
-    def get_default_mnt_folder(cls):
-        cls.__init_if_needed__()
-        default_mnt_folder = cls.get_desktop_folder()
-        if cls.os == "Darwin":
-            default_mnt_folder = "/Volumes"
-        return default_mnt_folder
-    
-    @classmethod
-    def get_smart_name(cls):
-        cls.__init_if_needed__()
-        return "%s %s" % (cls.get_smart_os(), cls.get_smart_version())
-    
-    @classmethod
-    def get_smart_os(cls):
-        cls.__init_if_needed__()
-        if cls.os == "Linux":
-            return cls.distrib
-        elif cls.os == "Darwin":
-            return "MacOSX"
-        return cls.os
-    
-    @classmethod
-    def get_smart_version(cls):
-        cls.__init_if_needed__()
-        return cls.version
-    
-    @classmethod
-    def get_smart_os_version(cls):
-        cls.__init_if_needed__()
-        return "%s_%s" % (cls.get_smart_os(), cls.get_smart_version())
-
-class MyTimeout(Exception):
-    def __init__(self, timeout):
-        self.timeout = timeout
-        self.timed_out = False
-    
-    def __enter__(self):
-        self.timed_out = False
-        self.old_handler = signal.signal(signal.SIGALRM, self.signal_handler)
-        signal.alarm(self.timeout)
-    
-    def __exit__(self, type, value, traceback):
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, self.old_handler)
-    
-    def signal_handler(self, signum, frame):
-        self.timed_out = True
-        raise self
-    
-    def __str__(self):
-        if self.timed_out :
-            return "Instructions lasted more than %d seconds" % self.timeout
-        else:
-            return "Timeout of %s seconds" % self.timeout
-
-class Unified_Cached_Input(object):
-    class ContentCache(object):
-        def __init__(self, fh = None, value = None):
-            if fh != None:
-                self.lines = fh.readlines()
-            elif value != None:
-                self.lines = ["%s\n" % line for line in value.split("\n")]
-                if value.endswith("\n"): # remove the too much "\n"
-                    self.lines = self.lines[:-1]
-                else:
-                    self.lines[-1] = self.lines[-1][:-1]
-            else:
-                self.lines = ""
-        
-        def readlines(self):
-            return self.lines
-        
-        def __repr__(self):
-            return "'%s'" % "".join(self.lines)
-    
-    @classmethod
-    def __init_if_needed__(cls):
-        try:
-            cls.cache
-        except AttributeError:
-            cls.cache = {}
-            cls.constant_index = 0
-    
-    @classmethod
-    def pprint(cls):
-        cls.__init_if_needed__()
-        print "-" * 30
-        print "Unified_Cached_Input :"
-        pprint.pprint(cls.cache)
-    
-    @classmethod
-    def insert_constant_input(cls, value):
-        """
-            Add a string in cache
-            return the "url" that refers to it
-        """
-        cls.__init_if_needed__()
-        ref = "constant://%i" % cls.constant_index
-        cls.constant_index += 1
-        cls.cache[ref] = {
-            "content": Unified_Cached_Input.ContentCache(value = value),
-            "success": True,
-        }
-        return ref
-        
-    @classmethod
-    def load(cls, src):
-        """
-            loads urls & files (in case not already in cache
-            - url :
-              if code 200: content=data & success=True
-              else: content=error msg & success=False
-            - file :
-              if can read: content=data & success=True
-              else: content=empty & success=False
-        """
-        cls.__init_if_needed__()
-        if cls.cache.get(src) == None:
-            if src[:4] == "http":
-                try:
-                    with MyTimeout(URL_TIMEOUT):
-                        fh = urllib.urlopen(src)
-                        if fh.code == 200:
-                            cls.cache[src] = {
-                                "content": Unified_Cached_Input.ContentCache(fh = fh),
-                                "success": True,
-                            }
-                        else:
-                            cls.cache[src] = {
-                                "content": Unified_Cached_Input.ContentCache(value = "Error %s, could not load url %s" % (fh.code, src)),
-                                "success": False,
-                            }
-                        fh.close()
-                except (IOError, MyTimeout):
-                    cls.cache[src] = {
-                        "content": Unified_Cached_Input.ContentCache(value = "Error, could not load url %s" % src),
-                        "success": False,
-                    }
-            else:
-                try:
-                    fh = open(src, "rU")
-                    cls.cache[src] = {
-                        "content": Unified_Cached_Input.ContentCache(fh = fh),
-                        "success": True,
-                    }
-                    fh.close()
-                except IOError:
-                    cls.cache[src] = {
-                        "content": Unified_Cached_Input.ContentCache(fh = None),
-                        "success": False,
-                    }
-        
-        return cls.cache[src]
-    
-    @classmethod
-    def invalidate(cls, src):
-        cls.__init_if_needed__()
-        try:
-            del(cls.cache[src])
-        except KeyError:
-            pass
-
-########################################################################
-# CONSTANTS
-
-VERBOSE = False # default. can be changed with -v argument
-
-URL_TIMEOUT = 1 # seconds
 
 LOCAL_USERNAME = getpass.getuser()
 LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
+LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
 HOME_DIR = os.path.expanduser("~")
+
+# CONFIG's method can be :
+# "smb"         -> Generic. This will be transformed into the appropriated
+#                  method depending on the OS
+# "gvfs_smb"    -> Uses GNOME's mechanisms "Connect to Server" for SMB/CIFS
+#                  (default for os = "Linux")
+# "mount.cifs"  -> Compatible with all linux
+# "mount_smbfs" -> (default and only one for os = "Darwin")
+# 
+# Tips to help to choose between gvfs_smb and mount.cifs :
+# pros gvfs_smb
+#   - ease of use
+#   - integrated with GNOME
+#   - no need to set sudoers and mount point
+# pros mount.cifs
+#   - works also with ssh session
+#   - no need to be using a GNOME session
+#   - persistant mount (even when the user logs out)
+#   - Works with NFS mounted home folders
+#   - faster
+
 
 CONFIG_FILES = [
     {
@@ -357,7 +235,10 @@ CONFIG_FILES = [
         "description" : "Personal config file",
     },
 ]
-CONFIG_SAVE = CONFIG_FILES[-1]["path"]
+
+CONFIG_CACHE_FILE = os.path.join(HOME_DIR, ".mount_filers.cache")
+CONFIG_CACHE_SRC_FILTER = ["CONSTANTS"]
+CONFIG_CACHE_SRC_FILTER.extend([c["path"] for c in CONFIG_FILES])
 
 DOC_CONFIG = """\
 # mount_filers
@@ -434,9 +315,7 @@ DOC_CONFIG = """\
 #                  (with "\\n"), the user's choice is saved localy
 #     url_saved  : same as url but always saves the value    (priority 3)
 #                  localy for later use
-#     choice     : multi-mentionned field. Let the user      (priority 4)
-#                  choose between them.
-#     ask        : if no value yet for this substitution     (priority 5)
+#     ask        : if no value yet for this substitution     (priority 4)
 #                  then ask this question to the user
 #     constraint : force the value to follow this constraint
 #                  can be : lowercase, uppercase
@@ -503,61 +382,55 @@ DOC_CONFIG = """\
     "\n#   ".join(["%s : %s" % (c["path"], c["description"]) for c in CONFIG_FILES])
 )
 
-CONFIG_DEFAULTS = """\
-[global]
-    method = smb
-    mount.cifs_filemode = 0770
-    mount.cifs_dirmode = 0770
-    mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
-    open = False
-    open_cmd = default
-    gvfs_symlink = True
-
-[substitution]
-    label = __VERSION__
-    value = %s
-
-[substitution]
-    label = __LOCAL_USERNAME__
-    value = %s
-
-[substitution]
-    label = __LOCAL_GROUPNAME__
-    value = %s
-
-[substitution]
-    label = __HOME__
-    value = %s
-    
-[substitution]
-    label = __MNT_DIR__
-    value = %s
-    
-[substitution]
-    label = __DESKTOP__
-    value = %s
-
-""" % (SHORT_REVISION, LOCAL_USERNAME, LOCAL_GROUPNAME, HOME_DIR, OS_Switch.get_default_mnt_folder(), OS_Switch.get_desktop_folder())
+CONFIG_DEFAULTS = {
+    "global" : {
+        "method" : "smb",
+        "mount.cifs_filemode" : "0770",
+        "mount.cifs_dirmode" : "0770",
+        "mount.cifs_options" : "rw,nobrl,noserverino,iocharset=utf8",
+        "open" : False,
+        "open_cmd" : "default",
+        "gvfs_symlink" : True,
+    },
+    "config" : [
+    ],
+    "require" : [
+    ],
+    "substitution" : {
+        "__VERSION__" : { "value" : SHORT_REVISION },
+        "__LOCAL_USERNAME__" : { "value" : LOCAL_USERNAME },
+        "__LOCAL_GROUPNAME__" : { "value" : LOCAL_GROUPNAME },
+        "__HOME__" : { "value" : HOME_DIR },
+        "__MNT_DIR__" : { "value" : "Done_just_under_depends_on_the_plateform" },
+        "__DESKTOP__" : { "value" : "Done_just_under_depends_on_the_plateform" },
+    },
+    "mount" : {
+    },
+}
 
 # EPFL footprint!
-EPFL_CONFIG = """\
-[config]
-    import = http://enacit1adm1.epfl.ch/mount_filers/dir/config?version=__VERSION__
-
-[require]
-    http = enacit1adm1.epfl.ch
-    msg = Could not connect to config server. Please check that you're connected to the network and using a VPN client if outside the EPFL.
-
-"""
+EPFL_CONFIG = {
+    "config" : [
+        { "import" : "http://enacit1adm1.epfl.ch/mount_filers/dir/config?version=__VERSION__" },
+    ],
+    "require" : [
+        {
+            "http" : "enacit1adm1.epfl.ch",
+            "msg" : "Could not connect to config server. Please check that you're connected to the network and using a VPN client if outside the EPFL.",
+        }
+    ],
+}
 # /EPFL footprint!
 
 CONFIG_SRC = [
-    Unified_Cached_Input.insert_constant_input(CONFIG_DEFAULTS),
+    CONFIG_DEFAULTS,
     # EPFL footprint!
-    Unified_Cached_Input.insert_constant_input(EPFL_CONFIG),
+    EPFL_CONFIG,
     # /EPFL footprint!
 ]
 CONFIG_SRC.extend([c["path"] for c in CONFIG_FILES])
+
+CONFIG_SAVE = CONFIG_SRC[-1]
 
 CONFIG_EXTRACT = {
     "global" : [
@@ -596,8 +469,6 @@ CONFIG_EXTRACT = {
         "values" : [
            # value to substitute by (optional)
             "value",
-           # multi-values to let the user choose
-            "choice",
            # where to download the value (has priority over ask)
             "url",
            # same as url but saves value localy for later use (has priority over url)
@@ -663,434 +534,3001 @@ BOOL_CONFIG = {
     }
 }
 
-########################################################################
-# DEFINITIONS
+DEFAULT_METHODS = {
+    "Linux" : {
+        "smb" : "gvfs_smb",
+    },
+    "Darwin" : {
+        "smb" : "mount_smbfs",
+    }
+}
 
-class Substitution_Error(Exception):
-    def __init__(self, l_missing = [], d_validation = {}):
-        Exception.__init__(self)
-        self.l_missing = copy.deepcopy(l_missing)
-        self.d_validation = copy.deepcopy(d_validation)
-    
-    def pprint(self):
-        print "-"*30
-        print "Substitution_Error"
-        print "missing : %s" % self.l_missing
-        print "validation : %s" % self.d_validation
-    
-    def __add__(self, other):
-        result = Substitution_Error(
-            l_missing = self.l_missing,
-            d_validation = self.d_validation
-        )
-        for other_missing in other.l_missing:
-            if not other_missing in result.l_missing:
-                result.l_missing.append(other_missing)
-        result.d_validation.update(other.d_validation)
-        return result
-    
-    def is_empty(self):
-        if len(self.l_missing) != 0 or len(self.d_validation) != 0:
-            return False
-        return True
+URL_TIMEOUT = 1 # seconds
 
-class Config(object):
-    
-    ####################################################################
-    class ConfigSrcStack(object):
-        """
-            Manages Config sources (which have already been loaded and
-            which not) and the ability to add new ones.
-        """
-        def __init__(self, init_stack = []):
-            self.stack = copy.deepcopy(init_stack)
-            self.insert_index = len(self.stack)
-        
-        def pprint(self):
-            print "-" * 30
-            print "ConfigSrcStack :"
-            pprint.pprint(self.stack)
-        
-        def add(self, src):
-            self.stack.insert(self.insert_index, src)
-            self.insert_index += 1
-        
-        def next(self):
-            self.insert_index = 1
-            return self.stack[0]
-        
-        def set_done(self):
-            self.stack.pop(0)
-            self.insert_index = 0
-        
-        def is_finished(self):
-            return len(self.stack) == 0
-    
-    ####################################################################
-    class SubstitutionsManager(object):
-        """
-            Manages Substitution things
-        """
-        def __init__(self):
-            self.subst_list = []
-        
-        def pprint(self):
-            print "-" * 30
-            print "SubstitutionsManager :"
-            pprint.pprint(self.subst_list)
-        
-        def add(self, label, src, value = None, choices = [], url = None, url_saved = None, ask = None, constraint = None, validate = None):
-            """
-                Add new substitution
-                or
-                Add new informations on a substitution
-                When a value is entered, use subst_answered instead.
-            """
-            for subst in self.subst_list:
-                if subst["label"] == label:
-                    subst["value"]      = (value, subst["value"])[value == None]
-                    subst["choices"].update(choices)
-                    subst["url"]        = (url, subst["url"])[url == None]
-                    subst["url_saved"]   = (url_saved, subst["url_saved"])[url_saved == None]
-                    subst["ask"]        = (ask, subst["ask"])[ask == None]
-                    subst["constraint"] = (constraint, subst["constraint"])[constraint == None]
-                    subst["validate"]   = (validate, subst["validate"])[validate == None]
-                    subst["src"].append(src)
-                    if subst["value"] != None:
-                        subst["blocking"] = False
-                    return
-            if ask == None:
-                ask = "Please enter value for %s" % label
-            self.subst_list.append({
-                "label": label,
-                "value": value,
-                "choices": set(choices),
-                "url": url,
-                "url_saved": url_saved,
-                "ask": ask,
-                "constraint": constraint,
-                "validate": validate,
-                "blocking": False,
-                "src": [src],
-                "previous_validation_missed": {},
-            })
-        
-        def silent_fix_substitution(self, subst_label):
-            """
-                Tries to find the value of a substitution
-                
-                raise Substitution_Error in case could not fix it silently
-            """
-            for subst in self.subst_list:
-                if subst["label"] == subst_label:
-                    if subst["value"] != None:
-                        return
-                    subst["blocking"] = True
-                    
-                    if subst["url"] != None:
-                        url = self.str_substitued(subst["url"])
-                        Config.get_instance().load_src_config(url)
-                    elif subst["url_saved"] != None:
-                        url = self.str_substitued(subst["url_saved"])
-                        Config.get_instance().load_src_config(url)
-                    if subst["value"] == None:
-                        raise Substitution_Error(l_missing = [subst_label])
-        
-        def subst_answered(self, subst_label, subst_value):
-            """
-                store value for that substitution
-                
-                raise Substitution_Error in case a substitution
-                  is missing to validate that value.
-                  In that case, subst_label and subst_value are kept for
-                  later refill (when missing substs are filled)
-                
-                raise Substitution_Error in case "validate"
-                  gives something different from "ok".
-            """
-            for subst in self.subst_list:
-                if subst["label"] == subst_label:
-                    old_value = subst["value"]
-                    subst["value"] = subst_value
-                    subst["blocking"] = False
-                    if subst["validate"] != None:
-                        try:
-                            url = self.str_substitued(subst["validate"])
-                            validation_msg = "\n".join(Unified_Cached_Input.load(url)["content"].readlines())
-                            if validation_msg.strip().lower() != "ok":
-                                subst["value"] = old_value
-                                subst["blocking"] = True
-                                raise Substitution_Error(d_validation = {subst_label: validation_msg})
-                        except Substitution_Error, inst:
-                            subst["value"] = old_value
-                            subst["blocking"] = True
-                            for miss_subst in self.subst_list:
-                                if miss_subst["label"] in inst.l_missing:
-                                    miss_subst["previous_validation_missed"][subst_label] = subst_value
-                            raise inst
-                    previous_validation_missed = subst["previous_validation_missed"]
-                    subst["previous_validation_missed"] = {}
-                    error = Substitution_Error() # cumulate all potential exception
-                    for label, value in previous_validation_missed.iteritems():
-                        try:
-                            self.subst_answered(label, value)
-                        except Substitution_Error, inst:
-                            error += inst
-                    if not error.is_empty():
-                        raise error
-        
-        def str_substitued(self, val):
-            """
-                Make all necessary substitution on a value
-                
-                May raise Substitution_Error
-            """
-            for subst in self.subst_list:
-                if re.search(subst["label"], val):
-                    if subst["value"] == None or subst["blocking"]:
-                        self.silent_fix_substitution(subst["label"])
-                    val = re.sub(subst["label"], subst["value"], val)
-            return val
-        
-        def str_needs_blocking_substitution(self, val):
-            """
-                returns True if val needs a substitution that has no value yet
-                returns False instead
-            """
-            try:
-                self.str_substitued(val)
-            except Substitution_Error:
-                return True
-            return False
-        
-        def list_blocking_substitutions(self):
-            """
-                returns a list of the current blocking substitutions
-                (may include substs that have already been answered but
-                not validated because another substitution is missing).
-            """
-            list_block = []
-            for subst in self.subst_list:
-                if subst["blocking"]:
-                    list_block.append(subst["label"])
-            return list_block
-        
-    ####################################################################
-    @classmethod
-    def __store_instance__(cls, instance):
-        cls.instance = instance
-    
+VERBOSE = False # default. can be changed with -v argument
+
+# GUI Messages
+MSG_SUBST_WAITING = "No mount available. Please answer questions or edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator."
+MSG_NO_MOUNT_CONFIGURED = "No mount available. Please edit /etc/mount_filers.conf or ~/.mount_filers.conf or contact your system administrator."
+MSG_CLICK_TO_MOUNT = "Click on the desired line to (u)mount :"
+
+# EPFL footprint!
+import atexit
+import threading
+import xmlrpclib
+
+class Enacit1Logs(threading.Thread):
+    """
+        define a Thread as a class
+    """
+
     @classmethod
     def get_instance(cls):
-        return cls.instance
+        try:
+            return cls.instance
+        except AttributeError:
+            cls.instance = Enacit1Logs()
+            return cls.instance
     
     def __init__(self):
-        Config.__store_instance__(self)
-        self.config_src_stack = self.ConfigSrcStack(CONFIG_SRC)
-        self.substs_manager = Config.SubstitutionsManager()
+        threading.Thread.__init__(self) # mandatory!
+        self.daemon = True
+        self.flag_stop = False
+        self.completed = False
     
-    def load(self):
-        """
-            will start to load all sources of CONFIG_SRC skipping those
-            which were already loaded before.
-            
-            return True if all done
-            return False in case it can not load one source (substitution missing).
-        """
-        print "Config . load"
-        while True:
-            if self.config_src_stack.is_finished():
-                break
-            src = self.config_src_stack.next()
+    def run(self):
+        SERVERNAME = "enacit1adm1.epfl.ch"
+        SERVERURL = "http://%s/enacit1logs/xml_rpc" % SERVERNAME
+        message = "launched mount_filers"
+        tags = ["mount_filers_%s" % SHORT_REVISION, os_switch.get_smart_os_version()]
+        
+        config = Config.get_config_instance()
+        while config == None:
+            if self.flag_stop:
+                return
+            time.sleep(0.1)
+            config = Config.get_config_instance()
+        
+        user = config.subst_get_value("__USERNAME__")
+        while user == None:
+            if self.flag_stop:
+                return
+            time.sleep(0.1)
+            user = config.subst_get_value("__USERNAME__")
+        
+        try:
+            socket.setdefaulttimeout(URL_TIMEOUT)
+            rpc = xmlrpclib.ServerProxy(SERVERURL)
+            rpc.post_log(message, tags, user)
+        except (socket.error, xmlrpclib.ProtocolError, socket.timeout) :
+            pass
+            #~ io.write("Server %s is not responding!" % SERVERNAME)
+        
+        self.completed = True
+    
+    def stop(self):
+        self.flag_stop = True
+    
+    def is_completed(self):
+        return self.completed
+# /EPFL footprint!
+
+def started_hook():
+    pass
+    
+    # EPFL footprint!
+    t = Enacit1Logs.get_instance()
+    t.start()
+    atexit.register(t.stop)
+    # /EPFL footprint!
+
+def finished_hook():
+    pass
+    
+    # EPFL footprint!
+    t = Enacit1Logs.get_instance()
+    t.stop()
+    t.join() # 20.0)
+    #~ if not t.is_completed():
+        #~ time.sleep(0.2)
+    # /EPFL footprint!
+
+def sys_exit(returncode = 0):
+    finished_hook()
+    sys.exit(returncode)
+
+def which(program):
+    """
+        from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+    """
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
+def check_condition(condition):
+    def format_version_for_comparision(version):
+        result = []
+        for v in version.split("."):
             try:
-                src = self.substs_manager.str_substitued(src)
-            except Substitution_Error:
+                result.append(int(v))
+            except:
+                m = re.match(r'(\d*)(.*)', v)
+                i = m.group(1)
+                try:
+                    i = int(i)
+                except:
+                    pass
+                s = m.group(2)
+                result.append((i, s))
+        return result
+    
+    m = re.search(r'^([^<>=!]+)\s*([<>=!]+)\s*([^<>=!]+)$', condition)
+    if not m:
+        raise Exception ("Error, could not evaluate condition \"%s\"." % (condition))
+    left, criterion, right = m.groups()
+    left = format_version_for_comparision(left.strip())
+    right = format_version_for_comparision(right.strip())
+    if criterion == "<":
+        if left < right:
+            return True
+    if criterion == "<=":
+        if left <= right:
+            return True
+    elif criterion == ">":
+        if left > right:
+            return True
+    elif criterion == ">=":
+        if left >= right:
+            return True
+    elif criterion == "==":
+        if left == right:
+            return True
+    elif criterion == "!=":
+        if left != right:
+            return True
+    return False
+
+
+def ping(server):
+    cmd = "%s -c 1 %s" % (which("ping"), server)
+    subproc = subprocess.Popen([cmd], shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    subproc.communicate()
+    return subproc.returncode == 0
+
+def ping_smb(server):
+    timeout = 0.2
+    port = 139
+    try:
+        sock = socket.create_connection((server, port), timeout)
+        sock.close()
+    except:
+        return False
+    return True
+
+def ping_http(server):
+    timeout = 0.2
+    port = 80
+    try:
+        sock = socket.create_connection((server, port), timeout)
+        sock.close()
+    except:
+        return False
+    return True
+
+def ping_url(url):
+    success = input_cache.load(url)[1]
+    return success
+
+class IO(object):
+    def __init__(self):
+        # indentation management
+        self.indent_char = "  "
+        self.indent_level = 0
+        self.indent_str = ""
+        self.gui = None
+        
+        # sections management
+        self.sections_stack = [] # {"msg": str,       # section title
+                                 #  "incr": int,      # increment expected for the section
+                                 #  "printed": bool,} # section title already printed
+        
+        # password management
+        self.known_passwd = {}
+        self.last_context = (None, None)
+    
+    def redirect_to_gui(self, gui):
+        self.gui = gui
+    
+    def __add_indent__(self, increment = 1):
+        self.indent_level += increment
+        if self.indent_level < 0:
+            self.indent_level = 0
+        self.indent_str = self.indent_char * self.indent_level
+    
+    def __clear_indent__(self):
+        self.indent_level = 0
+        self.indent_str = ""
+    
+    def __format_msg__(self, msg):
+        return self.indent_str + re.sub("\n", "\n%s" % self.indent_str, msg)
+    
+    @contextmanager
+    def indent(self, increment = 1):
+        """
+            used with "with" keyword :
+            with io.indent():
+                io.write("...")
+        """
+        self.sections_stack.append({"msg" : None, "incr" : increment, "printed" : True})
+        
+        yield None
+        
+        self.sections_stack.pop()
+    
+    @contextmanager
+    def write_section(self, msg, increment = 1):
+        self.sections_stack.append({"msg" : msg, "incr" : increment, "printed" : False})
+        
+        with self.__apply_sections_stack__():
+            yield None
+        
+        self.sections_stack.pop()
+    
+    @contextmanager
+    def write_potential_section(self, msg, increment = 1):
+        self.sections_stack.append({"msg" : msg, "incr" : increment, "printed" : False})
+        
+        yield None
+        
+        self.sections_stack.pop()
+    
+    @contextmanager
+    def __apply_sections_stack__(self):
+        self.__clear_indent__()
+        for section in self.sections_stack:
+            if not section["printed"]:
+                print self.__format_msg__(section["msg"])
+                section["printed"] = True
+            self.__add_indent__(section["incr"])
+        
+        yield None
+        
+        self.__clear_indent__()
+    
+    def write(self, msg, eol = "\n"):
+        with self.__apply_sections_stack__():
+            print self.__format_msg__(msg) + eol,
+            
+    def read(self, msg):
+        if self.gui != None:
+            return self.gui.read(msg)
+        else:
+            with self.__apply_sections_stack__():
+                return raw_input(self.__format_msg__(msg))
+    
+    def read_pwd(self, auth_realm, context):
+        """
+            auth_realm : realm of authentication
+            context : value used to check that previous request was not already for this password.
+              If it was the case then consider the password as mistyped and ask it again.
+        """
+        msg = "Please enter %s's password : " % auth_realm
+        if self.last_context == (auth_realm, context):
+            msg = "probably mistyped ...\n" + msg
+            self.wipe_pwd(auth_realm)
+        
+        if not self.known_passwd.get(auth_realm):
+            if self.gui != None:
+                self.known_passwd[auth_realm] = self.gui.read_pwd(msg, auth_realm)
+            else:
+                with self.__apply_sections_stack__():
+                    self.known_passwd[auth_realm] = getpass.getpass(self.__format_msg__(msg))
+        
+        self.last_context = (auth_realm, context)
+        return self.known_passwd[auth_realm]
+    
+    def ack_pwd(self, auth_realm, context):
+        """
+            For the case with GUI we mount, unmount and re-mount the same,
+            context will be given the same so acknowledge when the first
+            is successfull so that the password is not asked again.
+        """
+        if self.last_context == (auth_realm, context):
+            self.last_context = (None, None)
+        
+    def wipe_pwd(self, auth_realm):
+        self.known_passwd[auth_realm] = "foooooooo"
+        del(self.known_passwd[auth_realm])
+    
+    def wipe_pwds(self):
+        for auth_realm in self.known_passwd.keys():
+            self.known_passwd[auth_realm] = "foooooooo"
+            del(self.known_passwd[auth_realm])
+        self.known_passwd = {}
+        gc.collect()
+
+io = IO()
+
+class OS_Switch(object):
+    """
+    # ------------------------------------------------------------------
+    # Ubuntu 10.04
+    # - python 2.6.5
+    # - install requirement :
+    #  - smbfs (cifs-utils)
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 10.10
+    # - python 2.6.6
+    # - install requirement :
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    #  - smbfs (cifs-utils)
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 11.04
+    # - python 2.7.1
+    # - install requirement :
+    #  - python-tk (blt, tcl8.5, tk8.5)
+    #  - smbfs (cifs-utils)
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
+    # OSX 10.6.6
+    # - mount_smbfs (already installed)
+    # - python 2.6.1
+    # - install requirement :
+    #  - python-pexpect (get it from http://mac.softpedia.com/get/Developer-Tools/Pexpect.shtml)
+    """
+    def __init__(self):
+        #platform.linux_distribution()
+        self.os = platform.system()
+        if self.os == "Linux":
+            self.distrib, self.version = platform.linux_distribution()[:2]
+        elif self.os == "Darwin":
+            self.version = platform.mac_ver()[0]
+        else:
+            io.write("Error: Operating System (%s) not supported" % self.os)
+            sys_exit(1)
+    
+    def msg_for_missing_tool(self, tool):
+        ubuntu_install_instruction = "Run the following to install it :\nsudo apt-get install"
+        if tool in ("mount.cifs", "gvfs-mount"):
+            msg = "Error: binary %s is missing." % tool
+        elif tool in ("pexpect", "Tkinter"):
+            msg = "Error: library %s is missing." % tool
+        else:
+            msg = "Error: %s is missing." % tool
+        if self.os == "Linux":
+            if self.distrib == "Ubuntu":
+                if tool == "mount.cifs":
+                    msg += " %s smbfs" % ubuntu_install_instruction
+                elif tool == "gvfs-mount":
+                    msg += " %s gvfs-bin" % ubuntu_install_instruction
+                elif tool == "Tkinter":
+                    msg += " %s python-tk" % ubuntu_install_instruction
+                elif tool == "pexpect":
+                    msg += " %s python-pexpect" % ubuntu_install_instruction
+            else:
+                pass
+        elif self.os == "Darwin":
+            pass
+        return msg
+    
+    def get_matching_method_name(self, protocol):
+        return DEFAULT_METHODS.get(self.os, {}).get(protocol, protocol)
+    
+    def get_matching_method(self, protocol):
+        return SUPPORTED_METHODS[self.get_matching_method_name(protocol)]
+    
+    def get_open_cmd(self, cmd):
+        if cmd == "default":
+            if self.os == "Linux":
+                cmd = which("nautilus")
+            elif self.os == "Darwin":
+                cmd = "%s -a Finder" % which("open")
+        return cmd
+    
+    def get_desktop_folder(self):
+        default_desktop_path = os.path.expanduser("~/Desktop")
+        if self.os == "Linux":
+            cmd = which("xdg-user-dir")
+            if cmd != None:
+                cmd = "%s DESKTOP" % cmd
+                subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = subproc.communicate()
+                if subproc.returncode == 0:
+                    return stdout.strip()
+        return default_desktop_path
+    
+    def get_default_mnt_folder(self):
+        default_mnt_folder = self.get_desktop_folder()
+        if self.os == "Darwin":
+            default_mnt_folder = "/Volumes"
+        return default_mnt_folder
+    
+    def get_smart_name(self):
+        return "%s %s" % (self.get_smart_os(), self.get_smart_version())
+    
+    def get_smart_os(self):
+        if self.os == "Linux":
+            return self.distrib
+        elif self.os == "Darwin":
+            return "MacOSX"
+        return self.os
+    
+    def get_smart_version(self):
+        return self.version
+    
+    def get_smart_os_version(self):
+        return "%s_%s" % (self.get_smart_os(), self.get_smart_version())
+
+class MyTimeout(Exception):
+    def __init__(self, timeout):
+        self.timeout = timeout
+        self.timed_out = False
+    
+    def __enter__(self):
+        self.timed_out = False
+        self.old_handler = signal.signal(signal.SIGALRM, self.signal_handler)
+        signal.alarm(self.timeout)
+    
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, self.old_handler)
+    
+    def signal_handler(self, signum, frame):
+        self.timed_out = True
+        raise self
+    
+    def __str__(self):
+        if self.timed_out :
+            return "Instructions lasted more than %d seconds" % self.timeout
+        else:
+            return "Timeout of %s seconds" % self.timeout
+
+class InputCache(object):
+    class ContentCache(object):
+        def __init__(self, fh):
+            self.lines = fh.readlines()
+        
+        def readlines(self):
+            return self.lines
+    
+    def __init__(self):
+        self.cache = {}
+    
+    def load(self, src):
+        if self.cache.get(src):
+            return self.cache[src]
+        
+        success = True
+        if src[:4] == "http":
+            try:
+                with MyTimeout(URL_TIMEOUT):
+                    fh = urllib.urlopen(src)
+                if fh.code != 200:
+                    io.write("Warning. Could not load url %s" % src)
+                    success = False
+            except (IOError, MyTimeout):
+                io.write("Warning. Could not load url %s" % src)
+                success = False
+        else:
+            try:
+                fh = open(src, "rU")
+            except IOError:
+                success = False
+        
+        if not success:
+            fh = open("/dev/null", "rU")
+        return self.cache.setdefault(
+            src,
+            (InputCache.ContentCache(fh), success)
+        )
+    
+    def invalidate(self, src):
+        try:
+            del(self.cache[src])
+        except KeyError:
+            pass
+
+input_cache = InputCache()
+
+os_switch = OS_Switch()
+CONFIG_DEFAULTS["substitution"]["__DESKTOP__"]["value"] = os_switch.get_desktop_folder()
+CONFIG_DEFAULTS["substitution"]["__MNT_DIR__"]["value"] = os_switch.get_default_mnt_folder()
+
+def pexpect_ask_password(d):
+    """
+        called directly from pexpect.run when a pattern is found
+    """
+    
+    question = d["child_result_list"][-1]
+    context = d["extra_args"]["context"]
+    for search, auth_realm in d["extra_args"]["auth_realm"]:
+        if re.search(search, question):
+            try:
+                return io.read_pwd(auth_realm, context) + "\n"
+            except Exception, inst:
+                print "Exit mount instruction %s - %s" % (context, question)
+                #~ d["child"].close(force = True)
+                d["child"].kill(sig = pexpect.signal.SIGKILL)
+                return True # This means : kill current process (used when closing mount_filers)
+    
+    io.write("Could not find to which authentication realm is '%s'" % question)
+    sys_exit(1)
+
+
+class GenericMethod(object):
+    def __init__(self, conf, m_name):
+        self.conf = conf
+        self.m_name = m_name
+    
+    def ask_all_substitutions(self):
+        conf = self.conf
+        m_name = self.m_name
+        method = SUPPORTED_METHODS[self.method_name()]
+        
+        for option in method.get_options():
+            conf.get(m_name, option, default = "")
+    
+    def list_missing_substitutions(self):
+        conf = self.conf
+        m_name = self.m_name
+        method = SUPPORTED_METHODS[self.method_name()]
+        
+        subst_set = set()
+        for option in method.get_options():
+            list = conf.get_substitutions_list(m_name, option)
+            for subst in list:
+                if conf.get_subst_value(subst) == None:
+                    subst_set.add(subst)
+        return subst_set
+    
+    def method_name(self):
+        conf = self.conf
+        m_name = self.m_name
+        return os_switch.get_matching_method_name(conf.get(m_name, "method"))
+    
+    def is_supported(self):
+        return self.method_name() in SUPPORTED_METHODS.keys()
+    
+    def is_mounted(self):
+        # The hard way ...
+        #~ cmd = "mount"
+        #~ if VERBOSE: io.write(cmd)
+        #~ subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #~ stdout, stderr = subproc.communicate()
+        #~ if subproc.returncode != 0:
+            #~ io.write("\nError. %s\n%s\n" % (stdout, stderr))
+            #~ sys_exit(1)
+        #~ 
+        #~ i_search = r' %s ' % (self.user_path())
+        #~ if VERBOSE: io.write("I search : '%s'" % i_search)
+        #~ for line in stdout.split("\n"):
+            #~ if re.search(i_search, line):
+                #~ return True
+        #~ return False
+        return os.path.ismount(self.user_path())
+    
+    def user_path(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        return mp
+    
+    def where_is_mounted(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        return mp
+    
+    def pre_mount(self):
+        pass
+    
+    def mount(self):
+        raise Exception("Generic mount does nothing!")
+    
+    def post_mount(self):
+        pass
+    
+    def pre_umount(self):
+        pass
+    
+    def umount(self):
+        raise Exception("Generic umount does nothing!")
+    
+    def post_umount(self):
+        pass
+    
+    @classmethod
+    def get_options(cls):
+        return ["name", "label", "method", "open", ]
+
+class SMB_Method(GenericMethod):
+    def has_all_dependencies(self):
+        if not which("mount.cifs"):
+            raise Exception(os_switch.msg_for_missing_tool("mount.cifs"))
+    
+    def pre_mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        mp = conf.get(m_name, "local_path")
+        if not os.path.exists(mp):
+            try:
+                os.makedirs(mp)
+            except:
+                pass
+        if not os.path.isdir(mp):
+            raise Exception("Error while creating dir : %s" % mp)
+    
+    def mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mount_bin = which("mount.cifs")
+        domain = conf.get(m_name, "domain")
+        username = conf.get(m_name, "username")
+        auth_realm = conf.get(m_name, "auth_realm")
+        server_name = conf.get(m_name, "server_name")
+        slash_server_path = os.path.join("/", conf.get(m_name, "server_path"))
+        mp = conf.get(m_name, "local_path")
+        mount_cifs_filemode = conf.get(m_name, "mount.cifs_filemode")
+        mount_cifs_dirmode = conf.get(m_name, "mount.cifs_dirmode")
+        mount_cifs_options = conf.get(m_name, "mount.cifs_options")
+        cmd = "sudo %s //%s%s %s -o user=%s,domain=%s,uid=%s,gid=%s,file_mode=%s,dir_mode=%s,%s"
+        cmd = cmd % (mount_bin, server_name, slash_server_path, mp, username, domain, LOCAL_UID, LOCAL_GID, mount_cifs_filemode, mount_cifs_dirmode, mount_cifs_options)
+        if VERBOSE: io.write(cmd)
+        for i in xrange(3): # 3 attempts (for passwords mistyped)
+            (output, returncode) = pexpect.run(cmd,
+                events = {
+                    '(?i)password' : pexpect_ask_password,
+                },
+                extra_args = {
+                    "auth_realm" : [
+                        (r'\[sudo\] password', "sudo"),
+                        (r'Password', auth_realm)
+                    ],
+                    "context" : "smb_mount_%s" % m_name
+                },
+                withexitstatus = 1, timeout = 5)
+            if returncode == 0:
+                io.ack_pwd(auth_realm, "smb_mount_%s" % m_name)
+                break
+        if returncode != 0:
+            raise Exception("Error while mounting : %s" % output)
+    
+    def umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        umount_bin = which("umount")
+        cmd = "sudo %s %s" % (umount_bin, mp)
+        if VERBOSE: io.write(cmd)
+        (output, returncode) = pexpect.run(cmd,
+            events = {
+                '(?i)password' : pexpect_ask_password,
+            },
+            extra_args = {
+                "auth_realm" : [
+                    (r'\[sudo\] password', "sudo"),
+                ],
+                "context" : "smb_umount_%s" % m_name
+            },
+            withexitstatus = 1, timeout = 5)
+        if returncode != 0:
+            raise Exception("Error while umounting : %s" % output)
+    
+    def post_umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        if os.path.isdir(mp) and os.listdir(mp) == []:
+            os.rmdir(mp)
+    
+    @classmethod
+    def get_options(cls):
+        options = set(GenericMethod.get_options())
+        return list(options.union([
+            "domain", "username", "auth_realm",
+            "server_name", "server_path", "local_path",
+            "mount.cifs_filemode", "mount.cifs_dirmode", "mount.cifs_options",
+        ]))
+
+class GVFS_SMB_Method(GenericMethod):
+    def __init__(self, conf, m_name):
+        self.conf = conf
+        self.m_name = m_name
+        self.cache = { # implement a cache since gvfs-mount calls are time consuming!
+            "is_mounted" : None,
+            "mount_point" : None,
+            "user_path" : None,
+            "expected_is_mounted" : None, # None : no expect, True/False : expect True/False
+            "expected_user_path" : None,  # None : no expect, value : what expected for user_path
+        }
+    
+    def has_all_dependencies(self):
+        if not which("gvfs-mount"):
+            raise Exception(os_switch.msg_for_missing_tool("gvfs-mount"))
+    
+    def clear_cache(self):
+        self.cache["is_mounted"] = None
+        self.cache["user_path"] = None
+    
+    def update_cache(self):
+        if self.cache["is_mounted"] != None :
+            return
+        
+        conf = self.conf
+        m_name = self.m_name
+        
+        server_name = conf.get(m_name, "server_name")
+        username = conf.get(m_name, "username")
+        domain = conf.get(m_name, "domain")
+        server_path = conf.get(m_name, "server_path")
+        share = get_SMB_share(server_path)
+        folder = get_SMB_folder(server_path)
+        
+        ###
+        self.cache["is_mounted"] = False
+        cmd = "gvfs-mount -l"
+        if VERBOSE: io.write(cmd)
+        subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = subproc.communicate()
+        if subproc.returncode != 0:
+            io.write("\nError. %s\n%s\n" % (stdout, stderr))
+            sys_exit(1)
+        
+        i_search = r'%s \S+ %s -> smb://%s;%s@%s/%s' % (share, server_name, domain, username, server_name, share)
+        for line in stdout.split("\n"):
+            if re.search(i_search, line):
+                self.cache["is_mounted"] = True
+        
+        ###
+        self.cache["mount_point"] = ""
+        gvfs_dir = os.path.join(HOME_DIR, ".gvfs")
+        for f in os.listdir(gvfs_dir):
+            if re.match(r'%s \S+ %s' % (share, server_name), f):
+                self.cache["mount_point"] = os.path.join(gvfs_dir, f)
+        
+        ###
+        if conf.get(m_name, "gvfs_symlink"):
+            self.cache["user_path"] = conf.get(m_name, "local_path")
+            if not os.path.exists(self.cache["user_path"]):
+                self.cache["user_path"] = os.path.join(self.cache["mount_point"], folder).rstrip("/")
+        else:
+            self.cache["user_path"] = os.path.join(self.cache["mount_point"], folder).rstrip("/")
+    
+    def __wait_until_cache_ok__(self):
+        self.update_cache()
+        
+        ###
+        if self.cache["expected_is_mounted"] != None:
+            for i in xrange(7): # 7 x 0.1s : time delay for gvfs to be effectively (un)mounted
+                if self.cache["is_mounted"] == self.cache["expected_is_mounted"]:
+                    break
+                time.sleep(0.1)
+                self.clear_cache()
+                self.update_cache()
+            self.cache["expected_is_mounted"] = None
+        
+        ###
+        if self.cache["expected_user_path"] != None:
+            for i in xrange(7): # 7 x 0.1s : time delay
+                if self.cache["user_path"] == self.cache["expected_user_path"]:
+                    break
+                time.sleep(0.1)
+                self.clear_cache()
+                self.update_cache()
+            self.cache["expected_user_path"] = None
+        
+    def is_mounted(self):
+        self.__wait_until_cache_ok__()
+        return self.cache["is_mounted"]
+    
+    def where_is_mounted(self):
+        self.__wait_until_cache_ok__()
+        return self.cache["mount_point"]
+    
+    def user_path(self):
+        self.__wait_until_cache_ok__()
+        return self.cache["user_path"]
+    
+    def pre_mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        if not conf.get(m_name, "gvfs_symlink"):
+            return
+        mp = conf.get(m_name, "local_path")
+        if os.path.lexists(mp) and not os.path.exists(mp):
+            os.unlink(mp)
+        if os.path.exists(mp):
+            raise Exception("Error : Path %s already exists" % mp)
+    
+    def mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        domain = conf.get(m_name, "domain")
+        username = conf.get(m_name, "username")
+        server_name = conf.get(m_name, "server_name")
+        share = get_SMB_share(conf.get(m_name, "server_path"))
+        auth_realm = conf.get(m_name, "auth_realm")
+        
+        cmd = "gvfs-mount smb://%s\;%s@%s/%s" % (domain, username, server_name, share)
+        if VERBOSE: io.write(cmd)
+        
+        try:
+            (output, returncode) = pexpect.run(cmd,
+                events = {
+                    'Password:' : pexpect_ask_password,
+                },
+                extra_args = {
+                    "auth_realm" : [
+                        (r'Password:', auth_realm)
+                    ],
+                    "context" : "gvfs_mount_%s" % m_name
+                },
+                withexitstatus = 1, timeout = 5)
+        except pexpect.ExceptionPexpect, inst:
+            raise Exception("Error while mounting : %s" % inst.value)
+        if returncode == 0:
+            io.ack_pwd(auth_realm, "gvfs_mount_%s" % m_name)
+        else:
+            raise Exception("Error while mounting : %s" % output)
+        
+        self.cache["expected_is_mounted"] = True
+        self.clear_cache()
+    
+    def post_mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        if not conf.get(m_name, "gvfs_symlink"):
+            return
+        
+        folder = get_SMB_folder(conf.get(m_name, "server_path"))
+        target = os.path.join(self.where_is_mounted(), folder)
+        mp = conf.get(m_name, "local_path")
+        
+        try:
+            os.symlink(target, mp)
+        except OSError, inst:
+            raise Exception("Could not create symbolic link : %s" % inst.args[1])
+        if not os.path.islink(mp):
+            raise Exception("Could not create symbolic link : %s" % mp)
+        
+        if conf.get(m_name, "gvfs_symlink"):
+            self.cache["expected_user_path"] = conf.get(m_name, "local_path")
+        else:
+            self.cache["expected_user_path"] = os.path.join(self.cache["mount_point"], folder).rstrip("/")
+        self.clear_cache()
+        
+    def umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        domain = conf.get(m_name, "domain")
+        username = conf.get(m_name, "username")
+        server_name = conf.get(m_name, "server_name")
+        share = get_SMB_share(conf.get(m_name, "server_path"))
+        auth_realm = conf.get(m_name, "auth_realm")
+        
+        cmd = "gvfs-mount -u smb://%s\;%s@%s/%s" % (domain, username, server_name, share)
+        if VERBOSE: io.write(cmd)
+        
+        subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = subproc.communicate()
+        
+        self.cache["expected_is_mounted"] = False
+        self.clear_cache()
+        
+        if subproc.returncode != 0:
+            raise Exception("Error while umounting : %s\n%s" % (stdout, stderr))
+    
+    def post_umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        
+        self.__wait_until_cache_ok__()
+        
+        if not conf.get(m_name, "gvfs_symlink"):
+            return
+        mp = conf.get(m_name, "local_path")
+        if os.path.lexists(mp) and not os.path.exists(mp):
+            os.unlink(mp)
+    
+    @classmethod
+    def get_options(cls):
+        options = set(GenericMethod.get_options())
+        return list(options.union([
+            "domain", "username", "auth_realm",
+            "server_name", "server_path",
+            "local_path", "gvfs_symlink",
+        ]))
+
+class Mount_SMBFS_Method(GenericMethod):
+    def __init__(self, conf, m_name):
+        self.conf = conf
+        self.m_name = m_name
+    
+    def has_all_dependencies(self):
+        if not which("mount_smbfs"):
+            raise Exception(os_switch.msg_for_missing_tool("mount_smbfs"))
+    
+    def pre_mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        
+        if not os.path.exists(mp):
+            try:
+                os.makedirs(mp)
+            except:
+                pass
+        if not os.path.isdir(mp):
+            raise Exception("Error while creating dir : %s" % mp)
+    
+    def mount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mount_bin = which("mount_smbfs")
+        domain = conf.get(m_name, "domain")
+        username = conf.get(m_name, "username")
+        auth_realm = conf.get(m_name, "auth_realm")
+        server_name = conf.get(m_name, "server_name")
+        slash_server_path = os.path.join("/", conf.get(m_name, "server_path"))
+        mp = conf.get(m_name, "local_path")
+        cmd = "%s //%s\;%s@%s%s %s"
+        cmd = cmd % (mount_bin, domain, username, server_name, slash_server_path, mp)
+        if VERBOSE: io.write(cmd)
+        for i in xrange(3): # 3 attempts (for passwords mistyped)
+            (output, returncode) = pexpect.run(cmd,
+                events = {
+                    '(?i)password' : pexpect_ask_password,
+                },
+                extra_args = {
+                    "auth_realm" : [
+                        (r'Password', auth_realm)
+                    ],
+                    "context" : "smbfs_mount_%s" % m_name
+                },
+                withexitstatus = 1, timeout = 5)
+            if returncode == 0:
+                io.ack_pwd(auth_realm, "smbfs_mount_%s" % m_name)
+                break
+        if returncode != 0:
+            raise Exception("Error while mounting : %s" % output)
+    
+    def umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        umount_bin = which("umount")
+        
+        cmd = "%s %s" % (umount_bin, mp)
+        if VERBOSE: io.write(cmd)
+        subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = subproc.communicate()
+
+        if subproc.returncode != 0:
+            raise Exception("Error while umounting : %s\n%s" % (stdout, stderr))
+    
+    def post_umount(self):
+        conf = self.conf
+        m_name = self.m_name
+        mp = conf.get(m_name, "local_path")
+        if os.path.isdir(mp) and os.listdir(mp) == []:
+            os.rmdir(mp)
+    
+    @classmethod
+    def get_options(cls):
+        options = set(GenericMethod.get_options())
+        return list(options.union([
+            "domain", "username", "auth_realm",
+            "server_name", "server_path",
+            "local_path",
+        ]))
+
+
+def get_SMB_share(server_path):
+    server_path = server_path.strip(os.sep)
+    paths = server_path.split(os.sep)
+    return paths[0]
+
+def get_SMB_folder(server_path):
+    server_path = server_path.strip(os.sep)
+    paths = server_path.split(os.sep)
+    folder = ""
+    for f in paths[1:]:
+        folder = os.path.join(folder, f)
+    return folder
+
+def get_LOCAL_parent(folder):
+    folder = folder.rstrip(os.sep)
+    return os.path.dirname(folder)
+
+def get_LOCAL_basename(folder):
+    folder = folder.rstrip(os.sep)
+    return os.path.basename(folder)
+
+SUPPORTED_METHODS = {
+    "generic" : GenericMethod, # not really supported, but here for the falldown case
+    "mount.cifs" : SMB_Method,
+    "gvfs_smb" : GVFS_SMB_Method,
+    "mount_smbfs" : Mount_SMBFS_Method,
+}
+
+class Options(object):
+    def __init__(self, args):
+        global VERBOSE
+        try:
+            opts, args = getopt.getopt(args, "hHvlan:su", ["help", "config_help", "verbose", "list", "all", "name=", "summary", "subst="])
+        except getopt.GetoptError:
+            Options.usage()
+            sys_exit(2)
+        
+        action = "gui" # default (GUI)
+        scope = "all"  # default
+        list_mounts = []
+        substs = {}
+        for opt, arg in opts:
+            if opt in ("-v", "--verbose"):
+                VERBOSE = True
+            elif opt in ("-h", "--help"):
+                action = "help"
+            elif opt in ("-H", "--config_help"):
+                action = "config_help"
+            elif opt in ("-l", "--list"):
+                action = "list"
+            elif opt in ("-u"):
+                action = "umount"
+            elif opt in ("-a", "--all"):
+                scope = "all"
+                if action == "gui":
+                    action = "mount"
+            elif opt in ("-n", "--name"):
+                scope = "named"
+                list_mounts.append(arg)
+                if action == "gui":
+                    action = "mount"
+            elif opt in ("-s", "--summary"):
+                action = "summary"
+            elif opt == "--subst":
+                m = re.match(r'^(.*):(.*)$', arg)
+                if m:
+                    substs[m.group(1)] = {"value" : m.group(2)}
+                else:
+                    io.write("Unrecognized substitution \"%s\", Skipping." % arg)
+        
+        self.action = action
+        self.scope = scope
+        self.list_mounts = list_mounts
+        self.substs = substs
+    
+    @classmethod
+    def usage(cls):
+        def list_config_src():
+            return ", ".join([src for src in CONFIG_SRC if type(src) == type("")])
+        
+        name = sys.argv[0]
+        dirname = os.path.dirname(name)
+        for path in os.environ.get("PATH").split(":"):
+            try:
+                if os.path.samefile(dirname, path):
+                    name = os.path.basename(name)
+                    break
+            except OSError:
+                pass
+        
+        io.write("""\
+%s
+%s -h|--help
+%s -H|--config_help
+%s -l|--list
+%s -s|--summary
+%s [-u] -a|--all
+%s [-u] {-n|name name}
+
+                         : Launched without option will run in GUI mode
+
+-h|--help                : Display this help
+-H|--config_help         : Display help about configuration files
+-v|--verbose             : Add verbosity
+
+-a|--all                 : (u)Mounts all
+-n|--name name           : (u)Mounts only named one
+
+-u                       : Umounts instead of mounts
+
+-l|--list                : Lists all mount name configured (other can be set in %s)
+-s|--summary             : Print a summary of all mountpoints configured
+
+--subst __LABEL__:value  : Let define a default substitution value
+
+Man pages : mount_filers(1), mount_filers.conf(5)
+""" % (name, name, name, name, name, name, name, list_config_src()))
+    
+    @classmethod
+    def config_help(cls):
+        io.write(DOC_CONFIG)
+
+class Mount(object):
+    def __init__(self, conf, m_name):
+        self.conf = conf
+        self.m_name = m_name
+        self.success = None
+        
+        method_name = os_switch.get_matching_method_name(conf.get(m_name, "method"))
+        the_method = SUPPORTED_METHODS.get(method_name, SUPPORTED_METHODS["generic"])
+        self.method = the_method(conf, m_name)
+    
+    def check_prerequisites(self):
+        self.method.has_all_dependencies()
+    
+    def ask_all_substitutions(self):
+        self.method.ask_all_substitutions()
+    
+    def list_missing_substitutions(self):
+        return self.method.list_missing_substitutions()
+    
+    def is_mounted(self):
+        """
+            return if mountpoint is mounted.
+        """
+        return self.method.is_mounted()
+    
+    def mount(self):
+        """
+            Performs mount instruction after having check if not already mounted
+        """
+        conf = self.conf
+        m_name = self.m_name
+        method = self.method
+        
+        self.success = False
+        
+        if self.is_mounted():
+            self.success = True
+        else:
+            if method.is_supported():
+                with io.write_section("\nMounting %s :" % m_name):
+                    io.write("\"%s\"" % conf.get(m_name, "label"))
+                    try:
+                        method.pre_mount()
+                        method.mount()
+                        method.post_mount()
+                    except Exception, inst:
+                        io.write(inst.args[0])
+                        return
+                    self.success = True
+                    if VERBOSE: io.write("done")
+            else:
+                io.write("Unknown method %s. skipping." % method.method_name())
+                return
+    
+    def umount(self):
+        """
+            Performs umount instruction after checking if already mounted
+        """
+        conf = self.conf
+        m_name = self.m_name
+        method = self.method
+        
+        self.success = False
+        
+        if not self.is_mounted():
+            self.success = True
+        else:
+            if method.is_supported():
+                with io.write_section("\nUmounting %s :" % m_name):
+                    io.write("\"%s\"" % conf.get(m_name, "label"))
+                    try:
+                        method.pre_umount()
+                        method.umount()
+                        method.post_umount()
+                    except Exception, inst:
+                        io.write(inst.args[0])
+                        return
+                    self.success = True
+                    if VERBOSE: io.write("done")
+            else:
+                io.write("Unknown method %s. skipping." % method.method_name())
+                return
+    
+    def open_if_needed(self):
+        """
+            open folder if option is set
+        """
+        conf = self.conf
+        m_name = self.m_name
+        
+        if self.success and conf.get(m_name, "open"):
+            self.open()
+    
+    def open(self):
+        """
+            open user path
+        """
+        conf = self.conf
+        m_name = self.m_name
+        method = self.method
+
+        try:
+            method.has_all_dependencies()
+        except:
+            return
+        
+        mp = method.user_path()
+        cmd = os_switch.get_open_cmd(conf.get(m_name, "open_cmd"))
+        cmd = "%s '%s'" % (cmd, mp)
+        if VERBOSE: io.write(cmd)
+        subproc = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = subproc.communicate()
+        if subproc.returncode != 0:
+            io.write("\nError. %s\n%s\n" % (stdout, stderr))
+    
+    def pprint(self):
+        with io.write_section("Mount informations - %s" % self.m_name):
+            for option in self.method.get_options():
+                if option == CONFIG_EXTRACT["mount"]["key"]:
+                    continue
+                io.write("%s = %s" % (option, self.conf.get(self.m_name, option)))
+    
+    def print_summary(self):
+        conf = self.conf
+        m_name = self.m_name
+        method = self.method
+
+        try:
+            method.has_all_dependencies()
+        except:
+            return
+
+        mp = method.user_path()
+        if self.is_mounted():
+            status = "mounted on %s" % mp
+        else:
+            status = "not mounted"
+        io.write("%s \"%s\" is %s" % (m_name, conf.get(m_name, "label"), status))
+
+class Config(object):
+    @classmethod
+    def create_config_instance(cls):
+        cls.instance = Config()
+        return cls.instance
+    
+    @classmethod
+    def get_config_instance(cls):
+        try:
+            return cls.instance
+        except AttributeError:
+            return None
+    
+    def __init__(self):
+        self.globals = {}
+        self.require = []
+        self.mounts = {}
+        self.subst = {}
+        self.dyn_imports = []
+        self.already_loaded = set()
+        self.subst_filled_callbacks = []
+        self.messages = []
+        
+        # For substitution purpose
+        self.load(CONFIG_SAVE)
+        self.already_loaded = set()
+        
+        # Cache
+        self.load_cache_flag = False
+        self.cache_loaded = False
+        self.cache_save_forbidden = False
+    
+    def clear(self):
+        self.__init__()
+    
+    def load(self, src):
+        def conclude_section(section_name, data):
+            if section_name == "require":
+                data["src"] = src
+                if not data in self.require: # for 2x load the same ~/.mount_filers.conf
+                    self.require.append(data)
+            
+            elif section_name == "mount":
+                key = data.get(CONFIG_EXTRACT["mount"]["key"])
+                if key == None:
+                    io.write("Error. Mount instruction without %s option. Source: %s" % (CONFIG_EXTRACT["mount"]["key"], src))
+                    sys_exit(1)
+                del(data[CONFIG_EXTRACT["mount"]["key"]])
+                self.mounts.setdefault(key, {})
+                for k, v in data.iteritems():
+                    self.mounts[key][k] = v
+                self.mounts[key].setdefault("src", set())
+                self.mounts[key]["src"].add(src)
+                self.mounts[key].setdefault("id", len(self.mounts) - 1)
+                
+            elif section_name == "substitution":
+                if not data.get(CONFIG_EXTRACT["substitution"]["key"]):
+                    io.write("Error, substitution section without %s option. Line %s of %s" % (CONFIG_EXTRACT["substitution"]["key"], num_line, src))
+                    sys_exit(1)
+                if not data.get("value") and \
+                   not data.get("ask") and \
+                   not data.get("url"):
+                    io.write("Error, substitution section without \"value\", \"url\" and \"ask\" options. Line %s of %s" % (num_line, src))
+                    sys_exit(1)
+                key = data[CONFIG_EXTRACT["substitution"]["key"]]
+                del(data[CONFIG_EXTRACT["substitution"]["key"]])
+                self.subst.setdefault(key, {})
+                for k, v in data.iteritems():
+                    self.subst[key][k] = v
+                self.subst[key].setdefault("src", set())
+                self.subst[key]["src"].add(src)
+                self.subst[key].setdefault("id", len(self.subst) - 1)
+            
+            elif section_name == "message":
+                if not data.get("label"):
+                    io.write("Error, message section without \"label\" option. Line %s of %s" % (num_line, src))
+                    sys_exit(1)
+                found = False
+                for m in self.messages:
+                    if data["label"] == m["label"]:
+                        found = True
+                        for k in data.iterkeys():
+                            if k == "reset":
+                                m.setdefault(k, [])
+                                for elem in data[k]:
+                                    if not elem in m[k]:
+                                        m[k].append(elem)
+                            else:
+                                m[k] = data[k]
+                        m["src"].add(src)
+                if not found:
+                    data.setdefault("src", set())
+                    data["src"].add(src)
+                    self.messages.append(data)
+        
+        def to_bool(value):
+            if type(value) == type(""):
+                value = value.lower()
+            return value in ("yes", "y", "true", "1", "on", 1)
+        
+        if type(src) == type(""): # filename or url
+            if src in [c["path"] for c in CONFIG_FILES]:
+                strict_parsing = True
+            else:
+                strict_parsing = False
+            
+            if src in self.already_loaded:
+                return
+            self.already_loaded.add(src)
+            
+            if VERBOSE: io.write("\nParsing %s ... " % src, eol="")
+            f, success = input_cache.load(src)
+            if not success:
+                if src[:4] == "http":
+                    self.cache_save_forbidden = True
+                return
+            
+            num_line = 0
+            section_name = ""
+            data = {}
+            for line in f.readlines():
+                num_line += 1
+                line = re.sub(r'#.*$', '', line) # remove comments
+                line = line.strip()              # remove new line and pre-spaces
+                if line == '':
+                    continue
+                
+                # begining of section
+                m = re.match(r'\[\s*(\S+)\s*\]', line)
+                if m:
+                    if m.group(1) in CONFIG_EXTRACT.keys():
+                        if section_name in ("require", "mount", "substitution", "message"):
+                            conclude_section(section_name, data)
+                        section_name = m.group(1)
+                        data = {}
+                    else:
+                        if strict_parsing:
+                            io.write("Error. Unknown section %s" % m.group(1))
+                            sys_exit(1)
+                        else:
+                            io.write("Warning. Unknown section %s" % m.group(1))
+                            section_name = ""
+                    continue
+                
+                m = re.match(r'(\S+)\s*[=:]\s*(\S.*)$', line)
+                if not m:
+                    if strict_parsing:
+                        io.write("Error. Unrecognized line %d of %s" % (num_line, src))
+                        sys_exit(1)
+                    else:
+                        io.write("Warning. Unrecognized line %d of %s" % (num_line, src))
+                        continue
+                key = m.group(1)
+                value = m.group(2)
+                if BOOL_CONFIG.get(section_name, {}).get(key, False):
+                    value = to_bool(value)
+                
+                if section_name == "global":
+                    if not key in CONFIG_EXTRACT[section_name]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    self.globals.setdefault(key, {})
+                    self.globals[key].setdefault("src", set())
+                    self.globals[key]["src"].add(src)
+                    self.globals[key]["value"] = value
+                elif section_name == "require":
+                    if key not in CONFIG_EXTRACT[section_name]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    data[key] = value
+                elif section_name in ("mount", "substitution"):
+                    if key != CONFIG_EXTRACT[section_name]["key"] and \
+                       key not in CONFIG_EXTRACT[section_name]["values"]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    data[key] = value
+                elif section_name == "config":
+                    if key not in CONFIG_EXTRACT[section_name]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    self.dyn_import_add(value, src)
+                elif section_name == "message":
+                    if key not in CONFIG_EXTRACT[section_name]:
+                        io.write("Skipping %s at line %d of %s" % (key, num_line, src))
+                        continue
+                    if key == "reset":
+                        data.setdefault(key, []).append(value)
+                    else:
+                        data[key] = value
+                    
+            # Finaly conclude what has been started
+            if section_name in ("require", "mount", "substitution", "message"):
+                conclude_section(section_name, data)
+            
+            if VERBOSE: io.write("done")
+        
+        elif type(src) == type({}): # CONSTANTS
+            if VERBOSE: io.write("parsing constant ...", eol="")
+            if src == {}:
+                if VERBOSE: io.write("nothing")
+            else:
+                for k, v in src.get("global", {}).iteritems():
+                    if not k in CONFIG_EXTRACT["global"]:
+                        io.write("Error. %s option not recognized from constants" % k)
+                        sys_exit(1)
+                    self.globals.setdefault(k, {})
+                    self.globals[k].setdefault("src", set())
+                    self.globals[k]["src"].add("CONSTANTS")
+                    self.globals[k]["value"] = v
+                
+                for req in src.get("require", []):
+                    for k, v in req.iteritems():
+                        if not k in CONFIG_EXTRACT["require"]:
+                            io.write("Error. %s option not recognized from constants" % k)
+                            sys_exit(1)
+                    r = req.copy()
+                    r["src"] = "CONSTANTS"
+                    self.require.append(r)
+                
+                for m_name in src.get("mount", {}):
+                    key = src["mount"][m_name].get(CONFIG_EXTRACT["mount"]["key"])
+                    if key == None:
+                        io.write("Error. Mount instruction without %s option. Source: CONSTANTS" % CONFIG_EXTRACT["mount"]["key"])
+                        sys_exit(1)
+                    self.mounts.setdefault(key, {})
+                    self.mounts[key].setdefault("id", len(self.mounts) - 1)
+                    self.mounts[key].setdefault("src", set())
+                    self.mounts[key]["src"].add("CONSTANTS")
+                    for k, v in src["mount"][m_name].iteritems():
+                        self.mounts[key][k] = v
+                
+                for s in src.get("substitution", {}).iterkeys():
+                    self.subst.setdefault(s, {})
+                    self.subst[s].setdefault("id", len(self.subst)-1)
+                    self.subst[s].setdefault("src", set())
+                    self.subst[s]["src"].add("CONSTANTS")
+                    if not src["substitution"][s].get("value") and \
+                       not src["substitution"][s].get("ask") and \
+                       not src["substitution"][s].get("url"):
+                        io.write("Error, substitution section without \"value\" \"url\" and \"ask\" options from constants")
+                        sys_exit(1)
+                    for k, v in src["substitution"][s].iteritems():
+                        if not k in CONFIG_EXTRACT["substitution"]["values"]:
+                            io.write("Error, substitution should not have %s option (from constants)" % k)
+                            sys_exit(1)
+                        self.subst[s][k] = v
+                
+                for cfg in src.get("config", []):
+                    if cfg.get("import"):
+                        self.dyn_import_add(cfg["import"], "CONSTANTS")
+                
+                for msg in src.get("message", []):
+                    for k in BOOL_CONFIG.get("message", {}).iterkeys():
+                        if msg.get(k) != None:
+                            msg[k] = to_bool(msg[k])
+                    msg.setdefault("src", set())
+                    msg["src"].add("CONSTANTS")
+                    self.messages.append(msg.copy())
+                
+                if VERBOSE: io.write("done")
+    
+    def load_cache(self):
+        self.cache_save_forbidden = True
+        #io.write("load cache ... ", eol = "")
+        self.load(CONFIG_CACHE_FILE)
+        #io.write("done.")
+        self.load_cache_flag = False
+        self.cache_loaded = True
+    
+    def consolidate(self):
+        for m_name in self.mounts:
+            method_name = self.mounts[m_name].get("method") or self.globals.get("method", {}).get("value")
+            if method_name == None:
+                io.write("Error, mount section without a method instruction. Source : %s" % (", ".join(self.mounts[m_name]["src"])))
+                sys_exit(1)
+            method = os_switch.get_matching_method(method_name)
+            for option in method.get_options():
+                if option == CONFIG_EXTRACT["mount"]["key"]:
+                    continue
+                self.mounts[m_name].setdefault(option, self.globals.get(option, {}).get("value"))
+                if self.mounts[m_name][option] == None:
+                    io.write("Error, mount section with method %s is missing option %s. Source : %s" % (method_name, option, ", ".join(self.mounts[m_name]["src"])))
+                    sys_exit(1)
+    
+    def check_prerequisite(self, req, ui):
+        def get_exit_status(req):
+            if req.get("abort"):
+                return 1
+            else:
+                return None
+        
+        if not req.get("done"):
+            if req.get("ping"):
+                if len(self.list_subst_labels(req["ping"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping(self.substitued(req["ping"])):
+                    if req.get("msg") != None:
+                        ui.show_notification(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
+            if req.get("smb"):
+                if len(self.list_subst_labels(req["smb"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping_smb(self.substitued(req["smb"])):
+                    if req.get("msg") != None:
+                        ui.show_notification(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
+            if req.get("http"):
+                if len(self.list_subst_labels(req["http"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping_http(self.substitued(req["http"])):
+                    if req.get("msg") != None:
+                        ui.show_notification(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
+            if req.get("url"):
+                if len(self.list_subst_labels(req["url"], blocking = True)) != 0:
+                    return # in case not able to do the check right now...
+                if not ping_url(self.substitued(req["url"])):
+                    if req.get("msg") != None:
+                        ui.show_notification(
+                            "Requirement check :",
+                            req["msg"],
+                            get_exit_status(req)
+                        )
+                    if req.get("load_cache"):
+                        self.load_cache_flag = True
+            req["done"] = True
+    
+    def check_prerequisites(self, ui):
+        for req in self.require:
+            self.check_prerequisite(req, ui)
+        if self.load_cache_flag and not self.cache_loaded:
+            self.load_cache()
+            self.check_prerequisites(ui)
+    
+    def require_list(self, done = None):
+        return [\
+            req
+            for req in self.require
+            if (done == None or req.get("done", False) == done)
+        ]
+    
+    def require_list_missing_subst(self, req, blocking = False, only_first_level = False):
+        list_s = []
+        if not req.get("done"):
+            val = req.get("ping", req.get("smb", req.get("http", req.get("url", ""))))
+            list_s = self.list_subst_labels(val, blocking = blocking)
+        if only_first_level:
+            return self.subst_filter_first_level(list_s)
+        else:
+            return list_s
+    
+    def requires_list_missing_subst(self, only_first_level = False):
+        set_subst = set()
+        for req in self.require:
+            list_s = self.require_list_missing_subst(
+                req = req,
+                blocking = True,
+                only_first_level = only_first_level
+            )
+            set_subst = set_subst.union(list_s)
+        if only_first_level:
+            return self.subst_filter_first_level(list(set_subst))
+        else:
+            return list(set_subst)
+    
+    def dyn_import_list(self, src = None, done = None):
+        return [\
+            loc["l"]
+            for loc in self.dyn_imports
+            if (src == None or loc["src"] == src) and \
+               (done == None or loc["done"] == done)
+       ]
+    
+    def dyn_import_add(self, location, src):
+        for loc in self.dyn_imports:
+            if loc["l"] == location:
+                io.write("found double call to config location!")
+                return
+        self.dyn_imports.append({"l" : location, "done" : False, "src" : src})
+    
+    def dyn_import_list_missing_subst(self):
+        s_b_substs = set()
+        for dyn_import in self.dyn_imports:
+            if not dyn_import["done"]:
+                s_b_substs = s_b_substs.union(self.list_subst_labels(dyn_import["l"], blocking = True))
+        return list(s_b_substs)
+    
+    def dyn_import_load(self):
+        for dyn_import in self.dyn_imports:
+            if not dyn_import["done"]:
+                loc = self.substitued(dyn_import["l"])
+                self.load(loc)
+                dyn_import["done"] = True
+    
+    def dyn_import_set_done(self, loc):
+        for dyn_import in self.dyn_imports:
+            if dyn_import["l"] == loc:
+                dyn_import["done"] = True
+    
+    def mount_get_method(self, m_name):
+        method_name = os_switch.get_matching_method_name(self.get(m_name, "method"))
+        the_method = SUPPORTED_METHODS.get(method_name, SUPPORTED_METHODS["generic"])
+        return the_method
+    
+    def subst_filter_first_level(self, l_subst):
+        for subst in list(l_subst):
+            src = self.subst[subst].get("url")
+            if src == None:
+                src = self.subst[subst].get("url_saved")
+            if src != None:
+                if len(self.list_subst_labels(src, blocking = True)) != 0:
+                    l_subst.remove(subst)
+        return l_subst
+    
+    def mount_list_missing_subst(self, m_name, only_first_level = False):
+        # only_first_level means that for subst that can be found after 
+        # another subst is filled, only the first level is returned.
+        s_b_substs = set()
+        if self.mount_name_exists(m_name):
+            method = self.mount_get_method(m_name)
+            for option in method.get_options():
+                raw_value = self.raw_get(m_name, option, default = "")
+                if type(raw_value) == type(""):
+                    s_b_substs = s_b_substs.union(self.list_subst_labels(raw_value, blocking = True))
+        
+        if only_first_level:
+            return self.subst_filter_first_level(list(s_b_substs))
+        else:
+            return list(s_b_substs)
+        
+    def list_subst_labels(self, value, blocking = False):
+        if type(value) != type(""):
+            return []
+        s_subst = set()
+        for subst in self.subst:
+            if re.search(subst, value):
+                if not blocking or self.subst[subst].get("value") == None:
+                    s_subst.add(subst)
+        return list(s_subst)
+    
+    def list_mounts(self):
+        return sorted(self.mounts.keys(), key=lambda i: self.mounts[i]["id"])
+    
+    def mount_name_exists(self, m_name):
+        return self.mounts.get(m_name) != None
+    
+    def raw_get(self, m_name, option, default = None):
+        value = self.mounts.get(m_name, {}).get(option)
+        if value == None:
+            value = self.globals.get(option, {}).get("value")
+        if value == None:
+            value = default
+        if value == None:
+            raise Exception("Error. Trying to get option %s for mount %s which is not set" % (option, m_name))
+        return value
+    
+    def get(self, m_name, option, default = None):
+        value = self.raw_get(m_name, option, default)
+        if type(value) != type(""):
+            return value
+        value = self.substitued(value)
+        
+        # Format value (SMB parameters have to be lowercase)
+        if option in ("server_name", "server_path", "username") and \
+           self.get(m_name, "method") in ("smb", "mount.cifs", "gvfs_smb", "mount_smbfs"):
+            value = value.lower()
+        
+        return value
+    
+    def add_subst_filled_callback(self, callback):
+        self.subst_filled_callbacks.append(callback)
+    
+    def subst_apply_constraints(self, subst):
+        val = self.subst[subst].get("value")
+        if val == None:
+            return
+        constraint = self.subst[subst].get("constraint")
+        if constraint == "lowercase":
+            if val != val.lower():
+                if val != val.lower():
+                    self.subst[subst]["value"] = val.lower()
+                    self.subst[subst]["need_to_save"] = True
+        elif constraint == "uppercase":
+                if val != val.upper():
+                    self.subst[subst]["value"] = val.upper()
+                    self.subst[subst]["need_to_save"] = True
+    
+    def subst_apply_all_constraints(self):
+        for subst in self.subst:
+            self.subst_apply_constraints(subst)
+    
+    def subst_get_question(self, subst):
+        return self.subst[subst].get("ask", "Please give a value for %s" % subst) + " "
+    
+    def subst_get_value(self, subst):
+        return self.subst.get(subst, {}).get("value")
+    
+    def subst_get_multi_value(self, subst):
+        return self.subst.get(subst, {}).get("multi_value", [])
+    
+    def subst_get_validate_url(self, subst):
+        return self.subst[subst].get("validate", "")
+    
+    def subst_solve(self, subst, no_ask = False):
+        force_save = False
+        if not self.subst.get(subst):
+            return
+        self.subst[subst].setdefault("value", None)
+        if self.subst[subst]["value"] != None:
+            return
+        if self.subst[subst].get("url_saved") or \
+           self.subst[subst].get("url"):
+            src = self.subst[subst].get("url_saved") or \
+                  self.subst[subst].get("url")
+            dependencies = self.list_subst_labels(src, blocking = True)
+            for dep in dependencies:
+                self.subst_solve(dep, no_ask)
+            dependencies = self.list_subst_labels(src, blocking = True)
+            if len(dependencies) != 0:
+                return
+            src = self.substitued(src)
+            
+            f, success = input_cache.load(src)
+            if success:
+                multi_value = [val.strip() for val in f.readlines()]
+                value = "\n".join(multi_value)
+                if not no_ask and len(multi_value) != 1:
+                    question = self.subst_get_question(subst)
+                    question += "\nSuggested answers are :\n- "
+                    question += "\n- ".join(multi_value)
+                    question += "\nPlease choose : "
+                    value = io.read(question)
+                    force_save = True
+                if self.subst[subst].get("url_saved") or \
+                   force_save:
+                    self.subst_filled(subst, value)
+                else:
+                    self.subst_filled(subst, value, save = False)
+                return
+            
+        if no_ask:
+            return
+        if self.subst[subst].get("ask"):
+            success = False
+            error_msg = ""
+            while not success:
+                value = io.read(error_msg + self.subst_get_question(subst))
+                validation_url = self.subst[subst].get("validate")
+                if validation_url:
+                    success, error_msg = self.subst_validation(validation_url + value)
+                    error_msg += "\n"
+                else:
+                    success = True
+            self.subst_filled(subst, value)
+        
+    def subst_filled(self, subst, value, save = True):
+        if value == None:
+            io.write("Error. Could not get substitution value for %s\n%s" % (subst, pprint.pformat(self.subst[subst])))
+            sys_exit(1)
+        
+        multi_value = value.split("\n") # for multi-values ... -> choices
+        if len(multi_value) != 1:
+            try:
+                while True:
+                    multi_value.remove("")
+            except ValueError:
+                pass
+            self.subst[subst]["multi_value"] = multi_value
+            return
+        
+        self.subst[subst]["value"] = value
+        if save:
+            self.subst[subst]["need_to_save"] = True
+        for cb in self.subst_filled_callbacks:
+            cb(subst)
+        
+        self.subst_apply_constraints(subst)
+    
+    def subst_validation(self, url):
+        f, success = input_cache.load(url)
+        if not success:
+            io.write("Warning, could not validate with %s" % url)
+            return (True, "Could not check, assuming ok.")
+        lines = f.readlines()
+        if lines == ["ok"]:
+            return (True, "")
+        else:
+            return (False, "\n".join(lines))
+    
+    def substitued(self, value):
+        l_subst = self.list_subst_labels(value)
+        for subst in l_subst:
+            if self.subst[subst].get("value") == None:
+                self.subst_solve(subst)
+            value = re.sub(subst, self.subst[subst]["value"], value)
+        return value
+    
+    def reset_and_save_subst(self, list_subst):
+        for subst in list_subst:
+            if not subst in self.subst:
+                continue
+            try:
+                #~ del(self.subst[subst]["value"])
+                del(self.subst[subst])
+            except KeyError:
+                pass
+        self.save_if_needed(CONFIG_SAVE, force = True)
+        try:
+            os.unlink(CONFIG_CACHE_FILE)
+            input_cache.invalidate(CONFIG_CACHE_FILE)
+        except OSError:
+            pass
+        self.clear()
+    
+    def get_messages(self):
+        list_messages = []
+        for mesg in sorted(self.messages, key=lambda m:m.get("rank", "z")):
+            condition = mesg.get("condition", "true")
+            if condition.lower() in ("no", "n", "false", "o", "off"):
+                continue
+            elif condition.lower() not in ("yes", "y", "true", "1", "on"):
+                try:
+                    if not check_condition(self.substitued(condition)):
+                        continue
+                except Exception:
+                    io.write("Warning, could not evaluate condition \"%s\". Skipping." % (condition))
+                    continue
+            list_messages.append(mesg)
+        return list_messages
+    
+    def save_if_needed(self, filename, force = False, is_cache = False):
+        for subst in self.subst:
+            if self.subst[subst].get("need_to_save"):
+                force = True
+        
+        if not force:
+            if VERBOSE: io.write("No need to save")
+            return
+        if VERBOSE:
+            io.write("Saving to %s" % filename)
+        f = open(filename, "w")
+        
+        # Documentation
+        f.write(DOC_CONFIG)
+        
+        # Globals
+        first = True
+        for k in self.globals:
+            sources = self.globals[k]["src"].copy()
+            save_it = False
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
+                if first:
+                    f.write("[global]\n")
+                    first = False
+                f.write("%s = %s\n" % (k, self.globals[k]["value"]))
+        if not first:
+            f.write("\n\n")
+        
+        # Message
+        have_one = False
+        for msg in self.messages:
+            sources = msg["src"].copy()
+            save_it = False
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
+                f.write("[message]\n")
+                have_one = True
+                for k, v in msg.iteritems():
+                    if k not in CONFIG_EXTRACT["message"]:
+                        continue
+                    if k == "reset":
+                        for reset_value in v:
+                            f.write("%s = %s\n" % (k, reset_value))
+                    else:
+                        f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        if have_one:
+            f.write("\n")
+        
+        # Config
+        if not is_cache:
+            first = True
+            for loc in self.dyn_imports:
+                if filename in loc["src"]:
+                    if first:
+                        f.write("[config]\n")
+                        first = False
+                    f.write("import = %s\n" % loc["l"])
+            if not first:
+                f.write("\n\n")
+        
+        # Requirements
+        have_one = False
+        for req in self.require:
+            save_it = False
+            source = req.get("src")
+            if is_cache:
+                if not source in CONFIG_CACHE_SRC_FILTER:
+                    save_it = True
+            else:
+                if filename == source:
+                    save_it = True
+            if save_it:
+                have_one = True
+                f.write("[require]\n")
+                for k, v in req.iteritems():
+                    if k in ("src", "done"):
+                        continue
+                    f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        if have_one:
+            f.write("\n")
+        
+        # Substitutions
+        have_one = False
+        for subst in sorted(self.subst, key=lambda i: self.subst[i]["id"]):
+            save_it = False
+            sources = self.subst[subst]["src"].copy()
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if self.subst[subst].get("need_to_save") or \
+                   filename in sources:
+                    save_it = True
+            if save_it:
+                have_one = True
+                f.write("[substitution]\n")
+                f.write("%s = %s\n" % (CONFIG_EXTRACT["substitution"]["key"], subst))
+                for k, v in self.subst[subst].iteritems():
+                    if k == CONFIG_EXTRACT["substitution"]["key"] or \
+                       k in CONFIG_EXTRACT["substitution"]["values"]:
+                        f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        if have_one:
+            f.write("\n")
+        
+        # Mounts
+        have_one = False
+        for m_name in sorted(self.mounts, key=lambda i: self.mounts[i]["id"]):
+            save_it = False
+            sources = self.mounts[m_name]["src"].copy()
+            if is_cache:
+                for name in CONFIG_CACHE_SRC_FILTER:
+                    try:
+                        sources.remove(name)
+                    except:
+                        pass
+                if len(sources) != 0:
+                    save_it = True
+            else:
+                if filename in sources:
+                    save_it = True
+            if save_it:
+                have_one = True
+                f.write("[mount]\n")
+                f.write("%s = %s\n" % (CONFIG_EXTRACT["mount"]["key"], m_name))
+                for k, v in self.mounts[m_name].iteritems():
+                    if k == CONFIG_EXTRACT["mount"]["key"] or \
+                       k in CONFIG_EXTRACT["mount"]["values"]:
+                        f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        if have_one:
+            f.write("\n")
+
+        # 
+        f.close()
+        
+        input_cache.invalidate(filename)
+    
+    def save_cache(self):
+        if not self.cache_save_forbidden:
+            self.save_if_needed(CONFIG_CACHE_FILE, force = True, is_cache = True)
+    
+    def pprint(self):
+        with io.write_section("\n" + "-" * 80):
+            with io.write_section("Globals :"):
+                io.write(pprint.pformat(self.globals))
+            with io.write_section("Requirements : "):
+                io.write(pprint.pformat(self.require))
+            with io.write_section("Mounts :"):
+                io.write(pprint.pformat(self.mounts))
+            with io.write_section("Substitutions :"):
+                io.write(pprint.pformat(self.subst))
+            with io.write_section("Subst, ordered :"):
+                for sub in sorted(self.subst, key=lambda i: self.subst[i]["id"]):
+                    need_to_save = ""
+                    if self.subst[sub].get("need_to_save"):
+                        need_to_save = "(*)"
+                    io.write("sub %d : %s = %s %s" % (self.subst[sub]["id"], sub, self.subst[sub].get("value", ""), need_to_save))
+            with io.write_section("Dynamic Config Locations"):
+                io.write(pprint.pformat(self.dyn_imports))
+            with io.write_section("Messages"):
+                io.write(pprint.pformat(self.messages))
+
+class GUI_Entry(object):
+    def __init__(self, frame, label, pre_filled = [], callback = None, cb_params = None, is_pwd = False, validate_url = ""):
+        self.callback = callback
+        self.cb_params = cb_params
+        value_live = StringVar()
+        self.value_entered = StringVar()
+        self.validate_url = validate_url
+        self.label = label
+        
+        f = LabelFrame(
+            frame,
+            text = label,
+            padx = 10,
+            pady = 10,
+        )
+        
+        num_row = 0
+        self.select_pre_filled_var = StringVar()
+        if len(pre_filled) != 0:
+            for e in pre_filled:
+                rb = Radiobutton(
+                    f,
+                    text = e,
+                    variable = self.select_pre_filled_var,
+                    value = e,
+                )
+                rb.grid(row = num_row, column = 0, columnspan = 2, sticky = N+S+W)
+                rb.bind("<Return>", self.__hit_return__)
+                rb.focus_set()
+                num_row += 1
+            self.select_pre_filled_var.set(pre_filled[0])
+            
+            self.rb_other = Radiobutton(
+                f,
+                text = "",
+                variable = self.select_pre_filled_var,
+                value = "__OTHER__",
+            )
+            self.rb_other.grid(row = num_row, column = 0, columnspan = 1, sticky = N+S+W)
+            e = Entry(
+                f,
+                textvariable = value_live,
+                validatecommand = self.__entry_changed__,
+                validate = "key",
+            )
+            e.grid(row = num_row, column = 1, sticky=N+E+S+W)
+            e.bind("<Return>", self.__hit_return__)
+            num_row += 1
+            
+            b = Button(f, text = "Ok", command = self.__entry_filled__)
+            b.grid(row = num_row, column = 0, columnspan = 2, sticky=N+W+S)
+            b.bind("<Return>", self.__hit_return__)
+        
+        else:
+            self.select_pre_filled_var.set("__OTHER__")
+            
+            e = Entry(
+                f,
+                textvariable = value_live
+            )
+            e.grid(row = num_row, column = 0, sticky=N+E+S+W)
+            e.bind("<Return>", self.__hit_return__)
+            if is_pwd:
+                e.config(show = "*")
+            e.focus_set()
+            
+            b = Button(f, text = "Ok", command = self.__entry_filled__)
+            b.grid(row = num_row, column = 1, sticky=N+E+S)
+            b.bind("<Return>", self.__hit_return__)
+        
+        self.f = f
+        self.e = e
+        self.value_live = value_live
+        self.is_filled = False
+    
+    def __entry_changed__(self):
+        self.rb_other.select()
+        return True
+    
+    def __hit_return__(self, event):
+        self.__entry_filled__()
+    
+    def __entry_filled__(self):
+        self.value_entered.set(self.get())
+        if self.validate_url != "":
+            url = self.validate_url + self.get()
+            f, success = input_cache.load(url)
+            if not success:
+                io.write("Warning, could not validate with %s" % url) # assuming ok.
+            else:
+                lines = f.readlines()
+                if lines != ["ok"]:
+                    error_msg = "\n".join(lines) + "\n"
+                    self.f.config(text = error_msg + self.label)
+                    return
+        self.is_filled = True
+        if self.callback != None:
+            self.callback(value = self.get(), **self.cb_params)
+        self.grid_remove()
+    
+    def raise_exit(self):
+        self.value_entered.set(self.get())
+    
+    def wait(self):
+        self.f.waitvar(self.value_entered)
+    
+    def is_filled(self):
+        return self.is_filled
+    
+    def get(self):
+        if self.select_pre_filled_var.get() != "__OTHER__":
+            return self.select_pre_filled_var.get()
+        value = self.value_live.get()
+        if value == None:
+            value = self.value_entered.get()
+        return value
+    
+    def set(self, value):
+        self.value_live.set(value)
+    
+    def grid(self, num_row, num_col):
+        self.f.grid(row = num_row, column = num_col)
+
+    def grid_remove(self):
+        self.f.grid_remove()
+
+class GUI_Mount(object):
+    # gif images (png could not be loaded by this library ... argh!!)
+    # - created with GIMP
+    # - encoded with "base64 red.gif"
+    
+    red_gif = """\
+R0lGODlhDwAPAIQVAP4xMf4yMv8yMv4zM/8zM/42Nv83N/85Of4/P/9AQP5DQ/9ERP5MTP9MTP5k
+ZP9kZP9wcP6Tk/+UlP6qqv/Gxv///////////////////////////////////////////yH+EUNy
+ZWF0ZWQgd2l0aCBHSU1QACH5BAEKAB8ALAAAAAAPAA8AAAVX4CeOZGme56ACAPodiZIUQmsezAM9
+TQEIpUHiEZlIHIhAjTRQQCaUCWRB+DGHEqMjUbWJAIWGA+JoGGrA0a+AWCQMLFaJFSAQalaTAM9K
+n357Xi6DhCIhADs="""
+    
+    green_gif = """\
+R0lGODlhDwAPAIQVAB2jJB6jJR+jJh6kJR+kJiCkJiCkJyOlKSSmKiWnLCypMy2qNDGrNzKsODqv
+QTuvQVW6WmK/Z4nPjaHYpMHmw////////////////////////////////////////////yH+EUNy
+ZWF0ZWQgd2l0aCBHSU1QACH5BAEKAB8ALAAAAAAPAA8AAAVV4CeOZGmeZyEYAIB+ycIsx+CaiQNF
+0HMAg1JhAZFMJBBFwEYSMCITyiTSIABJBqIRubDeRIDDY9dD2IIj4EHRWCBarVIrQCDYrqbBvYU+
+Af8vgYIlIQA7"""
+    
+    def __init__(self, frame, mount, label, callback = None, cb_params = None):
+        self.mount = mount
+        self.label = label
+        self.callback = callback
+        self.cb_params = cb_params
+        value = StringVar()
+        
+        red_file = "/tmp/mount_filers_red.gif"
+        green_file = "/tmp/mount_filers_green.gif"
+        if not os.path.exists(red_file):
+            f_red = open(red_file, "w")
+            f_red.write(base64.b64decode(self.red_gif))
+            f_red.close()
+        if not os.path.exists(green_file):
+            f_green = open(green_file, "w")
+            f_green.write(base64.b64decode(self.green_gif))
+            f_green.close()
+        
+        self.red_img = PhotoImage(file = red_file)
+        self.green_img = PhotoImage(file = green_file)
+        
+        self.f = Frame(
+            frame,
+            padx = 2,
+            pady = 2
+        )
+        self.f.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.f2 = Frame(
+            frame,
+            padx = 2,
+            pady = 2
+        )
+        
+        self.canvas = Canvas(self.f, width=16, height=16)
+        self.canvas.grid(row = 0, column = 0)#, sticky = N+E+S+W)
+        
+        self.canvas.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.l = Label(self.f, text = label, wraplength = 400, justify=LEFT)
+        self.l.grid(row = 0, column = 1, sticky = N+E+S+W)
+        self.l.bind("<Button-1>", self.__toggle_mount__)
+        
+        self.b = Button(
+            self.f2,
+            text = "Open",
+            state = "disabled",
+            command = self.__browse_button_pressed__,
+        )
+        self.b.grid(row = 0, column = 2, sticky = N+E+S)
+        
+        self.gui_state = None
+        self.apply_state()
+    
+    def apply_state(self):
+        mounted = self.mount.is_mounted()
+        if mounted and self.gui_state != True:
+            self.canvas.delete(ALL)
+            self.canvas.create_image(8, 8, image=self.green_img)
+            self.b.config(state = "normal")
+            self.gui_state = True
+        elif not mounted and self.gui_state != False:
+            self.canvas.delete(ALL)
+            self.canvas.create_image(8, 8, image=self.red_img)
+            self.b.config(state = "disabled")
+            self.gui_state = False
+    
+    def __browse_button_pressed__(self):
+        self.mount.open()
+    
+    def __toggle_mount__(self, event):
+        if self.mount.is_mounted():
+            self.__umount__()
+        else:
+            self.__mount__()
+    
+    def __mount__(self):
+        self.mount.mount()
+        if UI.CLOSE_APPLICATION:
+            return
+        self.apply_state()
+        self.mount.open_if_needed()
+    
+    def __umount__(self):
+        self.mount.umount()
+        self.apply_state()
+    
+    def grid(self, num_row, num_col):
+        self.f.grid(row = num_row, column = num_col, sticky = N+S+W)
+        self.f2.grid(row = num_row, column = num_col+1, sticky = N+E+S)
+    
+    def grid_remove(self):
+        self.f.grid_remove()
+        self.f2.grid_remove()
+
+class GUI_Message(object):
+    def __init__(self, ui, frame, label, msg, reset_subst = None, exit_status = None):
+        self.ui = ui
+        self.exit_status = exit_status
+        self.reset_subst = reset_subst
+        
+        current_row = 0
+        
+        if label != None:
+            f = LabelFrame(
+                frame,
+                text = label,
+                padx = 5,
+                pady = 5,
+            )
+        else:
+            f = Frame(
+                frame,
+                padx = 5,
+                pady = 5,
+                borderwidth = 2,
+                relief = Tkinter.RIDGE,
+            )
+        
+        l = Label(f, text = msg, wraplength = 500)
+        l.grid(row = current_row, column = 0, sticky = N+E+S+W)
+        
+        if reset_subst != None:
+            b = Button(
+                f,
+                state = "active",
+                text = "reset",
+                command = self.reset_triggered,
+            )
+            b.grid(row = current_row, column = 1, sticky = E+S)
+            current_row += 1
+        
+        if exit_status != None:
+            b = Button(
+                f,
+                state = "active",
+                text = "Ok",
+                command = self.ok_triggered,
+            )
+            b.grid(row = current_row, column = 1, sticky = E+S)
+            current_row += 1
+        
+        self.f = f
+    
+    def reset_triggered(self):
+        self.ui.reset_subst(self.reset_subst)
+    
+    def ok_triggered(self):
+        if self.exit_status != None:
+            self.ui.exit(exit_status = self.exit_status)
+    
+    def grid(self, num_row, num_col):
+        self.f.grid(row = num_row, column = num_col)
+    
+    def grid_remove(self):
+        self.f.grid_remove()
+
+class Substitution_Manager(object):
+    def __init__(self, config, gui):
+        self.l = []
+        self.config = config
+        self.gui = gui
+        config.add_subst_filled_callback(self.subst_filled)
+    
+    def add(self, name, missing_subst, first_level_missing_subst = None):
+        if first_level_missing_subst == None:
+            first_level_missing_subst = missing_subst
+        
+        self.l.append({
+            "name" : name,
+            "missing_subst" : set(missing_subst),
+            "done" : False,
+        })
+        for subst in missing_subst:
+            self.config.subst_solve(subst, no_ask = True)
+            value = self.config.subst_get_value(subst)
+            if value == None and subst in first_level_missing_subst:
+                multi_value = self.config.subst_get_multi_value(subst)
+                self.gui.ask_substitution(subst, pre_filled = multi_value)
+    
+    def append_missing_subst(self, name, missing_subst, first_level_missing_subst = None):
+        if first_level_missing_subst == None:
+            first_level_missing_subst = missing_subst
+        
+        for l in self.l:
+            if l["name"] == name:
+                l["missing_subst"] = l["missing_subst"].union(missing_subst)
+                l["done"] = False
+                for subst in missing_subst:
+                    self.config.subst_solve(subst, no_ask = True)
+                    value = self.config.subst_get_value(subst)
+                    if value == None and subst in first_level_missing_subst:
+                        multi_value = self.config.subst_get_multi_value(subst)
+                        self.gui.ask_substitution(subst, pre_filled = multi_value)
+    
+    def get_id(self, name):
+        for i in xrange(len(self.l)):
+            if self.l[i]["name"] == name:
+                return i
+        raise Exception("Error. Could not find entry named %s" % name)
+    
+    def subst_filled(self, subst):
+        for e in self.l:
+            try:
+                e["missing_subst"].remove(subst)
+            except KeyError:
+                pass
+        #~ self.pprint("subst_filled")
+    
+    def get_the_ready(self, order_dependency):
+        #~ self.pprint("get_the_ready")
+        for i in xrange(len(self.l)):
+            if len(self.l[i]["missing_subst"]) == 0:
+                if not self.l[i]["done"]:
+                    #~ io.write("yield %s" % self.l[i]["name"])
+                    yield self.l[i]["name"]
+            elif order_dependency:
+                return
+    
+    def get_the_not_done(self):
+        for l in self.l:
+            if not l["done"]:
+                yield l["name"]
+    
+    def get_all_done(self):
+        for e in self.l:
+            if not e["done"]:
                 return False
-            self.load_src_config(src)
-            self.config_src_stack.set_done()
+        return True
     
-    def load_src_config(self, src):
-        print "-"*30
-        print "loading src : %s" % src
-        for line in Unified_Cached_Input.load(src)["content"].readlines():
-            print line,
-
-########################################################################
-# TESTS
-import unittest
-
-class Test_Unified_Cached_Input(unittest.TestCase):
-    def setUp(self):
-        pass
+    def set_done(self, name):
+        i = self.get_id(name)
+        self.l[i]["done"] = True
     
-    def test_constants(self):
-        cache = Unified_Cached_Input.load("constant://0")
-        lines = cache["content"].readlines()
-        success = cache["success"]
-        self.assertEqual("".join(lines).strip(), CONFIG_DEFAULTS.strip())
-        self.assertTrue(success)
-        
-        cache = Unified_Cached_Input.load("constant://1")
-        lines = cache["content"].readlines()
-        success = cache["success"]
-        self.assertEqual("".join(lines).strip(), EPFL_CONFIG.strip())
-        self.assertTrue(success)
-        
-        cache = Unified_Cached_Input.load("constant://2")
-        lines = cache["content"].readlines()
-        success = cache["success"]
-        self.assertEqual("".join(lines).strip(), '')
-        self.assertFalse(success)
-
-class Test_Substitutions(unittest.TestCase):
-    def setUp(self):
-        pass
+    def pprint(self, title = ""):
+        with io.write_section("\nSubstitution Manager - %s" % title):
+            io.write(pprint.pformat(self.l))
     
-    def test_basic_substs(self):
-        subst_man = Config.SubstitutionsManager()
-        self.assertEqual(subst_man.subst_list, [])
-        self.assertEqual(subst_man.list_blocking_substitutions(), [])
+class UI(object):
+    def __init__(self, options):
+        self.options = options
+        if options.action == "gui":
+            self.is_gui = True
+        else:
+            self.is_gui = False
+    
+    def run(self):
+        self.all_success = True
+        self.config = Config.create_config_instance()
+        self.mounts = []
         
-        cache_ok = Unified_Cached_Input.insert_constant_input("ok")
-        cache_ko = Unified_Cached_Input.insert_constant_input("Wrong value. Please re-enter")
+        # Insert commandline options substitutions!
+        cli_subst = {}
+        cli_subst["substitution"] = self.options.substs
+        CONFIG_SRC.append(cli_subst)
+        self.config.load(cli_subst)
         
-        subst_man.add(
-            label = "__A__",
-            src = "src1",
-            validate = cache_ko,
-        )
+        error_msgs = []
+        if not IMPORTED_PEXPECT:
+            error_msgs.append(os_switch.msg_for_missing_tool("pexpect"))
+        if not IMPORTED_TKINTER and self.is_gui:
+            error_msgs.append(os_switch.msg_for_missing_tool("Tkinter"))
         
-        self.assertEqual(subst_man.str_substitued("hello"), "hello")
-        self.assertRaises(Substitution_Error, subst_man.str_substitued, "hello__A__")
-        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__"])
-        self.assertRaises(Substitution_Error, subst_man.silent_fix_substitution, "__A__")
-        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__A__", "one value") # validation
+        if len(error_msgs) == 0:
+            if self.is_gui:
+                self.__gui_run__()
+            else:
+                self.__cli_run__()
+        else:
+            io.write("\n".join(error_msgs))
+            self.all_success = False
+        return self.all_success, self.config, self.mounts
+    
+    def __cli_run__(self):
+        options = self.options
+        config = self.config
+        mounts = self.mounts
+        
+        io.write("""\
+Mount filers (rev. %s)
+============""" % REVISION)
+        
+        if options.action == "help":
+            Options.usage()
+            sys_exit()
+        elif options.action == "config_help":
+            Options.config_help()
+            sys_exit()
+        
+        self.__cli_load_config__()
+        #~ config.pprint()
+        
+        # Messages
+        messages = config.get_messages()
+        with io.write_potential_section("Messages :"):
+            for mesg in messages:
+                io.write("- %s -" % config.substitued(mesg["label"]))
+        
+        if options.action == "list":
+            io.write("Configured mounts are : %s" % ", ".join(config.list_mounts()))
+            self.exit()
+        
+        elif options.action == "summary":
+            list_mounts = config.list_mounts()
+        elif options.action in ("mount", "umount"):
+            if options.scope == "all":
+                list_mounts = config.list_mounts()
+            else:
+                list_mounts = options.list_mounts
+        
+        for m_name in list_mounts:
+            if not config.mount_name_exists(m_name):
+                io.write("Error: no mount \"%s\" in config" % m_name)
+                self.exit(exit_status = 1)
+            m = Mount(config, m_name)
+            try:
+                m.check_prerequisites()
+            except Exception, inst:
+                io.write(inst.args[0] + "\nSkipping...")
+                continue
+            mounts.append(m)
+        
+        with io.write_potential_section("\nPlease enter substitution values :"):
+            for m in mounts:
+                m.ask_all_substitutions()
+        
+        self.config.check_prerequisites(self)
+        
+        all_success = True
+        for m in mounts:
+            if options.action == "mount":
+                m.mount()
+            elif options.action == "umount":
+                m.umount()
+            all_success = all_success and m.success
+        with io.write_potential_section("\nSummary :"):
+            for m in mounts:
+                m.print_summary()
+                if options.action == "mount":
+                    m.open_if_needed()
+    
+    def __cli_load_config__(self):
+        with io.write_potential_section("Importing config ..."):
+            for config_src in CONFIG_SRC:
+                self.config.load(config_src)
+                list_subst = self.config.dyn_import_list_missing_subst()
+                for subst in list_subst:
+                    self.config.subst_solve(subst)
+                list_subst = self.config.requires_list_missing_subst()
+                for subst in list_subst:
+                    self.config.subst_solve(subst)
+                self.config.check_prerequisites(self)
+                self.config.dyn_import_load()
+            self.config.consolidate()
+        
+        self.config.subst_apply_all_constraints()
+        self.config.check_prerequisites(self)
+    
+    def pprint_import_missing_subst(self, title = ""):
+        i = 0
+        for subst_man in self.import_missing_subst:
+            subst_man.pprint(title = "%s i = %d" % (title, i))
+            i += 1
+    
+    def __gui_load_config__(self):
+        if not self.config_loading_started:
+            self.config_loading_started = True
+            subst_man = Substitution_Manager(self.config, self)
+            
+            req_list = self.config.require_list(done = False)
+            for req in req_list:
+                subst_man.add(
+                    name = ("require", req),
+                    missing_subst = self.config.require_list_missing_subst(
+                        req = req,
+                        blocking = True,
+                        only_first_level = True
+                    )
+                )
+            
+            for src in CONFIG_SRC:
+                subst_man.add(
+                    name = ("import", src),
+                    missing_subst = self.config.list_subst_labels(src, blocking = True)
+                )
+                    
+            self.import_missing_subst.append(subst_man)
+            return self.__gui_load_config__()
+        
+        if len(self.import_missing_subst) != 0:
+            subst_man = self.import_missing_subst[-1]
+            for s_type, s_loc in subst_man.get_the_ready(order_dependency = True):
+                subst_man.set_done((s_type, s_loc))
+                if s_type == "require":
+                    self.config.check_prerequisite(req = s_loc, ui = self)
+                elif s_type == "import":
+                    self.config.load(self.config.substitued(s_loc))
+                    self.config.dyn_import_set_done(s_loc)
+                    
+                    child_subst_man = None
+                    req_list = self.config.require_list(done = False)
+                    for req in req_list:
+                        if child_subst_man == None:
+                            child_subst_man = Substitution_Manager(self.config, self)
+                        child_subst_man.add(
+                            name = ("require", req),
+                            missing_subst = self.config.require_list_missing_subst(
+                                req = req,
+                                blocking = True,
+                                only_first_level = True
+                            )
+                        )
+                    
+                    dyn_imports = self.config.dyn_import_list(done = False)
+                    for child_loc in dyn_imports:
+                        if child_subst_man == None:
+                            child_subst_man = Substitution_Manager(self.config, self)
+                        child_subst_man.add(
+                            name = ("import", child_loc),
+                            missing_subst = self.config.list_subst_labels(child_loc, blocking = True)
+                        )
+                    
+                    if child_subst_man != None:
+                        self.import_missing_subst.append(child_subst_man)
+                        if not self.__gui_load_config__():
+                            self.config.subst_apply_all_constraints()
+                            return False
+            
+            if not subst_man.get_all_done():
+                self.config.subst_apply_all_constraints()
+                return False
+            self.import_missing_subst.pop()
+        
+        if len(self.import_missing_subst) == 0:
+            self.config.check_prerequisites(self) # all loaded!
+        
+        self.config.subst_apply_all_constraints()
+        
+        if len(self.import_missing_subst) == 0 and \
+           len(self.gui_mounts["list"]) == 0:
+            self.help_instruction["label"].config(text = MSG_NO_MOUNT_CONFIGURED)
+        
+        return True
+    
+    def __gui_run__(self):
+        io.redirect_to_gui(self)
+        
         try:
-            subst_man.subst_answered("__A__", "one value")
-            self.assertEqual(True, False)
-        except Substitution_Error, inst:
-            #~ Unified_Cached_Input.pprint()
-            self.assertEqual(inst.d_validation, {"__A__": "Wrong value. Please re-enter"})
-        
-        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__"])
-        
-        subst_man.add(
-            label = "__A__",
-            src = "src1",
-            validate = cache_ok,
+            self.root
+            self.main_frame.destroy()
+        except AttributeError:
+            # Make a Window
+            self.root = Tk()
+            self.root.title("Mount Filers")
+            
+            # register to know when GUI is closed (kill the pending mount instruction).
+            self.root.protocol("WM_DELETE_WINDOW", self.on_delete)
+            UI.CLOSE_APPLICATION = False
+            
+        minimum_sized = Frame(
+            self.root,
         )
+        minimum_sized.grid_columnconfigure(0, minsize = 200)
+        minimum_sized.grid_rowconfigure(0, minsize = 100)
+        minimum_sized.grid(row = 0, column = 0)
         
-        subst_man.subst_answered("__A__", "one value")
-        self.assertEqual(subst_man.list_blocking_substitutions(), [])
-        
-    def test_dependent_substs_validation(self):
-        subst_man = Config.SubstitutionsManager()
-        cache_ok = Unified_Cached_Input.insert_constant_input("ok")
-        cache_ko = Unified_Cached_Input.insert_constant_input("Wrong value. Please re-enter")
-        subst_man.add(
-            label = "__A__",
-            ask = "Enter a nice word",
-            src = "src1",
-            validate = "__B__",
+        self.main_frame = Frame(
+            minimum_sized,
+            padx = 10,
+            pady = 10
         )
-        subst_man.add(
-            label = "__B__",
-            src = "src1",
-            validate = "__D__",
-        )
-        subst_man.add(
-            label = "__C__",
-            src = "src1",
-            validate = "__D__",
-        )
-        subst_man.add(
-            label = "__D__",
-            src = "src1",
-            validate = cache_ko,
-        )
+        self.main_frame.grid(row = 0, column = 0)
         
-        self.assertEqual(subst_man.list_blocking_substitutions(), [])
-        self.assertRaises(Substitution_Error, subst_man.str_substitued, "hello __A__")
-        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__A__", "answerA1")
-        try:
-            subst_man.subst_answered("__A__", "WORLD!")
-        except Substitution_Error, inst:
-            self.assertEqual(inst.l_missing, ["__B__"])
-        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__", "__B__"])
+        # Frame for Password & Substitution entries...
+        f = Frame(self.main_frame)
+        f.grid(row = 0, column = 0)
+        self.gui_entries = {
+            "f" : f,
+            "list" : [],
+        }
+        empty = Frame(f) # Only used to make space recovered when the last question has been answered
+        empty.grid(row = 0, column = 0)
         
+        # Frame for Messages
+        f = Frame(self.main_frame)
+        f.grid(row = 1, column = 0)
+        self.gui_messages = {
+            "f" : f,
+        }
         
-        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__B__", cache_ok)
-        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__C__", cache_ok)
-        self.assertEqual(subst_man.list_blocking_substitutions(), ["__A__", "__B__", "__C__", "__D__"])
+        # Frame for Notifications
+        f = Frame(self.main_frame)
+        f.grid(row = 2, column = 0)
+        self.gui_notification = {
+            "f" : f,
+        }
         
-        self.assertRaises(Substitution_Error, subst_man.str_substitued, "__C__ABC__C__")
-        
-        self.assertRaises(Substitution_Error, subst_man.subst_answered, "__D__", "fooo")
-        try:
-            subst_man.subst_answered("__D__", "fooo2")
-            self.assertEqual(True, False)
-        except Substitution_Error, inst:
-            self.assertEqual(inst.d_validation, {"__D__": "Wrong value. Please re-enter"})
-        
-        subst_man.add(
-            label = "__B__",
-            src = "src2",
-            validate = cache_ko,
+        # frame for instruction help
+        f = Frame(self.main_frame)
+        f.grid(row = 3, column = 0)
+        label = Label(
+            f,
+            text = MSG_SUBST_WAITING,
+            wraplength = 280,
         )
-        subst_man.add(
-            label = "__C__",
-            src = "src2",
-            validate = cache_ko,
-        )
-        subst_man.add(
-            label = "__D__",
-            src = "src2",
-            validate = cache_ok,
-        )
-        try:
-            subst_man.subst_answered("__D__", cache_ok)
-        except Substitution_Error, inst:
-            self.assertEqual(inst.l_missing, [])
-            self.assertEqual(inst.d_validation, {
-                "__B__": "Wrong value. Please re-enter",
-                "__C__": "Wrong value. Please re-enter",
-            })
+        label.grid(row = 0, column = 0, sticky = N+E+S+W)
+        self.help_instruction = {
+            "f" : f,
+            "label" : label,
+        }
         
-        subst_man.add(
-            label = "__B__",
-            src = "src3",
-            validate = cache_ok,
-        )
-        subst_man.add(
-            label = "__C__",
-            src = "src3",
-            validate = cache_ok,
-        )
+        # Frame for Mounts
+        f = Frame(self.main_frame)
+        f.grid(row = 4, column = 0)
+        self.gui_mounts = {
+            "f" : f,
+            "list" : [],
+        }
         
-        subst_man.subst_answered("__B__", cache_ok)
-        subst_man.subst_answered("__C__", "valueC")
-        self.assertEqual(subst_man.list_blocking_substitutions(), [])
-        self.assertEqual(subst_man.str_substitued("Hello __A__"), "Hello WORLD!")
-
-def tests():
-    # unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_Unified_Cached_Input)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+        self.subst_asked = []
+        self.config_loading_started = False
+        self.import_missing_subst = []
+        self.__gui_load_config__()
+        #~ self.config.pprint()
+        
+        # Missing substitutions...
+        self.mounts_list = []
+        self.mount_missing_subst = Substitution_Manager(self.config, self)
+        self.__populate_mounts__()
+        
+        # GUI_Entries, not to ask 2 same question at a time
+        self.current_read = {}
+        
+        self.show_messages()
+        
+        self.root.mainloop()
     
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_Substitutions)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-    return True # TODO !?!
+    def __populate_mounts__(self):
+        for m_name in self.config.list_mounts():
+            if m_name in self.mounts_list:
+                continue
+            self.mounts_list.append(m_name)
+            first_level_missing_subst = self.config.mount_list_missing_subst(m_name, only_first_level = True)
+            if len(first_level_missing_subst) != 0:
+                self.mount_missing_subst.add(
+                    name = m_name,
+                    missing_subst = self.config.mount_list_missing_subst(m_name),
+                    first_level_missing_subst = first_level_missing_subst
+                )
+        
+        # Populate GUI mounts
+        for m_name in self.config.list_mounts():
+            self.show_mount(m_name)
+        
+    def ask_substitution(self, subst, pre_filled = []):
+        if subst in self.subst_asked:
+            return
+        self.subst_asked.append(subst)
+        
+        msg = self.config.subst_get_question(subst)
+        validate_url = self.config.subst_get_validate_url(subst)
+        
+        gui_entry = GUI_Entry(
+            frame = self.gui_entries["f"],
+            label = msg,
+            pre_filled = pre_filled,
+            callback = self.substitution_filled,
+            cb_params = {
+                "subst" : subst,
+            },
+            validate_url = validate_url,
+        )
+        
+        gui_entry.grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
     
-
-########################################################################
-# MAIN
+    def substitution_filled(self, subst, value):
+        self.config.subst_filled(subst, value)
+        # Dynamic Imports
+        nb_import_missing_subst_obj = len(self.import_missing_subst)
+        self.__gui_load_config__()
+        while 0 < len(self.import_missing_subst) and \
+              len(self.import_missing_subst) < nb_import_missing_subst_obj:
+            nb_import_missing_subst_obj = len(self.import_missing_subst)
+            self.__gui_load_config__() # workaround ... __gui_load_config__ is
+            #~ self.__gui_load_config__() # not doing enough iteration in the case
+            #~ self.__gui_load_config__() # a substitution is filled :( TODO !
+        
+        self.__populate_mounts__()
+        
+        # for prerequisites that needed substitutions
+        self.config.check_prerequisites(self)
+        
+        # Next subst
+        for m_name in self.mount_missing_subst.get_the_not_done():
+            first_level_missing_subst = self.config.mount_list_missing_subst(m_name, only_first_level = True)
+            self.mount_missing_subst.append_missing_subst(
+                name = m_name,
+                missing_subst = self.config.mount_list_missing_subst(m_name),
+                first_level_missing_subst = first_level_missing_subst
+            )
+        
+        # Mounts
+        for m_name in self.mount_missing_subst.get_the_ready(order_dependency = False):
+            self.mount_missing_subst.set_done(m_name)
+            self.show_mount(m_name)
+        
+        self.show_messages()
+    
+    def show_mount(self, m_name):
+        if len(self.config.mount_list_missing_subst(m_name)) != 0:
+            return
+        
+        m = Mount(self.config, m_name)
+        try:
+            m.check_prerequisites()
+        except Exception, inst:
+            self.all_success = False
+            self.show_notification(
+                label = self.config.get(m_name, "label"),
+                msg = inst.args[0] + "\nSkipping...",
+            )
+            return
+        self.mounts.append(m)
+        
+        gui_mount = GUI_Mount(
+            frame = self.gui_mounts["f"],
+            mount = m, 
+            label = self.config.get(m_name, "label"),
+        )
+        
+        gui_mount.grid(num_row = self.config.get(m_name, "id"), num_col = 0)
+        self.gui_mounts["list"].append(gui_mount)
+        
+        self.help_instruction["label"].config(text = MSG_CLICK_TO_MOUNT)
+    
+    def show_notification(self, label, msg, exit_status = None):
+        if self.is_gui:
+            notification = GUI_Message(
+                ui = self,
+                frame = self.gui_notification["f"],
+                label = label,
+                msg = msg,
+                exit_status = exit_status,
+            )
+            notification.grid(num_row = self.gui_notification["f"].grid_size()[1],num_col = 0)
+            return
+        else:
+            with io.write_section(label):
+                io.write(msg)
+        if exit_status != None:
+            self.exit(exit_status = exit_status)
+    
+    def show_messages(self):
+        if self.is_gui:
+            num_row = -1
+            for mesg in self.config.get_messages():
+                if mesg.get("abort"):
+                    exit_status = 1
+                else:
+                    exit_status = None
+                num_row += 1
+                if self.config.list_subst_labels(mesg["label"], blocking = True) == []:
+                    if mesg.get("reset", []) != []:
+                        message = GUI_Message(
+                            ui = self,
+                            frame = self.gui_messages["f"],
+                            label = None,
+                            msg = self.config.substitued(mesg["label"]),
+                            reset_subst = mesg["reset"],
+                            exit_status = exit_status,
+                        )
+                    else:
+                        message = GUI_Message(
+                            ui = self,
+                            frame = self.gui_messages["f"],
+                            label = None,
+                            msg = self.config.substitued(mesg["label"]),
+                            exit_status = exit_status,
+                        )
+                    message.grid(num_row = num_row, num_col = 0)
+        else:
+            pass # not intended for this.
+    
+    def read(self, msg, is_pwd = False, pre_filled = [], auth_realm = None):
+        question_id = auth_realm
+        if question_id == None:
+            question_id = msg
+        if not self.current_read.get(question_id):
+            self.current_read[question_id] = GUI_Entry(
+                frame = self.gui_entries["f"],
+                label = msg,
+                pre_filled = pre_filled,
+                is_pwd = is_pwd,
+            )
+            
+            self.current_read[question_id].grid(num_row = self.gui_entries["f"].grid_size()[1], num_col = 0)
+        
+        my_current_read = self.current_read[question_id]
+        my_current_read.wait()
+        
+        if not my_current_read.is_filled:
+            raise Exception("Exit forced")
+        
+        self.current_read[question_id] = None
+        
+        return my_current_read.get()
+    
+    def read_pwd(self, msg, auth_realm):
+        return self.read(msg, is_pwd = True, auth_realm = auth_realm)
+    
+    def reset_subst(self, list_subst):
+        self.config.reset_and_save_subst(list_subst)
+        self.config.clear()
+        self.__gui_run__()
+    
+    def exit(self, exit_status = 0, msg = None):
+        self.config.save_if_needed(CONFIG_SAVE)
+        self.config.save_cache()
+        
+        io.wipe_pwds()
+        
+        if msg != None:
+            io.write(msg)
+        
+        sys_exit(exit_status)
+    
+    def on_delete(self):
+        UI.CLOSE_APPLICATION = True
+        for gui_entry in self.current_read.itervalues():
+            if gui_entry == None:
+                continue
+            gui_entry.raise_exit()
+        self.root.destroy()
 
 if __name__ == '__main__':
-    if UNIT_TEST:
-        success = tests()
-        if success:
-            sys.exit(0)
-        else:
-            sys.exit(1)
-    config = Config()
-    config.load()
+    started_hook()
+    options = Options(sys.argv[1:])    
+    ui = UI(options)
+    all_success, config, mounts = ui.run()
+    
+    if all_success:
+        exit_status = 0
+    else:
+        exit_status = 1
+    
+    ui.exit(exit_status = exit_status)
+    

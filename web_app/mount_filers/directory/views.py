@@ -194,7 +194,7 @@ def http_get_config_classic(request): # used the time while filling the database
         
         [substitution]
         label = __DOMAIN__
-        constraint = lowercase
+        constraint = uppercase
         url_saved = http://enacit1adm1.epfl.ch/mount_filers/dir/domain?username=__USERNAME__
         ask = Enter your EPFL ActiveDirectory domain :
         
