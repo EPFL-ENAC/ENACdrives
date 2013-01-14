@@ -4,9 +4,9 @@
 # 111103
 # 120222
 
-# source : /home/bancal/projects/mount_filers/check_mount_filers_config.py
+# source : /home/bancal/Projects/mount_filers/check_mount_filers_config.py
 # deploy to enacitmon1 :
-#   scp bancal@salsa:projects/mount_filers/check_mount_filers_config.py /usr/local/nagios/libexec/check_mount_filers_config.py
+#   scp bancal@salsa:Projects/mount_filers/check_mount_filers_config.py /usr/local/nagios/libexec/check_mount_filers_config.py
 #   sudo scp bancal@salsa:/etc/enacmoni.accred /etc/enacmoni.accred
 
 # Check mount_filer's config for the following points :

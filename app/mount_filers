@@ -17,6 +17,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TODO :
+# - Network with very low latency ... will give the message :
+#   Could not connect to config server. Please check that you're connected to the network and using a VPN client if outside the EPFL.
+# 
+# - What about changing to only manage user's bookmarks once every user's login?
 
 # Special for Python 2.5
 from __future__ import with_statement
@@ -25,8 +30,15 @@ from __future__ import with_statement
 # edit usr/share/man/man1/mount_filers.1
 # edit usr/share/man/man5/mount_filers.conf.5
 
-REVISION = "0.4.3 2012.05.02 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.4.3"
+REVISION = "0.4.4 2013.01.10 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.4"
+# - evolution for Ubuntu 12.10 (quantal quetzal)
+#   - CIFS packages : cifs-utils
+#   - new gvfs generation :
+#     - ~/.gvfs/ moved to /run/user/<username>/gvfs/
+#     - folders changed from "share on servername" to "smb-share:domain=DOMAIN,server=servername,share=share,user=username"
+# 
+# REVISION = "0.4.3 2012.05.02 (EPFL/ENAC-IT SB)"
 # - evolution for Ubuntu 12.04 (precise pangolin)
 #   - mount.cifs uses numeric uid & gid
 #   - domain is always uppercase
@@ -674,7 +686,7 @@ def check_condition(condition):
     
     m = re.search(r'^([^<>=!]+)\s*([<>=!]+)\s*([^<>=!]+)$', condition)
     if not m:
-        raise Exception ("Error, could not evaluate condition \"%s\"." % (condition))
+        raise Exception("Error, could not evaluate condition \"%s\"." % (condition))
     left, criterion, right = m.groups()
     left = format_version_for_comparision(left.strip())
     right = format_version_for_comparision(right.strip())
@@ -885,6 +897,30 @@ class OS_Switch(object):
     #  - gvfs-bin (gvfs-backends, gvfs-fuse)
     
     # ------------------------------------------------------------------
+    # Ubuntu 11.10
+    # - python 
+    # - install requirement :
+    #  - python-tk
+    #  - smbfs
+    #  - gvfs-bin
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 12.04
+    # - python 2.7.3
+    # - install requirement :
+    #  - python-tk
+    #  - smbfs
+    #  - gvfs-bin
+    
+    # ------------------------------------------------------------------
+    # Ubuntu 12.10
+    # - python 2.7.3
+    # - install requirement :
+    #  - python-tk
+    #  - cifs-utils
+    #  - gvfs-bin (gvfs-backends, gvfs-fuse)
+    
+    # ------------------------------------------------------------------
     # OSX 10.6.6
     # - mount_smbfs (already installed)
     # - python 2.6.1
@@ -913,7 +949,10 @@ class OS_Switch(object):
         if self.os == "Linux":
             if self.distrib == "Ubuntu":
                 if tool == "mount.cifs":
-                    msg += " %s smbfs" % ubuntu_install_instruction
+                    if self.version in ("10.04", "10.10", "11.04", "11.10", "12.04"):
+                        msg += " %s smbfs" % ubuntu_install_instruction
+                    else:
+                        msg += " %s cifs-utils" % ubuntu_install_instruction
                 elif tool == "gvfs-mount":
                     msg += " %s gvfs-bin" % ubuntu_install_instruction
                 elif tool == "Tkinter":
@@ -973,6 +1012,20 @@ class OS_Switch(object):
     
     def get_smart_os_version(self):
         return "%s_%s" % (self.get_smart_os(), self.get_smart_version())
+    
+    def get_gvfs_generation(self):
+        if self.os == "Linux":
+            if self.version in ("10.04", "10.10", "11.04", "11.10", "12.04"):
+                return 1
+            else:
+                return 2
+        raise Exception("Error, GVFS only applicable to Linux.")
+    
+    def get_gvfs_dir(self):
+        if self.get_gvfs_generation() == 1:
+            return os.path.join(HOME_DIR, ".gvfs")
+        else:
+            return "/run/user/%s/gvfs" % LOCAL_USERNAME
 
 class MyTimeout(Exception):
     def __init__(self, timeout):
@@ -1297,10 +1350,19 @@ class GVFS_SMB_Method(GenericMethod):
         
         ###
         self.cache["mount_point"] = ""
-        gvfs_dir = os.path.join(HOME_DIR, ".gvfs")
+        gvfs_dir = os_switch.get_gvfs_dir()
+        gvfs_generation = os_switch.get_gvfs_generation()
         for f in os.listdir(gvfs_dir):
-            if re.match(r'%s \S+ %s' % (share, server_name), f):
-                self.cache["mount_point"] = os.path.join(gvfs_dir, f)
+            if gvfs_generation == 1:
+                if re.match(r'%s \S+ %s' % (share, server_name), f):
+                    self.cache["mount_point"] = os.path.join(gvfs_dir, f)
+            else:
+                if re.match(r'^smb-share:', f) and \
+                   re.search(r'domain=%s(,|$)' % domain, f, flags=re.IGNORECASE) and \
+                   re.search(r'server=%s(,|$)' % server_name, f) and \
+                   re.search(r'share=%s(,|$)' % share, f) and \
+                   re.search(r'user=%s(,|$)' % username, f):
+                    self.cache["mount_point"] = os.path.join(gvfs_dir, f)
         
         ###
         if conf.get(m_name, "gvfs_symlink"):
