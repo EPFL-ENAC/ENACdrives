@@ -9,13 +9,21 @@ class Ldap(object):
         self.base_dn = "o=epfl,c=ch"
         self.scope = ldap.SCOPE_SUBTREE
         self.l = ldap.initialize(self.server)
-    
+
     def read_ldap(self, l_filter, l_attrs):
-        return self.l.search_s(
+        ldap_res = self.l.search_s(
             base = self.base_dn,
             scope = self.scope,
             filterstr = l_filter,
             attrlist = l_attrs
+        )
+        # Return main accreditation first.
+        # + main's uid attribute has 2 values : "username", "username@unit"
+        # + other's uid attribute has 1 value : "username@unit"
+        return sorted(
+            ldap_res,
+            key=lambda x: len(x[1].get("uid", [])),
+            reverse=True
         )
 
 class AD(object):
@@ -24,14 +32,14 @@ class AD(object):
         self.base_dn = "DC=intranet,DC=epfl,DC=ch"
         self.scope = ldap.SCOPE_SUBTREE
         self.dn = "intranet\enacmoni"
-        self.secret = "It5Mon5Nag"
+        self.secret = "amcEMjmtl/E"
         self.l = ldap.initialize(self.server)
         self.l.set_option(ldap.OPT_REFERRALS, 0)
         self.l.protocol_version = 3
         self.l.simple_bind_s(self.dn, self.secret)
         #~ filter = "(&(objectClass=user)(sAMAccountName=bancal))"
         #~ attrs = ["employeeID", "userPrincipalName", "memberof"]
-    
+
     def read_ldap(self, l_filter, l_attrs):
         return self.l.search_s(
             base = self.base_dn,
@@ -67,10 +75,10 @@ def get_user_settings(username):
         }
     """
     settings = {}
-    
+
     my_ldap = Ldap()
     my_ad = AD()
-    
+
     # uidNumber
     ldap_res = my_ldap.read_ldap(
         l_filter = "uid=%s" % username,
@@ -80,17 +88,17 @@ def get_user_settings(username):
         settings["uid_number"] = smart_unicode(ldap_res[0][1]['uidNumber'][0])
     except IndexError:
         raise Exception("Non ldap user")
-    
+
     # displayName, uniqueIdentifier, memberOf
     ldap_res = my_ldap.read_ldap(
         l_filter = "uidNumber=%s" % settings["uid_number"],
         l_attrs = ["displayName", "uniqueIdentifier", "memberOf"]
     )
-    
+
     try:
         # displayName
         settings["displayName"] = smart_unicode(ldap_res[0][1]["displayName"][0])
-    
+
         # sciper, last_sciper_digit
         settings["sciper"] = smart_unicode(ldap_res[0][1]['uniqueIdentifier'][0])
         settings["last_sciper_digit"] = smart_unicode(settings["sciper"][-1])
@@ -123,6 +131,5 @@ def get_user_settings(username):
         settings["auth_domain"] = re.findall(r'DC=(\w+)', ldap_res[0][0])[0].upper()
     except (IndexError, KeyError):
         raise Exception("Non ldap user")
-    
-    return settings
 
+    return settings

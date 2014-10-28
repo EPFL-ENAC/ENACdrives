@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Bancal Samuel
-# 111103
-# 120222
+# 2011.11.03
+# 2012.02.22
 
 # source : /home/bancal/Projects/mount_filers/check_mount_filers_config.py
 # deploy to enacitmon1 :

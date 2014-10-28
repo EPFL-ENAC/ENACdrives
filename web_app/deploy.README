@@ -1,0 +1,13 @@
+# 2014.05.16
+# Quick note : how to deploy mount_filers web_app
+
+# Check
+* rsync -avnH --exclude '*.pyc' --exclude '*.sqlite' --delete --force mount_filers/ enacit1adm1:django/mount_filers/
+
+# Send
+* rsync -avH --exclude '*.pyc' --exclude '*.sqlite' --delete --force mount_filers/ enacit1adm1:django/mount_filers/
+
+
+On enacit1adm1 :
+sudo /etc/init.d/apache2 reload
+

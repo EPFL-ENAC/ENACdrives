@@ -163,6 +163,20 @@ def http_get_config(request):
                         group = group,
                     )
                     answer += "\n"
+        
+        for group in settings["ldap_groups"]:
+            if group in ("enacproj-sd", "enacproj-sll"): # Temp exception for these ldap_groups !!! TODO !!!
+                for conf in Config.objects.filter(groupname__name = group, context = "u").order_by("rank"):
+                    if conf.version == "" or \
+                       check_condition("%s%s" % (version, conf.version)):
+                        answer += conf.config.format(
+                            username = username,
+                            display_name = settings["displayName"],
+                            sciper = settings["sciper"],
+                            last_sciper_digit = settings["last_sciper_digit"],
+                            group = group,
+                        )
+                        answer += "\n"
     
     return HttpResponse(answer, mimetype="text/plain")
 
