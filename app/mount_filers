@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  mount_filers - mounting tool with dynamic centralized configuration.
-#  Copyright (C) 2011  Bancal Samuel
+#  Copyright (C) 2011-2013  Bancal Samuel
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,8 +30,13 @@ from __future__ import with_statement
 # edit usr/share/man/man1/mount_filers.1
 # edit usr/share/man/man5/mount_filers.conf.5
 
-REVISION = "0.4.4 2013.01.10 (EPFL/ENAC-IT SB)"
-SHORT_REVISION = "0.4.4"
+REVISION = "0.4.5 2013.10.28 (EPFL/ENAC-IT SB)"
+SHORT_REVISION = "0.4.5"
+# - evolution for Ubuntu 13.10 (saucy salamander)
+#   - new gvfs generation :
+#     - /run/user/<username>/gvfs/ moved to /run/user/<userid>/gvfs/
+# 
+# REVISION = "0.4.4 2013.01.10 (EPFL/ENAC-IT SB)"
 # - evolution for Ubuntu 12.10 (quantal quetzal)
 #   - CIFS packages : cifs-utils
 #   - new gvfs generation :
@@ -1017,15 +1022,20 @@ class OS_Switch(object):
         if self.os == "Linux":
             if self.version in ("10.04", "10.10", "11.04", "11.10", "12.04"):
                 return 1
-            else:
+            elif self.version in ("12.10", "13.04"):
                 return 2
+            else:
+                return 3
         raise Exception("Error, GVFS only applicable to Linux.")
     
     def get_gvfs_dir(self):
-        if self.get_gvfs_generation() == 1:
+        gvfs_generation = self.get_gvfs_generation()
+        if gvfs_generation == 1:
             return os.path.join(HOME_DIR, ".gvfs")
-        else:
+        elif gvfs_generation == 2:
             return "/run/user/%s/gvfs" % LOCAL_USERNAME
+        else:
+            return "/run/user/%s/gvfs" % LOCAL_UID
 
 class MyTimeout(Exception):
     def __init__(self, timeout):
