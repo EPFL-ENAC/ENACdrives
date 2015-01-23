@@ -144,18 +144,32 @@ mount_filers -l
 ~~~ state
 [config]
 import = http://enacXXX.epfl.ch/mount_filers/config?version={VERSION}&username={USERID}
-userid_label = EPFL username
-userid_validate_url = http://enacXXX.epfl.ch/mount_filers/validate?username={USERID}
 
 [global]
-CIFS_method = PREFERED_CIFS_METHOD[OS]
-mnt_dir = MNT_DIRS[OS]
+userid_label = EPFL username
+userid_validate_url = http://enacXXX.epfl.ch/mount_filers/validate?username={USERID}
+mnt_dir = DEFAULT_MNT_DIR[OS]
+open_cmd = DEFAULT_OPEN_CMD[OS]
+CIFS_Linux_method = gvfs
+mount.cifs_filemode = 0770
+mount.cifs_dirmode  = 0770
+mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
+gvfs_symlink = true
 ~~~
 
 ~~~ operation
-ask for "EPFL username"
+ask for "EPFL username" -> userid
 if not validated with http://enacXXX.epfl.ch/mount_filers/validate?username={USERID} : ask again
 
+save the following to $HOME/.mount_filers.conf
+~~~
+
+~~~ out
+[config]
+userid = bancal
+~~~
+
+~~~ operation
 get http://enacXXX.epfl.ch/mount_filers/config?username=bancal&version=0.1
 cache it in $HOME/.mount_filers.cache/md5_hash
 ~~~
@@ -163,10 +177,7 @@ cache it in $HOME/.mount_filers.cache/md5_hash
 ~~~ out
 [message]
 label = Samuel Bancal ENAC-IT|IIE-GE
-rank = 1
-
-[global]
-mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
+place_before = private
 
 [CIFS_realm]
 name = EPFL
@@ -180,15 +191,15 @@ domain = WORKGROUP
 
 [CIFS_mount]
 name = private
-label = bancal@files9 (individuel)
+label = bancal on files9 (individuel)
 realm = EPFL
 server_name = files9.epfl.ch
 server_path = data/bancal
 local_path = {MNT_DIR}/bancal_on_files9
 
 [CIFS_mount]
-name = enacit1_pm_enacproj
-label = enacit1@enacproj
+name = enacit1_on_enacproj
+label = enacit1 on enacproj
 realm = EPFL
 server_name = enacproj.epfl.ch
 server_path = enacit1
@@ -196,7 +207,7 @@ local_path = {MNT_DIR}/enacit1_on_enacproj
 
 [CIFS_mount]
 name = doclinux
-label = doclinux@enac1web
+label = doclinux on enac1web
 realm = DOCLINUX
 server_name = enac1web.epfl.ch
 server_path = doclinux
@@ -204,7 +215,7 @@ local_path = {MNT_DIR}/doclinux_on_enac1web
 
 [CIFS_mount]
 name = bak_machines
-label = bak_machines@enac1na2-g1
+label = bak_machines on enac1na2-g1
 realm = EPFL
 server_name = enac1na2-g1.epfl.ch
 server_path = bak_machines
@@ -212,7 +223,7 @@ local_path = {MNT_DIR}/bak_machines_on_enac1na2-g1
 
 [CIFS_mount]
 name = lab_enac-it_tier1
-label = enac-it@enacfiles1 (collectif tier1)
+label = enac-it on enacfiles1 (collectif tier1)
 realm = EPFL
 server_name = enacfiles1.epfl.ch
 server_path = enac-it
@@ -221,7 +232,7 @@ mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 
 [CIFS_mount]
 name = lab_enac-it_tier2
-label = enac-it@enacfiles2 (collectif tier2)
+label = enac-it on enacfiles2 (collectif tier2)
 realm = EPFL
 server_name = enacfiles2.epfl.ch
 server_path = enac-it
@@ -230,7 +241,7 @@ mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 
 [CIFS_mount]
 name = lab_iie-ge_tier1
-label = iie-ge@enacfiles1 (collectif tier1)
+label = iie-ge on enacfiles1 (collectif tier1)
 realm = EPFL
 server_name = enacfiles1.epfl.ch
 server_path = iie-ge
@@ -239,7 +250,7 @@ mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 
 [CIFS_mount]
 name = lab_iie-ge_tier2
-label = iie-ge@enacfiles2 (collectif tier2)
+label = iie-ge on enacfiles2 (collectif tier2)
 realm = EPFL
 server_name = enacfiles2.epfl.ch
 server_path = iie-ge
@@ -248,11 +259,8 @@ mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 ~~~
 
 ~~~ operation
-Save that config to $HOME/.mount_filers.cache/md5_hash
-
-Display message rank 1
-
 List all *_mount entries and wait for user interaction (mount/umount/open/star)
+Display message before "private"
 ~~~
 
 
