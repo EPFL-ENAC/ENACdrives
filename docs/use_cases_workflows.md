@@ -146,11 +146,11 @@ mount_filers -l
 import = http://enacXXX.epfl.ch/mount_filers/config?version={VERSION}&username={USERID}
 
 [global]
-userid_label = EPFL username
+userid_question = What is your EPFL username?
 userid_validate_url = http://enacXXX.epfl.ch/mount_filers/validate?username={USERID}
 mnt_dir = DEFAULT_MNT_DIR[OS]
 open_cmd = DEFAULT_OPEN_CMD[OS]
-CIFS_Linux_method = gvfs
+Linux_CIFS_method = gvfs
 mount.cifs_filemode = 0770
 mount.cifs_dirmode  = 0770
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
@@ -159,7 +159,21 @@ gvfs_symlink = true
 
 ~~~ operation
 ask for "EPFL username" -> userid
-if not validated with http://enacXXX.epfl.ch/mount_filers/validate?username={USERID} : ask again
+Validate with http://enacXXX.epfl.ch/mount_filers/validate?username={USERID} . 2 possible answers :
+~~~
+
+~~~ out
+valid = False
+~~~
+
+~~~ out
+valid = True
+userid = bancal
+userid_label = Bancal Samueé ENAC-IT-IIE-GE
+~~~
+
+~~~ operation
+if not valid: ask again
 
 save the following to $HOME/.mount_filers.conf
 ~~~
@@ -167,6 +181,7 @@ save the following to $HOME/.mount_filers.conf
 ~~~ out
 [config]
 userid = bancal
+userid_label = Bancal Samuel ENAC-IT|IIE-GE
 ~~~
 
 ~~~ operation
@@ -175,10 +190,6 @@ cache it in $HOME/.mount_filers.cache/md5_hash
 ~~~
 
 ~~~ out
-[message]
-label = Samuel Bancal ENAC-IT|IIE-GE
-place_before = private
-
 [CIFS_realm]
 name = EPFL
 username = bancal
@@ -196,6 +207,8 @@ realm = EPFL
 server_name = files9.epfl.ch
 server_path = data/bancal
 local_path = {MNT_DIR}/bancal_on_files9
+stared = false
+Windows_letter = Z
 
 [CIFS_mount]
 name = enacit1_on_enacproj
@@ -204,6 +217,7 @@ realm = EPFL
 server_name = enacproj.epfl.ch
 server_path = enacit1
 local_path = {MNT_DIR}/enacit1_on_enacproj
+stared = false
 
 [CIFS_mount]
 name = doclinux
@@ -212,6 +226,7 @@ realm = DOCLINUX
 server_name = enac1web.epfl.ch
 server_path = doclinux
 local_path = {MNT_DIR}/doclinux_on_enac1web
+stared = false
 
 [CIFS_mount]
 name = bak_machines
@@ -220,6 +235,7 @@ realm = EPFL
 server_name = enac1na2-g1.epfl.ch
 server_path = bak_machines
 local_path = {MNT_DIR}/bak_machines_on_enac1na2-g1
+stared = false
 
 [CIFS_mount]
 name = lab_enac-it_tier1
@@ -229,6 +245,8 @@ server_name = enacfiles1.epfl.ch
 server_path = enac-it
 local_path = {MNT_DIR}/enac-it_on_enacfiles1
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+stared = false
+Windows_letter = U
 
 [CIFS_mount]
 name = lab_enac-it_tier2
@@ -238,6 +256,8 @@ server_name = enacfiles2.epfl.ch
 server_path = enac-it
 local_path = {MNT_DIR}/enac-it_on_enacfiles2
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+stared = false
+Windows_letter = V
 
 [CIFS_mount]
 name = lab_iie-ge_tier1
@@ -247,6 +267,7 @@ server_name = enacfiles1.epfl.ch
 server_path = iie-ge
 local_path = {MNT_DIR}/iie-ge_on_enacfiles1
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+stared = false
 
 [CIFS_mount]
 name = lab_iie-ge_tier2
@@ -256,6 +277,7 @@ server_name = enacfiles2.epfl.ch
 server_path = iie-ge
 local_path = {MNT_DIR}/iie-ge_on_enacfiles2
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+stared = false
 ~~~
 
 ~~~ operation

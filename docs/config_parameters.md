@@ -10,7 +10,7 @@
 
 * User's (~/.mount_filers.conf)
     * user's entered values
-        * userid
+        * userid & userid_label
         * mount stared
         * mount drive letters
     * user's own mount entries
@@ -34,7 +34,7 @@
 
 ## [global]
 
-* userid_label = Label showed to ask user's identity (EPFL username)
+* userid_question = Text showed to ask user's identity (EPFL username)
 
 * userid_validate_url = URL
     * {VERSION} is substituted by mount_filer's version
@@ -43,6 +43,8 @@
     * {OS_VERSION} is substituted by OS version ("7", "8", "8.1", "14.04", "10.10", ...)
 
 * userid = value entered by user (this is used in User's config source to remember the value for future runs)
+
+* userid_label = Label displayed when user's identity is set
 
 * mnt_dir = Path used as parent's mountpoint. Substitutions available :
     * {DEFAULT_MNT_DIR}
@@ -105,6 +107,11 @@
 
 * mount.cifs_options = options to use with mount.cifs method
 
+* stared = boolean
+    default : False
+
+* Windows_letter = letter
+    Drive letter to use for the mount (only on Windows)
 
 
 OPEN QUESTIONS
