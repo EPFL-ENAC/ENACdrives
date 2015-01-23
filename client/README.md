@@ -28,7 +28,7 @@ After this operation, 22.2 MB of additional disk space will be used.
 --------------------------------------------------------------------------------
 
 ~~~ bash
-cd ~/Projects/mount_filers
+cd ~/Projects/mount_filers/client
 virtualenv -p python3.4 venv_py3
 . venv_py3/bin/activate
 pip install ipython
