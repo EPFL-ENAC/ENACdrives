@@ -25,6 +25,7 @@
 # Config parameters
 
 ## [config]
+
 * import = URL | path
     * {VERSION} is substituted by mount_filer's version
     * {USERID} is substituted by value entered by user
@@ -42,9 +43,11 @@
     * {OS_FAMILY} is substituted by OS family ("Windows", "Ubuntu", "MacOSX", ...)
     * {OS_VERSION} is substituted by OS version ("7", "8", "8.1", "14.04", "10.10", ...)
 
-* userid = value entered by user (this is used in User's config source to remember the value for future runs)
+* userid = value entered by user
+    (this is saved in User's config source to remember the value for future runs)
 
 * userid_label = Label displayed when user's identity is set
+    (this is saved in User's config source to remember the value for future runs)
 
 * mnt_dir = Path used as parent's mountpoint. Substitutions available :
     * {DEFAULT_MNT_DIR}

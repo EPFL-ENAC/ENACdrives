@@ -46,6 +46,7 @@ Entries can be
 Every fields described above can be configured.
 
 
+
 # End-user admin UI
 
 ## Usage
@@ -53,6 +54,7 @@ Every fields described above can be configured.
 * Customize each mount entries (overides default values set by ENAC-IT admins):
     * stared
     * Windows_letter
+    * hide unwanted (will be hidden on every client with a notice "n entries are hidden. Go <here>(http://enacXXX.epfl.ch/mount_filers/) to un-hide them.")
 
 * View the config that corresponds to him
 
@@ -64,11 +66,10 @@ Every fields described above can be configured.
 
 View config that corresponds to the authenticated user
 
-### /edit
-
-For the selected entry, edit:
-    * stared
-    * Windows_letter
+For each entry, possibility to:
+    * star
+    * change the Windows_letter
+    * check "hide"
 
 
 OPEN QUESTIONS
@@ -76,3 +77,4 @@ OPEN QUESTIONS
 
 * Should we add Version to entries?
 * Is End-user admin UI usefull?
+
