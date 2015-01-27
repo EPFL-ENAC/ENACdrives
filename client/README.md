@@ -8,19 +8,7 @@
 Installed System wide because couldn't find PyQt5 in pip
 
 ~~~ bash
-sudo apt-get install python3-pyqt5
-~~~
-
-~~~ out
-The following extra packages will be installed:
-libqt5clucene5 libqt5designer5 libqt5help5 python3-sip
-Suggested packages:
-python3-pyqt5-dbg
-The following NEW packages will be installed:
-libqt5clucene5 libqt5designer5 libqt5help5 python3-pyqt5 python3-sip
-0 upgraded, 5 newly installed, 0 to remove and 0 not upgraded.
-Need to get 5,401 kB of archives.
-After this operation, 22.2 MB of additional disk space will be used.
+sudo apt-get install python3-pyqt4
 ~~~
 
 
@@ -31,7 +19,7 @@ After this operation, 22.2 MB of additional disk space will be used.
 cd ~/Projects/mount_filers/client
 virtualenv -p python3.4 venv_py3
 . venv_py3/bin/activate
-pip install ipython
+#pip install ipython
 ~~~
 
 
@@ -93,6 +81,5 @@ pip freeze --local
 
 ~~~ out
 cx-Freeze==4.3.4
-ipython==2.3.1
 ~~~
 
