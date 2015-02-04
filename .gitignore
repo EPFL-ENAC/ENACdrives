@@ -3,5 +3,6 @@ old/v2011/web_app/mount_filers/epfl_settings_test.py
 old/v2011/web_app/mount_filers/epfl_settings_prod.py
 *.pyc
 venv_py3/
+activate
 dependencies/
 build/

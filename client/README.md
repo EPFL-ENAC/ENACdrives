@@ -83,3 +83,12 @@ pip freeze --local
 cx-Freeze==4.3.4
 ~~~
 
+
+2015.02.02 - SB ● cx_Freeze Install on MacOSX
+--------------------------------------------------------------------------------
+
+1. Install Xcode
+2. Launch Xcode to agree the licence
+3. Install Anaconda3 64b from http://continuum.io/downloads#py34
+4. pip install cx_Freeze
+   FAILED !!!
