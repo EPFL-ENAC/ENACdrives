@@ -56,28 +56,21 @@
     * {LOCAL_USERNAME}
     * {LOCAL_GROUPNAME}
 
-* CIFS_Linux_method = default method used for CIFS on Linux
+* Linux_CIFS_method = default method used for CIFS on Linux
     * mount.cifs : Linux's mount.cifs (requires sudo ability)
     * gvfs : Linux's gvfs-mount
 
-* mount.cifs_filemode = options to use with mount.cifs method
+* Linux_mount.cifs_filemode = filemode setting to use with mount.cifs method
 
-* mount.cifs_dirmode  = options to use with mount.cifs method
+* Linux_mount.cifs_dirmode  = dirmode setting to use with mount.cifs method
 
-* mount.cifs_options = options to use with mount.cifs method
+* Linux_mount.cifs_options = options to use with mount.cifs method
 
-* gvfs_symlink = boolean
+* Linux_gvfs_symlink = boolean
     Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
     default : True
 
 * open_cmd = command to be used to open a folder
-
-
-## [message]
-
-* label = End used message to be displayed
-
-* place_before = *_mount's name where to place this message
 
 
 ## [CIFS_realm]
@@ -108,10 +101,14 @@
     * {LOCAL_USERNAME}
     * {LOCAL_GROUPNAME}
 
-* mount.cifs_options = options to use with mount.cifs method
-
 * stared = boolean
     default : False
+    
+* Linux_mount.cifs_filemode = filemode setting to use with mount.cifs method
+
+* Linux_mount.cifs_dirmode  = dirmode setting to use with mount.cifs method
+
+* Linux_mount.cifs_options = options to use with mount.cifs method
 
 * Windows_letter = letter
     Drive letter to use for the mount (only on Windows)
