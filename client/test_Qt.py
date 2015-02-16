@@ -68,8 +68,18 @@ class CONST():
         except FileNotFoundError:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR # Should be overwritten from conf file
-        DEFAULT_OPEN_CMD = which("xdg-open") + " {path}"
-        GVFS_MOUNT = which("gvfs-mount")
+        CMD_OPEN = which("xdg-open") + " {path}"
+        CMD_GVFS_MOUNT = which("gvfs-mount")
+        CMD_MOUNT_CIFS = which("mount.cifs")
+        if OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
+            GVFS_GENERATION = 1
+            GVFS_DIR = os.path.join(HOME_DIR, ".gvfs")
+        elif OS_VERSION in ("12.10", "13.04"):
+            GVFS_GENERATION = 2
+            GVFS_DIR = "/run/user/{0}/gvfs".format(LOCAL_USERNAME)
+        else:
+            GVFS_GENERATION = 3
+            GVFS_DIR = "/run/user/{0}/gvfs".format(LOCAL_UID)
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -78,7 +88,7 @@ class CONST():
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR
-        DEFAULT_OPEN_CMD = which("open") + " -a Finder {path}"
+        CMD_OPEN = which("open") + " -a Finder {path}"
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -87,7 +97,7 @@ class CONST():
         LOCAL_GID = -1
         DESKTOP_DIR = HOME_DIR + "/Desktop" # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR # TO DO
-        DEFAULT_OPEN_CMD = which("TO DO") + " {path}"
+        CMD_OPEN = which("TO DO") + " {path}"
     else:
         OS_VERSION = "Error: OS not supported."
     
@@ -346,7 +356,7 @@ class CIFS_Mount():
     def is_mounted(self):
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
-                cmd = [CONST.GVFS_MOUNT, "-l"]
+                cmd = [CONST.CMD_GVFS_MOUNT, "-l"]
                 print(" ".join(cmd))
                 lines = Live_Cache.subprocess_check_output(cmd)
                 i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)
@@ -367,7 +377,19 @@ class CIFS_Mount():
     def mount(self):
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
-                cmd = [CONST.GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
+                # 1) Remove broken symlink or empty dir
+                if self.settings["Linux_gvfs_symlink"]:
+                    if (os.path.lexists(self.settings["local_path"]) and
+                        not os.path.exists(self.settings["local_path"])):
+                        os.unlink(self.settings["local_path"])
+                    if (os.path.isdir(self.settings["local_path"]) and
+                        os.listdir(self.settings["local_path"]) == []):
+                        os.rmdir(self.settings["local_path"])
+                    if os.path.exists(self.settings["local_path"]):
+                        raise Exception("Error : Path %s already exists" % self.settings["local_path"])
+                        
+                # 2) Mount
+                cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
                 print(" ".join(cmd))
                 # print(type(self.pexpect_ask_password))
                 # import types
@@ -395,7 +417,33 @@ class CIFS_Mount():
                     self.key_chain.ack_password(self.settings["realm"])
                 else:
                     raise Exception("Error while mounting : %s" % output)
-                Live_Cache.invalidate_cmd_cache([CONST.GVFS_MOUNT, "-l"])
+                Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+
+                # 3) Symlink
+                if self.settings["Linux_gvfs_symlink"]:
+                    mount_point = None
+                    for f in os.listdir(CONST.GVFS_DIR):
+                        if CONST.GVFS_GENERATION == 1:
+                            if re.match(r'{server_share} \S+ {server_name}'.format(**self.settings), f):
+                                mount_point = os.path.join(CONST.GVFS_DIR, f)
+                        else:
+                            if (re.match(r'^smb-share:', f) and
+                                re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
+                                re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
+                                re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
+                                re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
+                                mount_point = os.path.join(CONST.GVFS_DIR, f)
+                    
+                    if mount_point == None:
+                        raise Exception("Error: Could not find the GVFS mountpoint.")
+
+                    target = os.path.join(mount_point, self.settings["server_subdir"])
+                    try:
+                        os.symlink(target, self.settings["local_path"])
+                    except OSError as e:
+                        raise Exception("Could not create symbolic link : %s" % e.args[1])
+                    if not os.path.islink(self.settings["local_path"]):
+                        raise Exception("Could not create symbolic link : %s <- %s" % (target, self.settings["local_path"]))
 
             else: # "mount.cifs"
                 pass # TO DO
@@ -410,13 +458,21 @@ class CIFS_Mount():
     def umount(self):
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
-                cmd = [CONST.GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)]
+                # 1) Umount
+                cmd = [CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)]
                 print(" ".join(cmd))
                 try:
                     output = subprocess.check_output(cmd)
                 except subprocess.CalledProcessError as e:
                     raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
-                Live_Cache.invalidate_cmd_cache([CONST.GVFS_MOUNT, "-l"])
+                Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+
+                # 2) Remove symlink
+                if self.settings["Linux_gvfs_symlink"]:
+                    if (os.path.lexists(self.settings["local_path"]) and
+                        not os.path.exists(self.settings["local_path"])):
+                        os.unlink(self.settings["local_path"])
+
             else: # "mount.cifs"
                 pass # TO DO
         elif CONST.OS_SYS == "Windows":
@@ -428,11 +484,30 @@ class CIFS_Mount():
         return False
 
     def open(self):
-        # TO DO : if gvfs and no symlink
         # TO DO : if Windows (drive or path)
-        subprocess.call(CONST.DEFAULT_OPEN_CMD.format(
-            path=self.settings["local_path"]
-        ))
+        if (CONST.OS_SYS == "Linux" and
+            self.settings["Linux_CIFS_method"] == "gvfs" and
+            not self.settings["Linux_gvfs_symlink"]):
+            path = None
+            for f in os.listdir(CONST.GVFS_DIR):
+                if CONST.GVFS_GENERATION == 1:
+                    if re.match(r'{server_share} \S+ {server_name}'.format(**self.settings), f):
+                        path = os.path.join(CONST.GVFS_DIR, f, self.settings["server_subdir"])
+                else:
+                    if (re.match(r'^smb-share:', f) and
+                        re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
+                        re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
+                        re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
+                        re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
+                        path = os.path.join(CONST.GVFS_DIR, f, self.settings["server_subdir"])
+            if path == None:
+                raise Exception("Error: Could not find the GVFS mountpoint.")
+        else:
+            path = self.settings["local_path"]
+
+        cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
+        # print("cmd : %s" % cmd)
+        subprocess.call(cmd)
         
 def pexpect_ask_password(values):
     # print("pexpect_ask_password")
