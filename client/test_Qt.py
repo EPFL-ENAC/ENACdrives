@@ -71,6 +71,7 @@ class CONST():
         CMD_OPEN = which("xdg-open") + " {path}"
         CMD_GVFS_MOUNT = which("gvfs-mount")
         CMD_MOUNT_CIFS = which("mount.cifs")
+        CMD_UMOUNT = which("umount")
         if OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
             GVFS_GENERATION = 1
             GVFS_DIR = os.path.join(HOME_DIR, ".gvfs")
@@ -314,9 +315,9 @@ class CIFS_Mount():
         * Linux_CIFS_method = default method used for CIFS on Linux
             * mount.cifs : Linux's mount.cifs (requires sudo ability)
             * gvfs : Linux's gvfs-mount
-        * Linux_mount.cifs_filemode = filemode setting to use with mount.cifs method
-        * Linux_mount.cifs_dirmode  = dirmode setting to use with mount.cifs method
-        * Linux_mount.cifs_options = options to use with mount.cifs method
+        * Linux_mountcifs_filemode = filemode setting to use with mount.cifs method
+        * Linux_mountcifs_dirmode  = dirmode setting to use with mount.cifs method
+        * Linux_mountcifs_options = options to use with mount.cifs method
         * Linux_gvfs_symlink = boolean
             Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
             default : True
@@ -333,10 +334,10 @@ class CIFS_Mount():
             "server_path":"data/bancal",
             "local_path":"{MNT_DIR}/bancal_on_files9",
             "stared":False,
-            "Linux_CIFS_method":"gvfs",
-            "Linux_mount.cifs_filemode":"0770",
-            "Linux_mount.cifs_dirmode":"0770",
-            "Linux_mount.cifs_options":"rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
+            "Linux_CIFS_method":"mount.cifs",
+            "Linux_mountcifs_filemode":"0770",
+            "Linux_mountcifs_dirmode":"0770",
+            "Linux_mountcifs_options":"rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
             "Linux_gvfs_symlink":True,
             "Windows_letter":"Z:",
         }
@@ -350,6 +351,8 @@ class CIFS_Mount():
         self.settings["server_share"], self.settings["server_subdir"] = re.match(r"([^/]+)/?(.*)$", self.settings["server_path"]).groups()
         self.settings["realm_domain"] = "INTRANET"
         self.settings["realm_username"] = "bancal"
+        self.settings["local_uid"] = CONST.LOCAL_UID
+        self.settings["local_gid"] = CONST.LOCAL_GID
         self.ui = ui
         self.key_chain = key_chain
     
@@ -446,7 +449,50 @@ class CIFS_Mount():
                         raise Exception("Could not create symbolic link : %s <- %s" % (target, self.settings["local_path"]))
 
             else: # "mount.cifs"
-                pass # TO DO
+                # 1) Make mount dir
+                if not os.path.exists(self.settings["local_path"]):
+                    try:
+                        os.makedirs(self.settings["local_path"])
+                    except OSError:
+                        pass
+                if not os.path.isdir(self.settings["local_path"]):
+                    raise Exception("Error while creating dir : %s" % self.settings["local_path"])
+
+                # 2) Mount
+                cmd = ["sudo", CONST.CMD_MOUNT_CIFS, 
+                    "//{server_name}/{server_path}",
+                    "{local_path}",
+                    "-o",
+                    "user={realm_username},domain={realm_domain},"
+                    "uid={local_uid},gid={local_gid},"
+                    "file_mode={Linux_mountcifs_filemode},"
+                    "dir_mode={Linux_mountcifs_filemode},"
+                    "{Linux_mountcifs_options}"]
+                cmd = [s.format(**self.settings) for s in cmd]
+                print(" ".join(cmd))
+                # for i in xrange(3): # 3 attempts (for passwords mistyped)
+                (output, exit_status) = pexpect.runu(
+                    command=" ".join(cmd),
+                    events = {
+                        '(?i)password' : pexpect_ask_password,
+                    },
+                    extra_args = {
+                        "auth_realms":[
+                            (r'\[sudo\] password', "sudo"),
+                            (r'Password', self.settings["realm"])
+                        ],
+                        "key_chain":self.key_chain,
+                    },
+                    withexitstatus=True,
+                    timeout=5,
+                )
+                if exit_status == 0:
+                    self.key_chain.ack_password("sudo")
+                    self.key_chain.ack_password(self.settings["realm"])
+                    # break
+                if exit_status != 0:
+                    raise Exception("Error while mounting : %s" % output)
+
         elif CONST.OS_SYS == "Windows":
             pass # TO DO
         elif CONST.OS_SYS == "Darwin":
@@ -474,7 +520,40 @@ class CIFS_Mount():
                         os.unlink(self.settings["local_path"])
 
             else: # "mount.cifs"
-                pass # TO DO
+                # 1) uMount
+                cmd = ["sudo", CONST.CMD_UMOUNT, 
+                    "{local_path}"]
+                cmd = [s.format(**self.settings) for s in cmd]
+                print(" ".join(cmd))
+                # for i in xrange(3): # 3 attempts (for passwords mistyped)
+                (output, exit_status) = pexpect.runu(
+                    command=" ".join(cmd),
+                    events = {
+                        '(?i)password' : pexpect_ask_password,
+                    },
+                    extra_args = {
+                        "auth_realms":[
+                            (r'\[sudo\] password', "sudo"),
+                        ],
+                        "key_chain":self.key_chain,
+                    },
+                    withexitstatus=True,
+                    timeout=5,
+                )
+                if exit_status == 0:
+                    self.key_chain.ack_password("sudo")
+                    # break
+                if exit_status != 0:
+                    raise Exception("Error while umounting : %s" % output)
+
+                # 2) Remove mount dir
+                if (os.path.exists(self.settings["local_path"]) and
+                    os.listdir(self.settings["local_path"]) == []):
+                    try:
+                        os.rmdir(self.settings["local_path"])
+                    except OSError:
+                        pass
+
         elif CONST.OS_SYS == "Windows":
             pass # TO DO
         elif CONST.OS_SYS == "Darwin":
