@@ -16,10 +16,12 @@ sudo apt-get install python3-pyqt4
 --------------------------------------------------------------------------------
 
 ~~~ bash
-cd ~/Projects/mount_filers/client
+cd ~/Projects/mount_filers
 virtualenv -p python3.4 venv_py3
-. venv_py3/bin/activate
-#pip install ipython
+ln -s venv_py3/bin/activate .
+. activate
+pip install ipython
+pip install pexpect
 ~~~
 
 
@@ -92,3 +94,11 @@ cx-Freeze==4.3.4
 3. Install Anaconda3 64b from http://continuum.io/downloads#py34
 4. pip install cx_Freeze
    FAILED !!!
+
+
+2015.02.19 - SB ● Windows install winpexpect
+--------------------------------------------------------------------------------
+
+~~~ cmd
+pip install winpexpect
+~~~

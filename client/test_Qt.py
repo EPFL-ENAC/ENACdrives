@@ -3,7 +3,7 @@
 # Bancal Samuel
 
 # Constraints :
-
+#
 # + Windows :
 #   + WinPython-32bit-3.4.2.4 comes with PyQt4 (not PyQt5)
 # 
@@ -41,7 +41,7 @@ def which(program):
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
-    fpath, fname = os.path.split(program)
+    fpath, _ = os.path.split(program)
     if fpath:
         if is_exe(program):
             return program
@@ -98,7 +98,7 @@ class CONST():
         LOCAL_GID = -1
         DESKTOP_DIR = HOME_DIR + "/Desktop" # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR # TO DO
-        CMD_OPEN = which("TO DO") + " {path}"
+        CMD_OPEN = "explorer {path}"
     else:
         OS_VERSION = "Error: OS not supported."
     
@@ -349,6 +349,9 @@ class CIFS_Mount():
             LOCAL_GROUPNAME=CONST.LOCAL_GROUPNAME,
         )
         self.settings["server_share"], self.settings["server_subdir"] = re.match(r"([^/]+)/?(.*)$", self.settings["server_path"]).groups()
+        if CONST.OS_SYS == "Windows":
+            self.settings["server_path"] = self.settings["server_path"].replace("/", "\\")
+            self.settings["local_path"] = self.settings["local_path"].replace("/", "\\")
         self.settings["realm_domain"] = "INTRANET"
         self.settings["realm_username"] = "bancal"
         self.settings["local_uid"] = CONST.LOCAL_UID
@@ -370,7 +373,7 @@ class CIFS_Mount():
             else: # "mount.cifs"
                 return os.path.ismount(self.settings["local_path"])
         elif CONST.OS_SYS == "Windows":
-            return os.path.ismount(self.settings["Windows_letter"])
+            return os.path.ismount(self.settings["Windows_letter"]) # TODO WIPWIP
         elif CONST.OS_SYS == "Darwin":
             return os.path.ismount(self.settings["local_path"])
         else:
@@ -394,10 +397,6 @@ class CIFS_Mount():
                 # 2) Mount
                 cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
                 print(" ".join(cmd))
-                # print(type(self.pexpect_ask_password))
-                # import types
-                # print(isinstance(self.pexpect_ask_password, types.FunctionType))
-                # sys.exit(0)
                 try:
                     (output, exit_status) = pexpect.runu(
                         command=" ".join(cmd),
@@ -494,7 +493,37 @@ class CIFS_Mount():
                     raise Exception("Error while mounting : %s" % output)
 
         elif CONST.OS_SYS == "Windows":
-            pass # TO DO
+            cmd = [
+                "NET", "USE", "{windows_letter}",
+                "\\\\{server_name}\\{server_path}", "*",
+                "/USER:{realm_domain}\\{realm_username}", "/persistent:no"
+            ]
+            cmd = [s.format(**self.settings) for s in cmd]
+            print(" ".join(cmd))
+            try:
+                (output, exit_status) = pexpect.runu(
+                    command=" ".join(cmd),
+                    events={
+                        'Password:':pexpect_ask_password,
+                    },
+                    extra_args={
+                        "auth_realms":[
+                            (r'Password:', self.settings["realm"])
+                        ],
+                        "key_chain":self.key_chain,
+                        # "context" : "gvfs_mount_%s" % self.settings["name"]
+                    },
+                    withexitstatus=True,
+                    timeout=5,
+                )
+            except pexpect.ExceptionPexpect as exc:
+                raise Exception("Error while mounting : %s" % exc.value)
+            if exit_status == 0:
+                self.key_chain.ack_password(self.settings["realm"])
+            else:
+                raise Exception("Error while mounting : %s" % output)
+            Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+
         elif CONST.OS_SYS == "Darwin":
             pass # TO DO
         else:
