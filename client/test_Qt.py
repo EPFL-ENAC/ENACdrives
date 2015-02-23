@@ -29,7 +29,7 @@ try:
     import grp
     import pwd
 except ImportError: # for Windows
-    pass
+    import winpexpect
 
 
 # Tools
@@ -339,7 +339,7 @@ class CIFS_Mount():
             "Linux_mountcifs_dirmode":"0770",
             "Linux_mountcifs_options":"rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
             "Linux_gvfs_symlink":True,
-            "Windows_letter":"Z:",
+            "Windows_letter":"Z:", # may be overwritten in "is_mounted"
         }
         self.settings["local_path"] = self.settings["local_path"].format(
             MNT_DIR=CONST.DEFAULT_MNT_DIR,
@@ -363,19 +363,43 @@ class CIFS_Mount():
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
                 cmd = [CONST.CMD_GVFS_MOUNT, "-l"]
-                print(" ".join(cmd))
+                # print(" ".join(cmd))
                 lines = Live_Cache.subprocess_check_output(cmd)
                 i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)
                 for l in lines.split("\n"):
                     if re.search(i_search, l):
-                        print(l)
+                        # print(l)
                         return True
             else: # "mount.cifs"
                 return os.path.ismount(self.settings["local_path"])
+
         elif CONST.OS_SYS == "Windows":
-            return os.path.ismount(self.settings["Windows_letter"]) # TODO WIPWIP
+            cmd = ["wmic", "logicaldisk"] # List all Logical Disks
+            lines = Live_Cache.subprocess_check_output(cmd)
+            lines = lines.split("\n")
+            caption_index = lines[0].index("Caption")
+            providername_index = lines[0].index("ProviderName")
+            i_search = r"^\\{server_name}\{server_path}$".format(**self.settings)
+            i_search = i_search.replace("\\", "\\\\")
+            # print("i_search='{0}'".format(i_search))
+            for l in lines[1:]:
+                try:
+                    drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
+                    try:
+                        provider = re.findall(r"^(\S+)", l[providername_index:])[0]
+                        if re.search(i_search, provider):
+                            self.settings["Windows_letter"] = drive_letter
+                            return True
+                    except IndexError:
+                        provider = ""
+                    # print("{0} : '{1}'".format(drive_letter, provider))
+                except IndexError:
+                    pass
+            return False
+
         elif CONST.OS_SYS == "Darwin":
             return os.path.ismount(self.settings["local_path"])
+
         else:
             raise Exception("Unknown System " + CONST.OS_SYS)
         return False
@@ -493,36 +517,30 @@ class CIFS_Mount():
                     raise Exception("Error while mounting : %s" % output)
 
         elif CONST.OS_SYS == "Windows":
+            # Couldn't make this work : TODO
+            # cmd = [
+            #     "NET", "USE", "{Windows_letter}",
+            #     r"\\{server_name}\{server_path}", "*",
+            #     r"/USER:{realm_domain}\{realm_username}", "/persistent:no"
+            # ]
+            # cmd = [s.format(**self.settings) for s in cmd]
+            # print(" ".join(cmd))
+            # child = winpexpect.winspawn(cmd[0], cmd[1:])
+            # child.expect("password")
+            # child.sendline("BLABLAPWD")
+            # ... terminate
+            pw = self.key_chain.get_password(self.settings["realm"])
             cmd = [
-                "NET", "USE", "{windows_letter}",
-                "\\\\{server_name}\\{server_path}", "*",
-                "/USER:{realm_domain}\\{realm_username}", "/persistent:no"
+                "NET", "USE", "{Windows_letter}",
+                r"\\{server_name}\{server_path}", pw,
+                r"/USER:{realm_domain}\{realm_username}", "/persistent:no"
             ]
             cmd = [s.format(**self.settings) for s in cmd]
-            print(" ".join(cmd))
             try:
-                (output, exit_status) = pexpect.runu(
-                    command=" ".join(cmd),
-                    events={
-                        'Password:':pexpect_ask_password,
-                    },
-                    extra_args={
-                        "auth_realms":[
-                            (r'Password:', self.settings["realm"])
-                        ],
-                        "key_chain":self.key_chain,
-                        # "context" : "gvfs_mount_%s" % self.settings["name"]
-                    },
-                    withexitstatus=True,
-                    timeout=5,
-                )
-            except pexpect.ExceptionPexpect as exc:
-                raise Exception("Error while mounting : %s" % exc.value)
-            if exit_status == 0:
-                self.key_chain.ack_password(self.settings["realm"])
-            else:
-                raise Exception("Error while mounting : %s" % output)
-            Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+                output = subprocess.check_output(cmd)
+            except subprocess.CalledProcessError as e:
+                raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
+            Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
 
         elif CONST.OS_SYS == "Darwin":
             pass # TO DO
@@ -584,7 +602,14 @@ class CIFS_Mount():
                         pass
 
         elif CONST.OS_SYS == "Windows":
-            pass # TO DO
+            cmd = ["NET", "USE", self.settings["Windows_letter"], "/delete"]
+            print(" ".join(cmd))
+            try:
+                output = subprocess.check_output(cmd)
+            except subprocess.CalledProcessError as e:
+                raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
+            Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+            
         elif CONST.OS_SYS == "Darwin":
             pass # TO DO
         else:
@@ -610,11 +635,13 @@ class CIFS_Mount():
                         path = os.path.join(CONST.GVFS_DIR, f, self.settings["server_subdir"])
             if path == None:
                 raise Exception("Error: Could not find the GVFS mountpoint.")
+        elif CONST.OS_SYS == "Windows":
+            path = self.settings["Windows_letter"]
         else:
             path = self.settings["local_path"]
 
         cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
-        # print("cmd : %s" % cmd)
+        print("cmd : %s" % cmd)
         subprocess.call(cmd)
         
 def pexpect_ask_password(values):
