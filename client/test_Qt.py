@@ -21,6 +21,7 @@ import sys
 import time
 import pexpect
 import getpass
+import tempfile
 import platform
 import datetime
 import subprocess
@@ -58,6 +59,15 @@ class CONST():
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
+
+    # RESOURCES_DIR is used to get files like app's icon
+    if getattr(sys, 'frozen', False):
+        # The application is frozen
+        RESOURCES_DIR = os.path.dirname(sys.executable)
+    else:
+        # The application is not frozen
+        RESOURCES_DIR = os.path.dirname(__file__)
+
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
@@ -200,7 +210,7 @@ class UI(QtGui.QWidget):
 
         self.setGeometry(300, 300, 290, 150)
         self.setWindowTitle("Test compiled Python (Win/Lin/OSX)")
-        self.setWindowIcon(QtGui.QIcon("mount_filers.png"))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "mount_filers.png")))
         self.show()
     
     def get_password(self, realm):
@@ -279,8 +289,26 @@ class Live_Cache():
             cls.cache = {}
         except KeyError:
             pass
-        # No valid entry found, creating one.
-        output = subprocess.check_output(cmd).decode()
+        # No valid cache entry found, creating one.
+        
+        if CONST.OS_SYS == "Windows":
+            # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
+            # http://stackoverflow.com/a/24171096/446302
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            stdout_file = tempfile.NamedTemporaryFile(mode="r+", delete=False, encoding="UTF-16")
+            process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=stdout_file, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+            return_code = process.wait()
+            if return_code != 0:
+                raise Exception("Error while running %s. Returncode : %d" % (cmd, return_code))
+            stdout_file.flush()
+            stdout_file.seek(0)
+            output = stdout_file.read()
+            stdout_file.close()
+        else:
+            output = subprocess.check_output(cmd).decode()
+
         cls.cache[str_cmd] = {
             "expire_dt":datetime.datetime.now() + Live_Cache.CACHE_DURATION,
             "value":output,
@@ -603,6 +631,11 @@ class CIFS_Mount():
                         pass
 
         elif CONST.OS_SYS == "Windows":
+            # TODO : manage this message ... (cross languages!)
+            # There are open files and/or incomplete directory searches pending on the connect
+            # ion to Z:.
+            # 
+            # Is it OK to continue disconnecting and force them closed? (Y/N) [N]:
             cmd = ["NET", "USE", self.settings["Windows_letter"], "/delete"]
             print(" ".join(cmd))
             try:

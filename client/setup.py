@@ -6,7 +6,11 @@ from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need
 # fine tuning.
-buildOptions = dict(packages = [], excludes = [])
+buildOptions = dict(
+    packages = [],
+    excludes = [],
+    include_files = ["mount_filers.png"]
+)
 
 
 if sys.platform == "win32":
@@ -30,7 +34,7 @@ setup(
         # targetName = "test_Qt.exe",
         base=base,
         compress=True,
-        # icon = "mount_filers.ico"
+        icon = "mount_filers.ico"
         # copyDependentFiles = False,
         # appendScriptToExe = False,
         # appendScriptToLibrary = False,
