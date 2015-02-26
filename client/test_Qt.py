@@ -538,6 +538,7 @@ class CIFS_Mount():
             cmd = [s.format(**self.settings) for s in cmd]
             try:
                 output = subprocess.check_output(cmd)
+                self.key_chain.ack_password(self.settings["realm"])
             except subprocess.CalledProcessError as e:
                 raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
             Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
