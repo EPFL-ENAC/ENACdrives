@@ -6,13 +6,13 @@
 #
 # + Windows :
 #   + WinPython-32bit-3.4.2.4 comes with PyQt4 (not PyQt5)
-# 
+#
 # + Linux :
-#   + . venv_py3/bin/activate
+#   + . activate
 #   + export PYTHONPATH=/usr/lib/python3/dist-packages
-# 
+#
 # + MacOSX :
-# 
+#
 
 import os
 import re
@@ -29,7 +29,7 @@ from PyQt4 import QtGui
 try:
     import grp
     import pwd
-except ImportError: # for Windows
+except ImportError:  # for Windows
     import winpexpect
 
 
@@ -55,7 +55,7 @@ def which(program):
 
 
 class CONST():
-    
+
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
@@ -77,7 +77,7 @@ class CONST():
             DESKTOP_DIR = subprocess.check_output(["xdg-user-dir", "DESKTOP"]).decode().strip()
         except FileNotFoundError:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
-        DEFAULT_MNT_DIR = DESKTOP_DIR # Should be overwritten from conf file
+        DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
         CMD_OPEN = which("xdg-open") + " {path}"
         CMD_GVFS_MOUNT = which("gvfs-mount")
         CMD_MOUNT_CIFS = which("mount.cifs")
@@ -106,12 +106,12 @@ class CONST():
         LOCAL_GROUPNAME = "Undefined"
         LOCAL_UID = -1
         LOCAL_GID = -1
-        DESKTOP_DIR = HOME_DIR + "/Desktop" # TO DO
-        DEFAULT_MNT_DIR = DESKTOP_DIR # TO DO
+        DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
+        DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
         CMD_OPEN = "explorer {path}"
     else:
         OS_VERSION = "Error: OS not supported."
-    
+
 
 class UI_Label_Entry(QtGui.QHBoxLayout):
 
@@ -123,13 +123,13 @@ class UI_Label_Entry(QtGui.QHBoxLayout):
 
 
 class UI_Mount_Entry(QtGui.QHBoxLayout):
-    
+
     def __init__(self, ui, mount_instance):
         super(UI_Mount_Entry, self).__init__()
-        
+
         self.ui = ui
         self.mount_instance = mount_instance
-        
+
         self.label = QtGui.QLabel(self.mount_instance.settings["label"])
         self.bt_mount = QtGui.QPushButton("Mount", self.ui)
         self.bt_mount.clicked.connect(self.toggle_mount)
@@ -140,14 +140,14 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.addWidget(self.bt_mount)
         self.addWidget(self.bt_open)
         self.update_status()
-    
+
     def toggle_mount(self):
         if self.mount_instance.is_mounted():
             self.mount_instance.umount()
         else:
             self.mount_instance.mount()
         self.update_status()
-    
+
     def update_status(self):
         if self.mount_instance.is_mounted():
             self.bt_mount.setText("unMount")
@@ -158,41 +158,41 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
 
 class UI(QtGui.QWidget):
-    
+
     def __init__(self):
         super(UI, self).__init__()
-        
+
         self.key_chain = Key_Chain(self)
 
         self.entries = []
-        
+
         self.entries.append(UI_Label_Entry(
             "OS:" + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION
         ))
-        
+
         self.entries.append(UI_Label_Entry(
             "Local username:" + CONST.LOCAL_USERNAME
         ))
-        
+
         self.entries.append(UI_Label_Entry(
             "Local groupname:" + CONST.LOCAL_GROUPNAME
         ))
-        
+
         self.entries.append(UI_Label_Entry(
             "Local uid:" + str(CONST.LOCAL_UID)
         ))
-        
+
         self.entries.append(UI_Label_Entry(
             "Local gid:" + str(CONST.LOCAL_GID)
         ))
-        
+
         self.entries.append(UI_Label_Entry(
             "Home dir:" + CONST.HOME_DIR
         ))
-        
+
         mount_bancal = CIFS_Mount(self, self.key_chain)
         self.entries.append(UI_Mount_Entry(self, mount_bancal))
-        
+
         self.bt_quit = QtGui.QPushButton('Quit', self)
         self.bt_quit.clicked.connect(QtGui.qApp.quit)
 
@@ -205,14 +205,14 @@ class UI(QtGui.QWidget):
             self.vbox_layout.addLayout(entry)
         self.vbox_layout.addStretch(1)
         self.vbox_layout.addLayout(self.hbox_bt_quit)
-        
+
         self.setLayout(self.vbox_layout)
 
         self.setGeometry(300, 300, 290, 150)
         self.setWindowTitle("Test compiled Python (Win/Lin/OSX)")
         self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "mount_filers.png")))
         self.show()
-    
+
     def get_password(self, realm):
         password, ok = QtGui.QInputDialog.getText(
             self,
@@ -220,7 +220,7 @@ class UI(QtGui.QWidget):
             "Give your " + realm + " password",
             QtGui.QLineEdit.Password,
         )
-        
+
         if ok:
             return str(password)
 
@@ -245,8 +245,8 @@ class Key_Chain():
                 time.sleep(1)
         password = self.ui.get_password(realm)
         self.keys[realm] = {
-            "ack":False,
-            "pw":password,
+            "ack": False,
+            "pw": password,
         }
         return self.keys[realm]["pw"]
 
@@ -264,10 +264,10 @@ class Key_Chain():
 
 
 class Live_Cache():
-    
+
     """
         Used to cache low latency commands (mostly for "gvfs-mount -l" which takes 0.5 sec!)
-        
+
         cls.cache{
             "command line being cached":{
                 "expire_dt":request_datetime_now + deltatime,
@@ -275,9 +275,9 @@ class Live_Cache():
             }
         }
     """
-    
+
     CACHE_DURATION = datetime.timedelta(seconds=1)
-    
+
     @classmethod
     def subprocess_check_output(cls, cmd):
         str_cmd = " ".join(cmd)
@@ -290,7 +290,7 @@ class Live_Cache():
         except KeyError:
             pass
         # No valid cache entry found, creating one.
-        
+
         if CONST.OS_SYS == "Windows":
             # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
             # http://stackoverflow.com/a/24171096/446302
@@ -310,8 +310,8 @@ class Live_Cache():
             output = subprocess.check_output(cmd).decode()
 
         cls.cache[str_cmd] = {
-            "expire_dt":datetime.datetime.now() + Live_Cache.CACHE_DURATION,
-            "value":output,
+            "expire_dt": datetime.datetime.now() + Live_Cache.CACHE_DURATION,
+            "value": output,
         }
         return output
 
@@ -335,7 +335,7 @@ class CIFS_Mount():
         * local_path = path where to mount. Substitutions available :
             * {MNT_DIR}
             * {HOME_DIR}
-            * {DESKTOP_DIR} 
+            * {DESKTOP_DIR}
             * {LOCAL_USERNAME}
             * {LOCAL_GROUPNAME}
         * stared = boolean
@@ -355,19 +355,19 @@ class CIFS_Mount():
 
     def __init__(self, ui, key_chain):
         self.settings = {
-            "name":"private",
-            "label":"bancal@files9 (individuel)",
-            "realm":"EPFL",
-            "server_name":"files9.epfl.ch",
-            "server_path":"data/bancal",
-            "local_path":"{MNT_DIR}/bancal_on_files9",
-            "stared":False,
-            "Linux_CIFS_method":"mount.cifs",
-            "Linux_mountcifs_filemode":"0770",
-            "Linux_mountcifs_dirmode":"0770",
-            "Linux_mountcifs_options":"rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
-            "Linux_gvfs_symlink":True,
-            "Windows_letter":"Z:", # may be overwritten in "is_mounted"
+            "name": "private",
+            "label": "bancal@files9 (individuel)",
+            "realm": "EPFL",
+            "server_name": "files9.epfl.ch",
+            "server_path": "data/bancal",
+            "local_path": "{MNT_DIR}/bancal_on_files9",
+            "stared": False,
+            "Linux_CIFS_method": "mount.cifs",
+            "Linux_mountcifs_filemode": "0770",
+            "Linux_mountcifs_dirmode": "0770",
+            "Linux_mountcifs_options": "rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
+            "Linux_gvfs_symlink": True,
+            "Windows_letter": "Z:",  # may be overwritten in "is_mounted"
         }
         self.settings["local_path"] = self.settings["local_path"].format(
             MNT_DIR=CONST.DEFAULT_MNT_DIR,
@@ -386,7 +386,7 @@ class CIFS_Mount():
         self.settings["local_gid"] = CONST.LOCAL_GID
         self.ui = ui
         self.key_chain = key_chain
-    
+
     def is_mounted(self):
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
@@ -398,11 +398,11 @@ class CIFS_Mount():
                     if re.search(i_search, l):
                         # print(l)
                         return True
-            else: # "mount.cifs"
+            else:  # "mount.cifs"
                 return os.path.ismount(self.settings["local_path"])
 
         elif CONST.OS_SYS == "Windows":
-            cmd = ["wmic", "logicaldisk"] # List all Logical Disks
+            cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
             lines = Live_Cache.subprocess_check_output(cmd)
             lines = lines.split("\n")
             caption_index = lines[0].index("Caption")
@@ -438,14 +438,14 @@ class CIFS_Mount():
                 # 1) Remove broken symlink or empty dir
                 if self.settings["Linux_gvfs_symlink"]:
                     if (os.path.lexists(self.settings["local_path"]) and
-                        not os.path.exists(self.settings["local_path"])):
+                       not os.path.exists(self.settings["local_path"])):
                         os.unlink(self.settings["local_path"])
                     if (os.path.isdir(self.settings["local_path"]) and
-                        os.listdir(self.settings["local_path"]) == []):
+                       os.listdir(self.settings["local_path"]) == []):
                         os.rmdir(self.settings["local_path"])
                     if os.path.exists(self.settings["local_path"]):
                         raise Exception("Error : Path %s already exists" % self.settings["local_path"])
-                        
+
                 # 2) Mount
                 cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
                 print(" ".join(cmd))
@@ -453,13 +453,13 @@ class CIFS_Mount():
                     (output, exit_status) = pexpect.runu(
                         command=" ".join(cmd),
                         events={
-                            'Password:':pexpect_ask_password,
+                            'Password:': pexpect_ask_password,
                         },
                         extra_args={
-                            "auth_realms":[
+                            "auth_realms": [
                                 (r'Password:', self.settings["realm"])
                             ],
-                            "key_chain":self.key_chain,
+                            "key_chain": self.key_chain,
                             # "context" : "gvfs_mount_%s" % self.settings["name"]
                         },
                         withexitstatus=True,
@@ -482,13 +482,13 @@ class CIFS_Mount():
                                 mount_point = os.path.join(CONST.GVFS_DIR, f)
                         else:
                             if (re.match(r'^smb-share:', f) and
-                                re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
-                                re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
-                                re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
-                                re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
+                               re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
+                               re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
+                               re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
+                               re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
                                 mount_point = os.path.join(CONST.GVFS_DIR, f)
-                    
-                    if mount_point == None:
+
+                    if mount_point is None:
                         raise Exception("Error: Could not find the GVFS mountpoint.")
 
                     target = os.path.join(mount_point, self.settings["server_subdir"])
@@ -499,7 +499,7 @@ class CIFS_Mount():
                     if not os.path.islink(self.settings["local_path"]):
                         raise Exception("Could not create symbolic link : %s <- %s" % (target, self.settings["local_path"]))
 
-            else: # "mount.cifs"
+            else:  # "mount.cifs"
                 # 1) Make mount dir
                 if not os.path.exists(self.settings["local_path"]):
                     try:
@@ -510,7 +510,8 @@ class CIFS_Mount():
                     raise Exception("Error while creating dir : %s" % self.settings["local_path"])
 
                 # 2) Mount
-                cmd = ["sudo", CONST.CMD_MOUNT_CIFS, 
+                cmd = [
+                    "sudo", CONST.CMD_MOUNT_CIFS,
                     "//{server_name}/{server_path}",
                     "{local_path}",
                     "-o",
@@ -518,21 +519,22 @@ class CIFS_Mount():
                     "uid={local_uid},gid={local_gid},"
                     "file_mode={Linux_mountcifs_filemode},"
                     "dir_mode={Linux_mountcifs_filemode},"
-                    "{Linux_mountcifs_options}"]
+                    "{Linux_mountcifs_options}"
+                ]
                 cmd = [s.format(**self.settings) for s in cmd]
                 print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
-                    events = {
-                        '(?i)password' : pexpect_ask_password,
+                    events={
+                        '(?i)password': pexpect_ask_password,
                     },
-                    extra_args = {
-                        "auth_realms":[
+                    extra_args={
+                        "auth_realms": [
                             (r'\[sudo\] password', "sudo"),
                             (r'Password', self.settings["realm"])
                         ],
-                        "key_chain":self.key_chain,
+                        "key_chain": self.key_chain,
                     },
                     withexitstatus=True,
                     timeout=5,
@@ -567,7 +569,7 @@ class CIFS_Mount():
             ]
             cmd = [s.format(**self.settings) for s in cmd]
             print("Running : {0}".format(" ".join(cmd)))
-            p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(2)
             while True:
                 try:
@@ -577,7 +579,7 @@ class CIFS_Mount():
                     if "Enter the password" in stdout:
                         p.kill()
                         break
-                    if p.returncode != None:
+                    if p.returncode is not None:
                         break
                 except subprocess.TimeoutExpired:
                     print("timeout")
@@ -595,7 +597,7 @@ class CIFS_Mount():
                     pw = self.key_chain.get_password(self.settings["realm"])
                     cmd.insert(3, pw)
                     print("Running : {0}".format(" ".join(cmd)))
-                    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     while True:
                         try:
                             stdout, stderr = p.communicate(timeout=1)
@@ -604,7 +606,7 @@ class CIFS_Mount():
                             if "password is not correct" in stderr:
                                 p.kill()
                                 break
-                            if p.returncode != None:
+                            if p.returncode is not None:
                                 Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
                                 self.key_chain.ack_password(self.settings["realm"])
                                 return True
@@ -612,7 +614,7 @@ class CIFS_Mount():
                             print("timeout")
 
         elif CONST.OS_SYS == "Darwin":
-            pass # TO DO
+            pass  # TO DO
         else:
             raise Exception("Unknown System " + CONST.OS_SYS)
         return False
@@ -632,26 +634,25 @@ class CIFS_Mount():
                 # 2) Remove symlink
                 if self.settings["Linux_gvfs_symlink"]:
                     if (os.path.lexists(self.settings["local_path"]) and
-                        not os.path.exists(self.settings["local_path"])):
+                       not os.path.exists(self.settings["local_path"])):
                         os.unlink(self.settings["local_path"])
 
-            else: # "mount.cifs"
+            else:  # "mount.cifs"
                 # 1) uMount
-                cmd = ["sudo", CONST.CMD_UMOUNT, 
-                    "{local_path}"]
+                cmd = ["sudo", CONST.CMD_UMOUNT, "{local_path}"]
                 cmd = [s.format(**self.settings) for s in cmd]
                 print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
-                    events = {
-                        '(?i)password' : pexpect_ask_password,
+                    events={
+                        '(?i)password': pexpect_ask_password,
                     },
-                    extra_args = {
-                        "auth_realms":[
+                    extra_args={
+                        "auth_realms": [
                             (r'\[sudo\] password', "sudo"),
                         ],
-                        "key_chain":self.key_chain,
+                        "key_chain": self.key_chain,
                     },
                     withexitstatus=True,
                     timeout=5,
@@ -664,7 +665,7 @@ class CIFS_Mount():
 
                 # 2) Remove mount dir
                 if (os.path.exists(self.settings["local_path"]) and
-                    os.listdir(self.settings["local_path"]) == []):
+                   os.listdir(self.settings["local_path"]) == []):
                     try:
                         os.rmdir(self.settings["local_path"])
                     except OSError:
@@ -674,7 +675,7 @@ class CIFS_Mount():
             # TODO : manage this message ... (cross languages!)
             # There are open files and/or incomplete directory searches pending on the connect
             # ion to Z:.
-            # 
+            #
             # Is it OK to continue disconnecting and force them closed? (Y/N) [N]:
             cmd = ["NET", "USE", self.settings["Windows_letter"], "/delete"]
             print(" ".join(cmd))
@@ -683,9 +684,9 @@ class CIFS_Mount():
             except subprocess.CalledProcessError as e:
                 raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
             Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
-            
+
         elif CONST.OS_SYS == "Darwin":
-            pass # TO DO
+            pass  # TO DO
         else:
             raise Exception("Unknown System " + CONST.OS_SYS)
         return False
@@ -693,8 +694,8 @@ class CIFS_Mount():
     def open(self):
         # TO DO : if Windows (drive or path)
         if (CONST.OS_SYS == "Linux" and
-            self.settings["Linux_CIFS_method"] == "gvfs" and
-            not self.settings["Linux_gvfs_symlink"]):
+           self.settings["Linux_CIFS_method"] == "gvfs" and
+           not self.settings["Linux_gvfs_symlink"]):
             path = None
             for f in os.listdir(CONST.GVFS_DIR):
                 if CONST.GVFS_GENERATION == 1:
@@ -702,12 +703,12 @@ class CIFS_Mount():
                         path = os.path.join(CONST.GVFS_DIR, f, self.settings["server_subdir"])
                 else:
                     if (re.match(r'^smb-share:', f) and
-                        re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
-                        re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
-                        re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
-                        re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
+                       re.search(r'domain={realm_domain}(,|$)'.format(**self.settings), f, flags=re.IGNORECASE) and
+                       re.search(r'server={server_name}(,|$)'.format(**self.settings), f) and
+                       re.search(r'share={server_share}(,|$)'.format(**self.settings), f) and
+                       re.search(r'user={realm_username}(,|$)'.format(**self.settings), f)):
                         path = os.path.join(CONST.GVFS_DIR, f, self.settings["server_subdir"])
-            if path == None:
+            if path is None:
                 raise Exception("Error: Could not find the GVFS mountpoint.")
         elif CONST.OS_SYS == "Windows":
             path = self.settings["Windows_letter"]
@@ -717,7 +718,8 @@ class CIFS_Mount():
         cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
         print("cmd : %s" % cmd)
         subprocess.call(cmd)
-        
+
+
 def pexpect_ask_password(values):
     # print("pexpect_ask_password")
     process_question = values["child_result_list"][-1]
@@ -729,10 +731,12 @@ def pexpect_ask_password(values):
         # else:
         #     print(" pattern=" + pattern + " auth_realm=" + auth_realm + " not matched!")
 
+
 def main_GUI():
     app = QtGui.QApplication(sys.argv)
     ui = UI()
     sys.exit(app.exec_())
+
 
 def main_CLI():
     print("Test app")
@@ -742,6 +746,7 @@ def main_CLI():
     print("Local uid:", str(CONST.LOCAL_UID))
     print("Local gid:", str(CONST.LOCAL_GID))
     print("Home dir:", CONST.HOME_DIR)
+
 
 if __name__ == '__main__':
     main_CLI()
