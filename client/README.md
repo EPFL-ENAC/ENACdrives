@@ -2,10 +2,10 @@
 % enac.epfl.ch - Samuel Bancal
 
 
-2015.01.19 - SB ● Python Qt5
+2015.01.19 - SB ● Python Qt4
 --------------------------------------------------------------------------------
 
-Installed System wide because couldn't find PyQt5 in pip
+Installed System wide because couldn't find PyQt4 in pip
 
 ~~~ bash
 sudo apt-get install python3-pyqt4

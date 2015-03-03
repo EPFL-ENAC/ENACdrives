@@ -549,7 +549,7 @@ class CIFS_Mount():
             # cmd = [
             #     "NET", "USE", "{Windows_letter}",
             #     r"\\{server_name}\{server_path}", "*",
-            #     r"/USER:{realm_domain}\{realm_username}", "/persistent:no"
+            #     r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
             # ]
             # cmd = [s.format(**self.settings) for s in cmd]
             # print(" ".join(cmd))
@@ -557,19 +557,59 @@ class CIFS_Mount():
             # child.expect("password")
             # child.sendline("BLABLAPWD")
             # ... terminate
-            pw = self.key_chain.get_password(self.settings["realm"])
+            
+            # 1) First attempt without password
             cmd = [
-                "NET", "USE", "{Windows_letter}",
-                r"\\{server_name}\{server_path}", pw,
-                r"/USER:{realm_domain}\{realm_username}", "/persistent:no"
+                "NET",
+                "USE", "{Windows_letter}",
+                r"\\{server_name}\{server_path}", 
+                r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
             ]
             cmd = [s.format(**self.settings) for s in cmd]
-            try:
-                output = subprocess.check_output(cmd)
-                self.key_chain.ack_password(self.settings["realm"])
-            except subprocess.CalledProcessError as e:
-                raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
-            Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+            print("Running : {0}".format(" ".join(cmd)))
+            p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            time.sleep(2)
+            while True:
+                try:
+                    stdout, stderr = p.communicate(timeout=1)
+                    print("out:{0}".format(stdout))
+                    print("err:{0}".format(stderr))
+                    if "Enter the password" in stdout:
+                        p.kill()
+                        break
+                    if p.returncode != None:
+                        break
+                except subprocess.TimeoutExpired:
+                    print("timeout")
+            
+            if p.Returncode != 0:
+                # 2) Second attempt with password
+                for _ in range(3):
+                    cmd = [
+                        "NET",
+                        "USE", "{Windows_letter}",
+                        r"\\{server_name}\{server_path}",
+                        r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
+                    ]
+                    cmd = [s.format(**self.settings) for s in cmd]
+                    pw = self.key_chain.get_password(self.settings["realm"])
+                    cmd.insert(3, pw)
+                    print("Running : {0}".format(" ".join(cmd)))
+                    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                    while True:
+                        try:
+                            stdout, stderr = p.communicate(timeout=1)
+                            print("out:{0}".format(stdout))
+                            print("err:{0}".format(stderr))
+                            if "password is not correct" in stderr:
+                                p.kill()
+                                break
+                            if p.returncode != None:
+                                Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+                                self.key_chain.ack_password(self.settings["realm"])
+                                return True
+                        except subprocess.TimeoutExpired:
+                            print("timeout")
 
         elif CONST.OS_SYS == "Darwin":
             pass # TO DO
