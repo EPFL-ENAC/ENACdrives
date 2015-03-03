@@ -19,7 +19,6 @@ import re
 import gc
 import sys
 import time
-import pexpect
 import getpass
 import tempfile
 import platform
@@ -29,8 +28,10 @@ from PyQt4 import QtGui
 try:
     import grp
     import pwd
+    import pexpect
 except ImportError:  # for Windows
-    import winpexpect
+    pass
+    # import winpexpect
 
 
 # Tools
@@ -569,11 +570,13 @@ class CIFS_Mount():
             ]
             cmd = [s.format(**self.settings) for s in cmd]
             print("Running : {0}".format(" ".join(cmd)))
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(2)
             while True:
                 try:
                     stdout, stderr = p.communicate(timeout=1)
+                    stdout = stdout.decode("UTF-8")
+                    stderr = stderr.decode("UTF-8")
                     print("out:{0}".format(stdout))
                     print("err:{0}".format(stderr))
                     if "Enter the password" in stdout:
@@ -584,7 +587,7 @@ class CIFS_Mount():
                 except subprocess.TimeoutExpired:
                     print("timeout")
             
-            if p.Returncode != 0:
+            if p.returncode != 0:
                 # 2) Second attempt with password
                 for _ in range(3):
                     cmd = [
@@ -595,12 +598,15 @@ class CIFS_Mount():
                     ]
                     cmd = [s.format(**self.settings) for s in cmd]
                     pw = self.key_chain.get_password(self.settings["realm"])
-                    cmd.insert(3, pw)
+                    cmd.insert(4, "***")
                     print("Running : {0}".format(" ".join(cmd)))
+                    cmd[4] = pw
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     while True:
                         try:
                             stdout, stderr = p.communicate(timeout=1)
+                            stdout = stdout.decode("UTF-8")
+                            stderr = stderr.decode("UTF-8")
                             print("out:{0}".format(stdout))
                             print("err:{0}".format(stderr))
                             if "password is not correct" in stderr:
