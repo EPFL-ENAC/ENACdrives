@@ -34,6 +34,23 @@ except ImportError:  # for Windows
     # import winpexpect
 
 
+# ENACIT1LOGS
+# used to repatriate test cases
+# + NET USE stdout and stderr (might encounter different one from different OS/Languages :( )
+import enacit1logs
+
+
+def debug_send(msg, additional_tags=None):
+    if additional_tags is None:
+        additional_tags = []
+    enacit1logs.send(
+        message=str(msg),
+        tags=["dev_mountfilers2015", "notify_bancal", CONST.VERSION] + additional_tags
+    )
+
+# /ENACIT1LOGS
+
+
 # Tools
 
 def which(program):
@@ -56,6 +73,8 @@ def which(program):
 
 
 class CONST():
+
+    VERSION = "2015-03-06"
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
@@ -569,23 +588,33 @@ class CIFS_Mount():
                 r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
             ]
             cmd = [s.format(**self.settings) for s in cmd]
-            print("Running : {0}".format(" ".join(cmd)))
+            s_cmd = " ".join(cmd)
+            print("Running : {0}".format(s_cmd))
             p = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            time.sleep(2)
             while True:
                 try:
                     stdout, stderr = p.communicate(timeout=1)
-                    stdout = stdout.decode("UTF-8")
-                    stderr = stderr.decode("UTF-8")
-                    print("out:{0}".format(stdout))
-                    print("err:{0}".format(stderr))
+                    stdout = "\n".join([l.strip() for l in stdout.decode("UTF-8").split("\n") if l.strip() != ""])
+                    stderr = "\n".join([l.strip() for l in stderr.decode("UTF-8").split("\n") if l.strip() != ""])
+                    if stdout != "":
+                        print("out:{0}".format(stdout))
+                    if stderr != "":
+                        print("err:{0}".format(stderr))
+                    if stdout == "" and stderr == "":
+                        print("<no output>")
                     if "Enter the password" in stdout:
                         p.kill()
                         break
+                    if stderr != "":
+                        debug_send("{0}\nout: {1}\nerr: {2}".format(s_cmd, stdout, stderr))
+                    if p.returncode == 0:
+                        Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+                        return True
                     if p.returncode is not None:
+                        debug_send("{0}\nout: {1}\nerr: {2}\nreturncode: {3}".format(s_cmd, stdout, stderr, p.returncode))
                         break
                 except subprocess.TimeoutExpired:
-                    print("timeout")
+                    print(".", end="", flush=True)
             
             if p.returncode != 0:
                 # 2) Second attempt with password
@@ -593,31 +622,42 @@ class CIFS_Mount():
                     cmd = [
                         "NET",
                         "USE", "{Windows_letter}",
-                        r"\\{server_name}\{server_path}",
+                        r"\\{server_name}\{server_path}", "***",
                         r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
                     ]
                     cmd = [s.format(**self.settings) for s in cmd]
-                    pw = self.key_chain.get_password(self.settings["realm"])
-                    cmd.insert(4, "***")
-                    print("Running : {0}".format(" ".join(cmd)))
-                    cmd[4] = pw
+                    s_cmd = " ".join(cmd)
+                    print("Running : {0}".format(s_cmd))
+                    cmd[4] = self.key_chain.get_password(self.settings["realm"])
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     while True:
                         try:
                             stdout, stderr = p.communicate(timeout=1)
-                            stdout = stdout.decode("UTF-8")
-                            stderr = stderr.decode("UTF-8")
-                            print("out:{0}".format(stdout))
-                            print("err:{0}".format(stderr))
+                            stdout = "\n".join([l.strip() for l in stdout.decode("UTF-8").split("\n") if l.strip() != ""])
+                            stderr = "\n".join([l.strip() for l in stderr.decode("UTF-8").split("\n") if l.strip() != ""])
+                            if stdout != "":
+                                print("out:{0}".format(stdout))
+                            if stderr != "":
+                                print("err:{0}".format(stderr))
+                            if stdout == "" and stderr == "":
+                                print("<no output>")
                             if "password is not correct" in stderr:
                                 p.kill()
                                 break
-                            if p.returncode is not None:
+                            if stderr != "":
+                                debug_send("{0}\nout: {1}\nerr: {2}".format(s_cmd, stdout, stderr))
+                            if p.returncode == 0:
                                 Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
                                 self.key_chain.ack_password(self.settings["realm"])
                                 return True
+                            if p.returncode is not None:
+                                debug_send("{0}\nout: {1}\nerr: {2}\nreturncode: {3}".format(s_cmd, stdout, stderr, p.returncode))
+                                break
                         except subprocess.TimeoutExpired:
-                            print("timeout")
+                            print(".", end="", flush=True)
+                        except Exception as e:
+                            print("Exception : {0}".format(e))
+                            debug_send("{0}\nException: {1}\n".format(s_cmd, e))
 
         elif CONST.OS_SYS == "Darwin":
             pass  # TO DO
