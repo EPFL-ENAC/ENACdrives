@@ -193,7 +193,6 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.update_status()
 
     def toggle_mount(self):
-        my_print()
         if self.mount_instance.is_mounted():
             self.mount_instance.umount()
         else:
@@ -265,9 +264,7 @@ class Key_Chain():
         self.keys = {}
 
     def get_password(self, realm):
-        import pprint
-        my_print(str(type(realm)))
-        my_print(pprint.pformat(realm))
+        my_print("Asking password for {0}".format(realm))
         if realm in self.keys:
             for _ in range(3):
                 if self.keys[realm]["ack"]:
@@ -464,6 +461,7 @@ class CIFS_Mount():
         return False
 
     def mount(self):
+        my_print()
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
                 # 1) Remove broken symlink or empty dir
@@ -656,12 +654,12 @@ class CIFS_Mount():
                     ]
                     cmd = [s.format(**self.settings) for s in cmd]
                     s_cmd = " ".join(cmd)
-                    my_print("Running : {0}".format(s_cmd))
                     try:
                         cmd[4] = self.key_chain.get_password(self.settings["realm"])
                     except CancelOperationException:
                         my_print("Operation cancelled.")
                         break
+                    my_print("Running : {0}".format(s_cmd))
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
                     while True:
                         try:
@@ -675,6 +673,9 @@ class CIFS_Mount():
                             if stdout == "" and stderr == "":
                                 my_print("<no output>")
                             if "password is not correct" in stderr:
+                                p.kill()
+                                break
+                            if "bad password" in stderr:
                                 p.kill()
                                 break
                             if stderr != "":
@@ -699,6 +700,7 @@ class CIFS_Mount():
         return False
 
     def umount(self):
+        my_print()
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
                 # 1) Umount
@@ -782,6 +784,7 @@ class CIFS_Mount():
         return False
 
     def open(self):
+        my_print()
         # TO DO : if Windows (drive or path)
         if (CONST.OS_SYS == "Linux" and
            self.settings["Linux_CIFS_method"] == "gvfs" and
