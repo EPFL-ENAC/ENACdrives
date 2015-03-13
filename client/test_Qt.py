@@ -43,6 +43,7 @@ import enacit1logs
 def debug_send(msg, additional_tags=None):
     if additional_tags is None:
         additional_tags = []
+    my_print("GONNA SEND MSG TO ENACIT1LOGS : " + msg)
     enacit1logs.send(
         message=str(msg),
         tags=["dev_mountfilers2015", "notify_bancal", CONST.VERSION] + additional_tags
@@ -133,6 +134,29 @@ class CONST():
         OS_VERSION = "Error: OS not supported."
 
 
+class Output_Destination():
+    def __init__(self):
+        if (CONST.OS_SYS == "Windows" and
+           getattr(sys, 'frozen', False)):
+            # Windows frozen application
+            self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "a")
+        else:
+            self.output = sys.stdout
+
+    def write(self, msg):
+        self.output.write(msg)
+
+
+def my_print(msg="", end="\n", flush=True, dest=Output_Destination()):
+    """
+        sends output to file if this is compiled on Windows
+        sends output to stdou otherwise
+        
+        Note : flush has no effect.
+    """
+    dest.write(msg + end)
+
+
 class UI_Label_Entry(QtGui.QHBoxLayout):
 
     def __init__(self, label):
@@ -162,6 +186,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.update_status()
 
     def toggle_mount(self):
+        my_print()
         if self.mount_instance.is_mounted():
             self.mount_instance.umount()
         else:
@@ -256,8 +281,8 @@ class Key_Chain():
 
     def get_password(self, realm):
         import pprint
-        print(type(realm))
-        pprint.pprint(realm)
+        my_print(str(type(realm)))
+        my_print(pprint.pformat(realm))
         if realm in self.keys:
             for _ in range(3):
                 if self.keys[realm]["ack"]:
@@ -411,12 +436,12 @@ class CIFS_Mount():
         if CONST.OS_SYS == "Linux":
             if self.settings["Linux_CIFS_method"] == "gvfs":
                 cmd = [CONST.CMD_GVFS_MOUNT, "-l"]
-                # print(" ".join(cmd))
+                # my_print(" ".join(cmd))
                 lines = Live_Cache.subprocess_check_output(cmd)
                 i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)
                 for l in lines.split("\n"):
                     if re.search(i_search, l):
-                        # print(l)
+                        # my_print(l)
                         return True
             else:  # "mount.cifs"
                 return os.path.ismount(self.settings["local_path"])
@@ -429,7 +454,7 @@ class CIFS_Mount():
             providername_index = lines[0].index("ProviderName")
             i_search = r"^\\{server_name}\{server_path}$".format(**self.settings)
             i_search = i_search.replace("\\", "\\\\")
-            # print("i_search='{0}'".format(i_search))
+            # my_print("i_search='{0}'".format(i_search))
             for l in lines[1:]:
                 try:
                     drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
@@ -440,7 +465,7 @@ class CIFS_Mount():
                             return True
                     except IndexError:
                         provider = ""
-                    # print("{0} : '{1}'".format(drive_letter, provider))
+                    # my_print("{0} : '{1}'".format(drive_letter, provider))
                 except IndexError:
                     pass
             return False
@@ -468,7 +493,7 @@ class CIFS_Mount():
 
                 # 2) Mount
                 cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
-                print(" ".join(cmd))
+                my_print(" ".join(cmd))
                 try:
                     (output, exit_status) = pexpect.runu(
                         command=" ".join(cmd),
@@ -542,7 +567,7 @@ class CIFS_Mount():
                     "{Linux_mountcifs_options}"
                 ]
                 cmd = [s.format(**self.settings) for s in cmd]
-                print(" ".join(cmd))
+                my_print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
@@ -574,12 +599,18 @@ class CIFS_Mount():
             #     r"/USER:{realm_domain}\{realm_username}", "/PERSISTENT:no"
             # ]
             # cmd = [s.format(**self.settings) for s in cmd]
-            # print(" ".join(cmd))
+            # my_print(" ".join(cmd))
             # child = winpexpect.winspawn(cmd[0], cmd[1:])
             # child.expect("password")
             # child.sendline("BLABLAPWD")
             # ... terminate
             
+            # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
+            # http://stackoverflow.com/a/24171096/446302
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+
             # 1) First attempt without password
             cmd = [
                 "NET",
@@ -589,19 +620,19 @@ class CIFS_Mount():
             ]
             cmd = [s.format(**self.settings) for s in cmd]
             s_cmd = " ".join(cmd)
-            print("Running : {0}".format(s_cmd))
-            p = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            my_print("Running : {0}".format(s_cmd))
+            p = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
             while True:
                 try:
                     stdout, stderr = p.communicate(timeout=1)
                     stdout = "\n".join([l.strip() for l in stdout.decode("UTF-8").split("\n") if l.strip() != ""])
                     stderr = "\n".join([l.strip() for l in stderr.decode("UTF-8").split("\n") if l.strip() != ""])
                     if stdout != "":
-                        print("out:{0}".format(stdout))
+                        my_print("out:{0}".format(stdout))
                     if stderr != "":
-                        print("err:{0}".format(stderr))
+                        my_print("err:{0}".format(stderr))
                     if stdout == "" and stderr == "":
-                        print("<no output>")
+                        my_print("<no output>")
                     if "Enter the password" in stdout:
                         p.kill()
                         break
@@ -614,7 +645,7 @@ class CIFS_Mount():
                         debug_send("{0}\nout: {1}\nerr: {2}\nreturncode: {3}".format(s_cmd, stdout, stderr, p.returncode))
                         break
                 except subprocess.TimeoutExpired:
-                    print(".", end="", flush=True)
+                    my_print(".", end="", flush=True)
             
             if p.returncode != 0:
                 # 2) Second attempt with password
@@ -627,20 +658,20 @@ class CIFS_Mount():
                     ]
                     cmd = [s.format(**self.settings) for s in cmd]
                     s_cmd = " ".join(cmd)
-                    print("Running : {0}".format(s_cmd))
+                    my_print("Running : {0}".format(s_cmd))
                     cmd[4] = self.key_chain.get_password(self.settings["realm"])
-                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
                     while True:
                         try:
                             stdout, stderr = p.communicate(timeout=1)
                             stdout = "\n".join([l.strip() for l in stdout.decode("UTF-8").split("\n") if l.strip() != ""])
                             stderr = "\n".join([l.strip() for l in stderr.decode("UTF-8").split("\n") if l.strip() != ""])
                             if stdout != "":
-                                print("out:{0}".format(stdout))
+                                my_print("out:{0}".format(stdout))
                             if stderr != "":
-                                print("err:{0}".format(stderr))
+                                my_print("err:{0}".format(stderr))
                             if stdout == "" and stderr == "":
-                                print("<no output>")
+                                my_print("<no output>")
                             if "password is not correct" in stderr:
                                 p.kill()
                                 break
@@ -654,9 +685,9 @@ class CIFS_Mount():
                                 debug_send("{0}\nout: {1}\nerr: {2}\nreturncode: {3}".format(s_cmd, stdout, stderr, p.returncode))
                                 break
                         except subprocess.TimeoutExpired:
-                            print(".", end="", flush=True)
+                            my_print(".", end="", flush=True)
                         except Exception as e:
-                            print("Exception : {0}".format(e))
+                            my_print("Exception : {0}".format(e))
                             debug_send("{0}\nException: {1}\n".format(s_cmd, e))
 
         elif CONST.OS_SYS == "Darwin":
@@ -670,7 +701,7 @@ class CIFS_Mount():
             if self.settings["Linux_CIFS_method"] == "gvfs":
                 # 1) Umount
                 cmd = [CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**self.settings)]
-                print(" ".join(cmd))
+                my_print(" ".join(cmd))
                 try:
                     output = subprocess.check_output(cmd)
                 except subprocess.CalledProcessError as e:
@@ -687,7 +718,7 @@ class CIFS_Mount():
                 # 1) uMount
                 cmd = ["sudo", CONST.CMD_UMOUNT, "{local_path}"]
                 cmd = [s.format(**self.settings) for s in cmd]
-                print(" ".join(cmd))
+                my_print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
@@ -724,9 +755,14 @@ class CIFS_Mount():
             #
             # Is it OK to continue disconnecting and force them closed? (Y/N) [N]:
             cmd = ["NET", "USE", self.settings["Windows_letter"], "/delete"]
-            print(" ".join(cmd))
+            my_print(" ".join(cmd))
             try:
-                output = subprocess.check_output(cmd)
+                # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
+                # http://stackoverflow.com/a/24171096/446302
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+                output = subprocess.check_output(cmd, shell=False, startupinfo=startupinfo)
             except subprocess.CalledProcessError as e:
                 raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
             Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
@@ -762,20 +798,20 @@ class CIFS_Mount():
             path = self.settings["local_path"]
 
         cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
-        print("cmd : %s" % cmd)
+        my_print("cmd : %s" % cmd)
         subprocess.call(cmd)
 
 
 def pexpect_ask_password(values):
-    # print("pexpect_ask_password")
+    # my_print("pexpect_ask_password")
     process_question = values["child_result_list"][-1]
-    # print(" process_question=" + process_question)
+    # my_print(" process_question=" + process_question)
     for pattern, auth_realm in values["extra_args"]["auth_realms"]:
         if re.search(pattern, process_question):
-            # print(" pattern=" + pattern + " auth_realm=" + auth_realm + " MATCHED!")
+            # my_print(" pattern=" + pattern + " auth_realm=" + auth_realm + " MATCHED!")
             return values["extra_args"]["key_chain"].get_password(auth_realm) + "\n"
         # else:
-        #     print(" pattern=" + pattern + " auth_realm=" + auth_realm + " not matched!")
+        #     my_print(" pattern=" + pattern + " auth_realm=" + auth_realm + " not matched!")
 
 
 def main_GUI():
@@ -785,15 +821,17 @@ def main_GUI():
 
 
 def main_CLI():
-    print("Test app")
-    print("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
-    print("Local username:", CONST.LOCAL_USERNAME)
-    print("Local groupname:", CONST.LOCAL_GROUPNAME)
-    print("Local uid:", str(CONST.LOCAL_UID))
-    print("Local gid:", str(CONST.LOCAL_GID))
-    print("Home dir:", CONST.HOME_DIR)
+    my_print("Test app")
+    my_print("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    my_print("Local username:" + CONST.LOCAL_USERNAME)
+    my_print("Local groupname:" + CONST.LOCAL_GROUPNAME)
+    my_print("Local uid:" + str(CONST.LOCAL_UID))
+    my_print("Local gid:" + str(CONST.LOCAL_GID))
+    my_print("Home dir:" + CONST.HOME_DIR)
 
 
 if __name__ == '__main__':
+    my_print()
+    my_print("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
     main_CLI()
     main_GUI()
