@@ -157,6 +157,13 @@ def my_print(msg="", end="\n", flush=True, dest=Output_Destination()):
     dest.write(msg + end)
 
 
+class CancelOperationException(Exception):
+    """
+        Raised when user want to abort an operation
+    """
+    pass
+
+
 class UI_Label_Entry(QtGui.QHBoxLayout):
 
     def __init__(self, label):
@@ -211,30 +218,6 @@ class UI(QtGui.QWidget):
 
         self.entries = []
 
-        self.entries.append(UI_Label_Entry(
-            "OS:" + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION
-        ))
-
-        self.entries.append(UI_Label_Entry(
-            "Local username:" + CONST.LOCAL_USERNAME
-        ))
-
-        self.entries.append(UI_Label_Entry(
-            "Local groupname:" + CONST.LOCAL_GROUPNAME
-        ))
-
-        self.entries.append(UI_Label_Entry(
-            "Local uid:" + str(CONST.LOCAL_UID)
-        ))
-
-        self.entries.append(UI_Label_Entry(
-            "Local gid:" + str(CONST.LOCAL_GID)
-        ))
-
-        self.entries.append(UI_Label_Entry(
-            "Home dir:" + CONST.HOME_DIR
-        ))
-
         mount_bancal = CIFS_Mount(self, self.key_chain)
         self.entries.append(UI_Mount_Entry(self, mount_bancal))
 
@@ -268,6 +251,8 @@ class UI(QtGui.QWidget):
 
         if ok:
             return str(password)
+        else:
+            raise CancelOperationException("Button cancel pressed")
 
 
 class Key_Chain():
@@ -296,7 +281,8 @@ class Key_Chain():
         return self.keys[realm]["pw"]
 
     def ack_password(self, realm):
-        self.keys[realm]["ack"] = True
+        if realm in self.keys:
+            self.keys[realm]["ack"] = True
 
     def invalidate_password(self, realm):
         del(self.keys[realm])
@@ -494,6 +480,9 @@ class CIFS_Mount():
                 # 2) Mount
                 cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**self.settings)]
                 my_print(" ".join(cmd))
+                process_meta = {
+                    "was_cancelled": False,
+                }
                 try:
                     (output, exit_status) = pexpect.runu(
                         command=" ".join(cmd),
@@ -505,6 +494,7 @@ class CIFS_Mount():
                                 (r'Password:', self.settings["realm"])
                             ],
                             "key_chain": self.key_chain,
+                            "process_meta": process_meta,
                             # "context" : "gvfs_mount_%s" % self.settings["name"]
                         },
                         withexitstatus=True,
@@ -514,8 +504,10 @@ class CIFS_Mount():
                     raise Exception("Error while mounting : %s" % exc.value)
                 if exit_status == 0:
                     self.key_chain.ack_password(self.settings["realm"])
-                else:
-                    raise Exception("Error while mounting : %s" % output)
+                elif process_meta["was_cancelled"]:
+                    pass
+                elif exit_status != 0:
+                    raise Exception("Error while mounting : %d %s" % (exit_status, output))
                 Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
 
                 # 3) Symlink
@@ -569,6 +561,9 @@ class CIFS_Mount():
                 cmd = [s.format(**self.settings) for s in cmd]
                 my_print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
+                process_meta = {
+                    "was_cancelled": False,
+                }
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
                     events={
@@ -580,6 +575,7 @@ class CIFS_Mount():
                             (r'Password', self.settings["realm"])
                         ],
                         "key_chain": self.key_chain,
+                        "process_meta": process_meta,
                     },
                     withexitstatus=True,
                     timeout=5,
@@ -588,8 +584,10 @@ class CIFS_Mount():
                     self.key_chain.ack_password("sudo")
                     self.key_chain.ack_password(self.settings["realm"])
                     # break
-                if exit_status != 0:
-                    raise Exception("Error while mounting : %s" % output)
+                elif process_meta["was_cancelled"]:
+                    pass
+                elif exit_status != 0:
+                    raise Exception("Error while mounting : %d %s" % (exit_status, output))
 
         elif CONST.OS_SYS == "Windows":
             # Couldn't make this work : TODO
@@ -659,7 +657,11 @@ class CIFS_Mount():
                     cmd = [s.format(**self.settings) for s in cmd]
                     s_cmd = " ".join(cmd)
                     my_print("Running : {0}".format(s_cmd))
-                    cmd[4] = self.key_chain.get_password(self.settings["realm"])
+                    try:
+                        cmd[4] = self.key_chain.get_password(self.settings["realm"])
+                    except CancelOperationException:
+                        my_print("Operation cancelled.")
+                        break
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
                     while True:
                         try:
@@ -720,6 +722,9 @@ class CIFS_Mount():
                 cmd = [s.format(**self.settings) for s in cmd]
                 my_print(" ".join(cmd))
                 # for i in xrange(3): # 3 attempts (for passwords mistyped)
+                process_meta = {
+                    "was_cancelled": False,
+                }
                 (output, exit_status) = pexpect.runu(
                     command=" ".join(cmd),
                     events={
@@ -730,6 +735,7 @@ class CIFS_Mount():
                             (r'\[sudo\] password', "sudo"),
                         ],
                         "key_chain": self.key_chain,
+                        "process_meta": process_meta,
                     },
                     withexitstatus=True,
                     timeout=5,
@@ -737,8 +743,10 @@ class CIFS_Mount():
                 if exit_status == 0:
                     self.key_chain.ack_password("sudo")
                     # break
-                if exit_status != 0:
-                    raise Exception("Error while umounting : %s" % output)
+                elif process_meta["was_cancelled"]:
+                    pass
+                elif exit_status != 0:
+                    raise Exception("Error while umounting : %d %s" % (exit_status, output))
 
                 # 2) Remove mount dir
                 if (os.path.exists(self.settings["local_path"]) and
@@ -803,15 +811,16 @@ class CIFS_Mount():
 
 
 def pexpect_ask_password(values):
-    # my_print("pexpect_ask_password")
     process_question = values["child_result_list"][-1]
-    # my_print(" process_question=" + process_question)
-    for pattern, auth_realm in values["extra_args"]["auth_realms"]:
-        if re.search(pattern, process_question):
-            # my_print(" pattern=" + pattern + " auth_realm=" + auth_realm + " MATCHED!")
-            return values["extra_args"]["key_chain"].get_password(auth_realm) + "\n"
-        # else:
-        #     my_print(" pattern=" + pattern + " auth_realm=" + auth_realm + " not matched!")
+    try:
+        for pattern, auth_realm in values["extra_args"]["auth_realms"]:
+            if re.search(pattern, process_question):
+                return values["extra_args"]["key_chain"].get_password(auth_realm) + "\n"
+    except CancelOperationException:
+        my_print("Operation cancelled.")
+        values["extra_args"]["process_meta"]["was_cancelled"] = True
+        # Stop current process
+        return True
 
 
 def main_GUI():
