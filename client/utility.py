@@ -115,36 +115,36 @@ class CONST():
 
 class Output():
     def __init__(self):
+        self.output = sys.stdout
+
+    def __enter__(self):
+        Output.set_instance(self)
         if (CONST.OS_SYS == "Windows" and
            getattr(sys, 'frozen', False)):
             # Windows frozen application
             self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "a")
-        else:
-            self.output = sys.stdout
-    
-    def __del__(self):
+
+    def __exit__(self, typ, value, traceback):
+        Output.del_instance()
         if (CONST.OS_SYS == "Windows" and
            getattr(sys, 'frozen', False)):
             # Windows frozen application
-            try:
-                self.output.close()
-            except AttributeError:
-                pass
+            self.output.close()
 
     def do_write(self, msg):
         self.output.write(msg)
 
     @classmethod
+    def set_instance(cls, instance):
+        cls.instance = instance
+
+    @classmethod
+    def del_instance(cls):
+        cls.instance = None
+    
+    @classmethod
     def write(cls, msg="", end="\n"):
-        """
-            sends output to file if this is compiled on Windows
-            sends output to stdou otherwise
-        """
-        try:
-            cls.dest
-        except AttributeError:
-            cls.dest = Output()
-        cls.dest.do_write(msg + end)
+        cls.instance.do_write(msg + end)
 
 
 # ENACIT1LOGS

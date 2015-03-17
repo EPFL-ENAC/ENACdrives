@@ -6,8 +6,9 @@
 
 from gui import main_GUI
 from cli import main_CLI
-
+from utility import Output
 
 if __name__ == '__main__':
-    main_CLI()
-    main_GUI()
+    with Output():
+        main_CLI()
+        main_GUI()
