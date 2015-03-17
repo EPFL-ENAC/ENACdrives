@@ -23,15 +23,15 @@ else:
     raise Exception("Not managed platform %s" % sys.platform)
 
 setup(
-    name='MultiOS PyQt test',
+    name='MultiOS PyQt mount_filers',
     version='0.1',
-    description='Test ability to compile PyQt app',
+    description='Test ability to compile PyQt app on 3 OS',
     options=dict(build_exe=buildOptions),
     executables=[Executable(
-        script="test_Qt.py",
+        script="mount_filers.py",
         # initScript = None,
         # targetDir = target_dir,
-        # targetName = "test_Qt.exe",
+        # targetName = "mount_filers.exe",
         base=base,
         compress=True,
         icon="mount_filers.ico"
