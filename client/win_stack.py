@@ -7,6 +7,8 @@
 # + open_file_manager
 
 import win32net
+import win32wnet
+import win32netcon
 import pywintypes
 import subprocess
 from utility import CONST, Output, CancelOperationException, debug_send
@@ -33,14 +35,17 @@ def cifs_mount(mount):
     # 1st attempt without password
     try:
         Output.write("1st attempt without password")
-        win32net.NetUseAdd(None, 1, {
-            "remote": remote,
-            "local": local
-        })
+        win32wnet.WNetAddConnection2(
+            win32netcon.RESOURCETYPE_DISK,
+            local,
+            remote,
+        )
         Output.write("succeeded")
         return True
     except pywintypes.error as e:
-        if e.winerror == 1326:  # (1326, 'NetUseAdd', 'Logon failure: unknown user name or bad password.')
+        if e.winerror == 86:  # (86, 'WNetAddConnection2', 'The specified network password is not correct.')
+            pass
+        elif e.winerror == 1326:  # (1326, 'WNetAddConnection2', 'Logon failure: unknown user name or bad password.')
             pass
         else:
             Output.write("failed : {0}".format(e))
@@ -53,18 +58,21 @@ def cifs_mount(mount):
             pw = mount.key_chain.get_password(mount.settings["realm"], wrong_password)
             wrong_password = False
             Output.write("New attempt with password")
-            win32net.NetUseAdd(None, 2, {
-                "remote": remote,
-                "local": local,
-                "asg_type": 0,
-                "username": mount.settings["realm_username"],
-                "domainname": mount.settings["realm_domain"],
-                "password": pw
-            })
+            win32wnet.WNetAddConnection2(
+                win32netcon.RESOURCETYPE_DISK,
+                local,
+                remote,
+                None,
+                r'{0}\{1}'.format(mount.settings["realm_domain"], mount.settings["realm_username"]),
+                pw,
+                0
+            )
             Output.write("succeeded")
             return True
         except pywintypes.error as e:
-            if e.winerror == 1326:  # (1326, 'NetUseAdd', 'Logon failure: unknown user name or bad password.')
+            if e.winerror == 86:  # (86, 'WNetAddConnection2', 'The specified network password is not correct.')
+                wrong_password = True
+            elif e.winerror == 1326:  # (1326, 'WNetAddConnection2', 'Logon failure: unknown user name or bad password.')
                 wrong_password = True
             else:
                 Output.write("failed : {0}".format(e))
@@ -78,9 +86,9 @@ def cifs_mount(mount):
 def cifs_umount(mount):
     try:
         Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
-        win32net.NetUseDel(None, mount.settings["Windows_letter"], 0)
+        win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
     except pywintypes.error as e:
-        if e.winerror == 2401:  # (2401, 'NetUseDel', 'There are open files on the connection.')
+        if e.winerror == 2401:  # (2401, 'WNetCancelConnection2', 'There are open files on the connection.')
             mount.ui.notify_user(e.strerror)
         else:
             Output.write("failed : {0}".format(e))
