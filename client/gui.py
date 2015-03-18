@@ -87,11 +87,20 @@ class GUI(QtGui.QWidget):
         self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "mount_filers.png")))
         self.show()
 
-    def get_password(self, realm):
+    def notify_user(self, msg):
+        msgBox = QtGui.QMessageBox()
+        msgBox.setText(msg)
+        msgBox.exec_()
+        
+    def get_password(self, realm, password_mistyped=False):
+        if password_mistyped:
+            msg = "Password was mistyped, try again.\nGive your " + realm + " password"
+        else:
+            msg = "Give your " + realm + " password"
         password, ok = QtGui.QInputDialog.getText(
             self,
             "Please enter a password",
-            "Give your " + realm + " password",
+            msg,
             QtGui.QLineEdit.Password,
         )
 

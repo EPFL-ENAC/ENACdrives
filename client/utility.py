@@ -171,14 +171,17 @@ class Key_Chain():
         self.ui = ui
         self.keys = {}
 
-    def get_password(self, realm):
-        Output.write("Asking password for {0}".format(realm))
+    def get_password(self, realm, password_mistyped=False):
+        if password_mistyped:
+            Output.write("Asking password for {0} (previously mistyped)".format(realm))
+        else:
+            Output.write("Asking password for {0}".format(realm))
         if realm in self.keys:
             for _ in range(3):
                 if self.keys[realm]["ack"]:
                     return self.keys[realm]["pw"]
                 time.sleep(1)
-        password = self.ui.get_password(realm)
+        password = self.ui.get_password(realm, password_mistyped)
         self.keys[realm] = {
             "ack": False,
             "pw": password,
