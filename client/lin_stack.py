@@ -67,10 +67,13 @@ def cifs_mount(mount):
             raise Exception("Error while mounting : %s" % exc.value)
         if exit_status == 0:
             mount.key_chain.ack_password(mount.settings["realm"])
-        elif process_meta["was_cancelled"]:
-            pass
-        elif exit_status != 0:
-            raise Exception("Error while mounting : %d %s" % (exit_status, output))
+        else:
+            mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
+            if process_meta["was_cancelled"]:
+                return False
+            else:
+                mount.ui.notify_user("Mount failure")
+                raise Exception("Error while mounting : %d %s" % (exit_status, output))
         Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
 
         # 3) Symlink
@@ -100,7 +103,10 @@ def cifs_mount(mount):
                 raise Exception("Could not create symbolic link : %s <- %s" % (target, mount.settings["local_path"]))
 
     else:  # "mount.cifs"
-        # 1) Make mount dir
+        # 1) Make mount dir (remove broken symlink if needed)
+        if (os.path.lexists(mount.settings["local_path"]) and
+           not os.path.exists(mount.settings["local_path"])):
+            os.unlink(mount.settings["local_path"])
         if not os.path.exists(mount.settings["local_path"]):
             try:
                 os.makedirs(mount.settings["local_path"])
@@ -146,11 +152,15 @@ def cifs_mount(mount):
         if exit_status == 0:
             mount.key_chain.ack_password("sudo")
             mount.key_chain.ack_password(mount.settings["realm"])
-            # break
-        elif process_meta["was_cancelled"]:
-            pass
-        elif exit_status != 0:
-            raise Exception("Error while mounting : %d %s" % (exit_status, output))
+        else:
+            mount.key_chain.invalidate_if_no_ack_password("sudo")
+            mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
+            if process_meta["was_cancelled"]:
+                pass
+            else:
+                mount.ui.notify_user("Mount failure")
+                raise Exception("Error while mounting : %d %s" % (exit_status, output))
+    return True
     
 
 def cifs_umount(mount):
@@ -161,6 +171,7 @@ def cifs_umount(mount):
         try:
             output = subprocess.check_output(cmd)
         except subprocess.CalledProcessError as e:
+            mount.ui.notify_user("Umount failure")
             raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
         Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
 
@@ -196,11 +207,13 @@ def cifs_umount(mount):
         )
         if exit_status == 0:
             mount.key_chain.ack_password("sudo")
-            # break
-        elif process_meta["was_cancelled"]:
-            pass
-        elif exit_status != 0:
-            raise Exception("Error while umounting : %d %s" % (exit_status, output))
+        else:
+            mount.key_chain.invalidate_if_no_ack_password("sudo")
+            if process_meta["was_cancelled"]:
+                pass
+            else:
+                mount.ui.notify_user("Umount failure")
+                raise Exception("Error while umounting : %d %s" % (exit_status, output))
 
         # 2) Remove mount dir
         if (os.path.exists(mount.settings["local_path"]) and
@@ -240,7 +253,15 @@ def pexpect_ask_password(values):
     try:
         for pattern, auth_realm in values["extra_args"]["auth_realms"]:
             if re.search(pattern, process_question):
-                return values["extra_args"]["key_chain"].get_password(auth_realm) + "\n"
+                if values["extra_args"]["process_meta"].setdefault("previous_auth_realm", None) == None:
+                    password_mistyped = False
+                elif values["extra_args"]["process_meta"]["previous_auth_realm"] != auth_realm:
+                    values["extra_args"]["key_chain"].ack_password(values["extra_args"]["process_meta"]["previous_auth_realm"])
+                    password_mistyped = False
+                else:
+                    password_mistyped = True
+                values["extra_args"]["process_meta"]["previous_auth_realm"] = auth_realm
+                return values["extra_args"]["key_chain"].get_password(auth_realm, password_mistyped) + "\n"
     except CancelOperationException:
         Output.write("Operation cancelled.")
         values["extra_args"]["process_meta"]["was_cancelled"] = True

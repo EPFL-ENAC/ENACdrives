@@ -69,12 +69,15 @@ def cifs_mount(mount):
                 pw,
                 0
             )
+            mount.key_chain.ack_password(mount.settings["realm"])
             Output.write("succeeded")
             return True
         except pywintypes.error as e:
             if e.winerror == 86:  # (86, 'WNetAddConnection2', 'The specified network password is not correct.')
+                mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
             elif e.winerror == 1326:  # (1326, 'WNetAddConnection2', 'Logon failure: unknown user name or bad password.')
+                mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
             else:
                 Output.write("failed : {0}".format(e))

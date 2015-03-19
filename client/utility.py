@@ -172,15 +172,16 @@ class Key_Chain():
         self.keys = {}
 
     def get_password(self, realm, password_mistyped=False):
+        if realm in self.keys:
+            for _ in range(3):
+                if self.keys[realm]["ack"]:
+                    Output.write("Getting password for {0}".format(realm))
+                    return self.keys[realm]["pw"]
+                time.sleep(0.1)
         if password_mistyped:
             Output.write("Asking password for {0} (previously mistyped)".format(realm))
         else:
             Output.write("Asking password for {0}".format(realm))
-        if realm in self.keys:
-            for _ in range(3):
-                if self.keys[realm]["ack"]:
-                    return self.keys[realm]["pw"]
-                time.sleep(1)
         password = self.ui.get_password(realm, password_mistyped)
         self.keys[realm] = {
             "ack": False,
@@ -191,10 +192,17 @@ class Key_Chain():
     def ack_password(self, realm):
         if realm in self.keys:
             self.keys[realm]["ack"] = True
+    
+    def invalidate_if_no_ack_password(self, realm):
+        if realm in self.keys:
+            if not self.keys[realm]["ack"]:
+                del(self.keys[realm])
+                gc.collect()
 
     def invalidate_password(self, realm):
-        del(self.keys[realm])
-        gc.collect()
+        if realm in self.keys:
+            del(self.keys[realm])
+            gc.collect()
 
     def wipe_passwords(self):
         for realm in self.keys:
