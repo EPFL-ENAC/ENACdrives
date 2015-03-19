@@ -3,7 +3,9 @@
 # Bancal Samuel
 
 # Offers Windows stack for :
-# + CIFS (is_mount, mount, umount)
+# + cifs_is_mount
+# + cifs_mount
+# + cifs_umount
 # + open_file_manager
 
 import win32net
