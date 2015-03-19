@@ -17,7 +17,13 @@ def cifs_is_mounted(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         cmd = [CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.write(" ".join(cmd))
-        lines = Live_Cache.subprocess_check_output(cmd)
+        lines = Live_Cache.subprocess_check_output(
+            cmd,
+            env={
+                "LANG": "C",
+                "LC_ALL": "C",
+            },
+        )
         i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
         for l in lines.split("\n"):
             if re.search(i_search, l):
@@ -59,6 +65,10 @@ def cifs_mount(mount):
                     "key_chain": mount.key_chain,
                     "process_meta": process_meta,
                     # "context" : "gvfs_mount_%s" % mount.settings["name"]
+                },
+                env={
+                    "LANG": "C",
+                    "LC_ALL": "C",
                 },
                 withexitstatus=True,
                 timeout=5,
@@ -146,6 +156,10 @@ def cifs_mount(mount):
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
             },
+            env={
+                "LANG": "C",
+                "LC_ALL": "C",
+            },
             withexitstatus=True,
             timeout=5,
         )
@@ -165,11 +179,19 @@ def cifs_mount(mount):
 
 def cifs_umount(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
+        # gvfs apparently umount never locks on open files.
+        
         # 1) Umount
         cmd = [CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
         Output.write(" ".join(cmd))
         try:
-            output = subprocess.check_output(cmd)
+            output = subprocess.check_output(
+                cmd,
+                env={
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                },
+            )
         except subprocess.CalledProcessError as e:
             mount.ui.notify_user("Umount failure")
             raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
@@ -202,6 +224,10 @@ def cifs_umount(mount):
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
             },
+            env={
+                "LANG": "C",
+                "LC_ALL": "C",
+            },
             withexitstatus=True,
             timeout=5,
         )
@@ -211,6 +237,9 @@ def cifs_umount(mount):
             mount.key_chain.invalidate_if_no_ack_password("sudo")
             if process_meta["was_cancelled"]:
                 pass
+            elif "device is busy" in output:
+                mount.ui.notify_user("Umount failure: Device is busy.")
+                raise Exception("Error while umounting (device is busy) : %d %s" % (exit_status, output))
             else:
                 mount.ui.notify_user("Umount failure")
                 raise Exception("Error while umounting : %d %s" % (exit_status, output))
