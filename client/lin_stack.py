@@ -19,10 +19,7 @@ def cifs_is_mounted(mount):
         # Output.write(" ".join(cmd))
         lines = Live_Cache.subprocess_check_output(
             cmd,
-            env={
-                "LANG": "C",
-                "LC_ALL": "C",
-            },
+            env=dict(os.environ, LANG="C", LC_ALL="C"),
         )
         i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
         for l in lines.split("\n"):
@@ -66,10 +63,7 @@ def cifs_mount(mount):
                     "process_meta": process_meta,
                     # "context" : "gvfs_mount_%s" % mount.settings["name"]
                 },
-                env={
-                    "LANG": "C",
-                    "LC_ALL": "C",
-                },
+                env=dict(os.environ, LANG="C", LC_ALL="C"),
                 withexitstatus=True,
                 timeout=5,
             )
@@ -156,10 +150,7 @@ def cifs_mount(mount):
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
             },
-            env={
-                "LANG": "C",
-                "LC_ALL": "C",
-            },
+            env=dict(os.environ, LANG="C", LC_ALL="C"),
             withexitstatus=True,
             timeout=5,
         )
@@ -187,10 +178,7 @@ def cifs_umount(mount):
         try:
             output = subprocess.check_output(
                 cmd,
-                env={
-                    "LANG": "C",
-                    "LC_ALL": "C",
-                },
+                env=dict(os.environ, LANG="C", LC_ALL="C"),
             )
         except subprocess.CalledProcessError as e:
             mount.ui.notify_user("Umount failure")
@@ -224,23 +212,21 @@ def cifs_umount(mount):
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
             },
-            env={
-                "LANG": "C",
-                "LC_ALL": "C",
-            },
+            env=dict(os.environ, LANG="C", LC_ALL="C"),
             withexitstatus=True,
             timeout=5,
         )
         if exit_status == 0:
             mount.key_chain.ack_password("sudo")
         else:
-            mount.key_chain.invalidate_if_no_ack_password("sudo")
             if process_meta["was_cancelled"]:
-                pass
+                mount.key_chain.invalidate_if_no_ack_password("sudo")
             elif "device is busy" in output:
+                mount.key_chain.ack_password("sudo")
                 mount.ui.notify_user("Umount failure: Device is busy.")
                 raise Exception("Error while umounting (device is busy) : %d %s" % (exit_status, output))
             else:
+                mount.key_chain.invalidate_if_no_ack_password("sudo")
                 mount.ui.notify_user("Umount failure")
                 raise Exception("Error while umounting : %d %s" % (exit_status, output))
 

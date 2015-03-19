@@ -226,7 +226,7 @@ class Live_Cache():
     CACHE_DURATION = datetime.timedelta(seconds=1)
 
     @classmethod
-    def subprocess_check_output(cls, cmd):
+    def subprocess_check_output(cls, cmd, env=None):
         str_cmd = " ".join(cmd)
         try:
             cached_entry = cls.cache[str_cmd]
@@ -245,7 +245,15 @@ class Live_Cache():
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = subprocess.SW_HIDE
             stdout_file = tempfile.NamedTemporaryFile(mode="r+", delete=False, encoding="UTF-16")
-            process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=stdout_file, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=stdout_file,
+                stderr=subprocess.PIPE,
+                shell=False,
+                env=env,
+                startupinfo=startupinfo
+            )
             return_code = process.wait()
             if return_code != 0:
                 raise Exception("Error while running %s. Returncode : %d" % (cmd, return_code))
@@ -254,7 +262,10 @@ class Live_Cache():
             output = stdout_file.read()
             stdout_file.close()
         else:
-            output = subprocess.check_output(cmd).decode()
+            output = subprocess.check_output(
+                cmd,
+                env=env
+            ).decode()
 
         cls.cache[str_cmd] = {
             "expire_dt": datetime.datetime.now() + Live_Cache.CACHE_DURATION,
