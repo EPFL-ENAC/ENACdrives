@@ -21,6 +21,7 @@ def cifs_is_mounted(mount):
             cmd,
             env=dict(os.environ, LANG="C", LC_ALL="C"),
         )
+        # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(lines))
         i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
         for l in lines.split("\n"):
             if re.search(i_search, l):

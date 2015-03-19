@@ -6,7 +6,7 @@
 
 import os
 import sys
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from utility import CONST, Key_Chain, CancelOperationException
 from cifs_mount import CIFS_Mount
 
@@ -81,6 +81,10 @@ class GUI(QtGui.QWidget):
         self.vbox_layout.addLayout(self.hbox_bt_quit)
 
         self.setLayout(self.vbox_layout)
+        
+        self.refresh_timer = QtCore.QTimer()
+        self.refresh_timer.timeout.connect(self._refresh_entries)
+        self.refresh_timer.start(5000)  # every 5s.
 
         self.setGeometry(300, 300, 290, 150)
         self.setWindowTitle("Test compiled Python (Win/Lin/OSX)")
@@ -108,6 +112,10 @@ class GUI(QtGui.QWidget):
             return str(password)
         else:
             raise CancelOperationException("Button cancel pressed")
+
+    def _refresh_entries(self):
+        for entry in self.entries:
+            entry.update_status()
 
 
 def main_GUI():
