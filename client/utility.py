@@ -78,19 +78,6 @@ class CONST():
         except FileNotFoundError:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
-        CMD_OPEN = which("xdg-open") + " {path}"
-        CMD_GVFS_MOUNT = which("gvfs-mount")
-        CMD_MOUNT_CIFS = which("mount.cifs")
-        CMD_UMOUNT = which("umount")
-        if OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
-            GVFS_GENERATION = 1
-            GVFS_DIR = os.path.join(HOME_DIR, ".gvfs")
-        elif OS_VERSION in ("12.10", "13.04"):
-            GVFS_GENERATION = 2
-            GVFS_DIR = "/run/user/{0}/gvfs".format(LOCAL_USERNAME)
-        else:
-            GVFS_GENERATION = 3
-            GVFS_DIR = "/run/user/{0}/gvfs".format(LOCAL_UID)
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -99,7 +86,6 @@ class CONST():
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR
-        CMD_OPEN = which("open") + " -a Finder {path}"
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -108,7 +94,6 @@ class CONST():
         LOCAL_GID = -1
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
-        CMD_OPEN = "explorer {path}"
     else:
         OS_VERSION = "Error: OS not supported."
 

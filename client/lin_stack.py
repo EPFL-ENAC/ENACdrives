@@ -10,12 +10,30 @@ import os
 import re
 import pexpect
 import subprocess
-from utility import CONST, Live_Cache, Output, CancelOperationException
+from utility import CONST, Live_Cache, Output, which, CancelOperationException
+
+
+class LIN_CONST():
+    CMD_OPEN = which("xdg-open") + " {path}"
+
+    CMD_MOUNT_CIFS = which("mount.cifs")
+    CMD_UMOUNT = which("umount")
+
+    CMD_GVFS_MOUNT = which("gvfs-mount")
+    if CONST.OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
+        GVFS_GENERATION = 1
+        GVFS_DIR = os.path.join(CONST.HOME_DIR, ".gvfs")
+    elif CONST.OS_VERSION in ("12.10", "13.04"):
+        GVFS_GENERATION = 2
+        GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_USERNAME)
+    else:
+        GVFS_GENERATION = 3
+        GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
 
 
 def cifs_is_mounted(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
-        cmd = [CONST.CMD_GVFS_MOUNT, "-l"]
+        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.write(" ".join(cmd))
         lines = Live_Cache.subprocess_check_output(
             cmd,
@@ -45,7 +63,7 @@ def cifs_mount(mount):
                 raise Exception("Error : Path %s already exists" % mount.settings["local_path"])
 
         # 2) Mount
-        cmd = [CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
+        cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
         Output.write(" ".join(cmd))
         process_meta = {
             "was_cancelled": False,
@@ -79,22 +97,22 @@ def cifs_mount(mount):
             else:
                 mount.ui.notify_user("Mount failure")
                 raise Exception("Error while mounting : %d %s" % (exit_status, output))
-        Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+        Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
 
         # 3) Symlink
         if mount.settings["Linux_gvfs_symlink"]:
             mount_point = None
-            for f in os.listdir(CONST.GVFS_DIR):
-                if CONST.GVFS_GENERATION == 1:
+            for f in os.listdir(LIN_CONST.GVFS_DIR):
+                if LIN_CONST.GVFS_GENERATION == 1:
                     if re.match(r'{server_share} \S+ {server_name}'.format(**mount.settings), f):
-                        mount_point = os.path.join(CONST.GVFS_DIR, f)
+                        mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
                 else:
                     if (re.match(r'^smb-share:', f) and
                        re.search(r'domain={realm_domain}(,|$)'.format(**mount.settings), f, flags=re.IGNORECASE) and
                        re.search(r'server={server_name}(,|$)'.format(**mount.settings), f) and
                        re.search(r'share={server_share}(,|$)'.format(**mount.settings), f) and
                        re.search(r'user={realm_username}(,|$)'.format(**mount.settings), f)):
-                        mount_point = os.path.join(CONST.GVFS_DIR, f)
+                        mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
 
             if mount_point is None:
                 raise Exception("Error: Could not find the GVFS mountpoint.")
@@ -122,7 +140,7 @@ def cifs_mount(mount):
 
         # 2) Mount
         cmd = [
-            "sudo", CONST.CMD_MOUNT_CIFS,
+            "sudo", LIN_CONST.CMD_MOUNT_CIFS,
             "//{server_name}/{server_path}",
             "{local_path}",
             "-o",
@@ -174,7 +192,7 @@ def cifs_umount(mount):
         # gvfs apparently umount never locks on open files.
         
         # 1) Umount
-        cmd = [CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
+        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
         Output.write(" ".join(cmd))
         try:
             output = subprocess.check_output(
@@ -184,7 +202,7 @@ def cifs_umount(mount):
         except subprocess.CalledProcessError as e:
             mount.ui.notify_user("Umount failure")
             raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
-        Live_Cache.invalidate_cmd_cache([CONST.CMD_GVFS_MOUNT, "-l"])
+        Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
 
         # 2) Remove symlink
         if mount.settings["Linux_gvfs_symlink"]:
@@ -194,7 +212,7 @@ def cifs_umount(mount):
 
     else:  # "mount.cifs"
         # 1) uMount
-        cmd = ["sudo", CONST.CMD_UMOUNT, "{local_path}"]
+        cmd = ["sudo", LIN_CONST.CMD_UMOUNT, "{local_path}"]
         cmd = [s.format(**mount.settings) for s in cmd]
         Output.write(" ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
@@ -244,27 +262,33 @@ def open_file_manager(mount):
     if (mount.settings["Linux_CIFS_method"] == "gvfs" and
        not mount.settings["Linux_gvfs_symlink"]):
         path = None
-        for f in os.listdir(CONST.GVFS_DIR):
-            if CONST.GVFS_GENERATION == 1:
+        for f in os.listdir(LIN_CONST.GVFS_DIR):
+            if LIN_CONST.GVFS_GENERATION == 1:
                 if re.match(r'{server_share} \S+ {server_name}'.format(**mount.settings), f):
-                    path = os.path.join(CONST.GVFS_DIR, f, mount.settings["server_subdir"])
+                    path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
             else:
                 if (re.match(r'^smb-share:', f) and
                    re.search(r'domain={realm_domain}(,|$)'.format(**mount.settings), f, flags=re.IGNORECASE) and
                    re.search(r'server={server_name}(,|$)'.format(**mount.settings), f) and
                    re.search(r'share={server_share}(,|$)'.format(**mount.settings), f) and
                    re.search(r'user={realm_username}(,|$)'.format(**mount.settings), f)):
-                    path = os.path.join(CONST.GVFS_DIR, f, mount.settings["server_subdir"])
+                    path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
         if path is None:
             raise Exception("Error: Could not find the GVFS mountpoint.")
     else:
         path = mount.settings["local_path"]
-    cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
+    cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
     subprocess.call(cmd)
 
 
 def pexpect_ask_password(values):
+    """
+        Interact with process when pexpect found a matching string for password question
+        It may Ack previously entered password if several password are asked in the same run.
+        
+        This is a mirror from osx_stack.pexpect_ask_password
+    """
     process_question = values["child_result_list"][-1]
     try:
         for pattern, auth_realm in values["extra_args"]["auth_realms"]:

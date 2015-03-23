@@ -13,19 +13,23 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import CONST, Output, CancelOperationException, debug_send
+from utility import Output, CancelOperationException, debug_send
+
+
+class WIN_CONST():
+    CMD_OPEN = "explorer {path}"
 
 
 def cifs_is_mounted(mount):
     current_mounts = win32net.NetUseEnum(None, 0, 0)[0]
     # ([{'local': 'Z:', 'remote': '\\\\files9.epfl.ch\\data\\bancal'}], 1, 0)
     for m in current_mounts:
-        Output.write("{0} : {1}".format(m["local"], m["remote"]))
+        # Output.write("{0} : {1}".format(m["local"], m["remote"]))
         if m["remote"] == r"\\{server_name}\{server_path}".format(**mount.settings):
-            Output.write("MATCH!")
+            # Output.write("MATCH!")
             mount.settings["Windows_letter"] = m["local"]
             return True
-    Output.write("NO-MATCH.")
+    # Output.write("NO-MATCH.")
     return False
     
 
@@ -102,6 +106,6 @@ def cifs_umount(mount):
 
 def open_file_manager(mount):
     path = mount.settings["Windows_letter"]
-    cmd = [s.format(path=path) for s in CONST.CMD_OPEN.split(" ")]
+    cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
     subprocess.call(cmd)
