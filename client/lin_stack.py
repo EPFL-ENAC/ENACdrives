@@ -72,15 +72,14 @@ def cifs_mount(mount):
             (output, exit_status) = pexpect.runu(
                 command=" ".join(cmd),
                 events={
-                    'Password:': pexpect_ask_password,
+                    "Password:": pexpect_ask_password,
                 },
                 extra_args={
                     "auth_realms": [
-                        (r'Password:', mount.settings["realm"])
+                        (r"Password:", mount.settings["realm"])
                     ],
                     "key_chain": mount.key_chain,
                     "process_meta": process_meta,
-                    # "context" : "gvfs_mount_%s" % mount.settings["name"]
                 },
                 env=dict(os.environ, LANG="C", LC_ALL="C"),
                 withexitstatus=True,
@@ -104,14 +103,14 @@ def cifs_mount(mount):
             mount_point = None
             for f in os.listdir(LIN_CONST.GVFS_DIR):
                 if LIN_CONST.GVFS_GENERATION == 1:
-                    if re.match(r'{server_share} \S+ {server_name}'.format(**mount.settings), f):
+                    if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
                         mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
                 else:
-                    if (re.match(r'^smb-share:', f) and
-                       re.search(r'domain={realm_domain}(,|$)'.format(**mount.settings), f, flags=re.IGNORECASE) and
-                       re.search(r'server={server_name}(,|$)'.format(**mount.settings), f) and
-                       re.search(r'share={server_share}(,|$)'.format(**mount.settings), f) and
-                       re.search(r'user={realm_username}(,|$)'.format(**mount.settings), f)):
+                    if (re.match(r"^smb-share:", f) and
+                       re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
+                       re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
+                       re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
+                       re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
                         mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
 
             if mount_point is None:
@@ -159,12 +158,12 @@ def cifs_mount(mount):
         (output, exit_status) = pexpect.runu(
             command=" ".join(cmd),
             events={
-                '(?i)password': pexpect_ask_password,
+                "(?i)password": pexpect_ask_password,
             },
             extra_args={
                 "auth_realms": [
-                    (r'\[sudo\] password', "sudo"),
-                    (r'Password', mount.settings["realm"])
+                    (r"\[sudo\] password", "sudo"),
+                    (r"Password", mount.settings["realm"])
                 ],
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
@@ -222,11 +221,11 @@ def cifs_umount(mount):
         (output, exit_status) = pexpect.runu(
             command=" ".join(cmd),
             events={
-                '(?i)password': pexpect_ask_password,
+                "(?i)password": pexpect_ask_password,
             },
             extra_args={
                 "auth_realms": [
-                    (r'\[sudo\] password', "sudo"),
+                    (r"\[sudo\] password", "sudo"),
                 ],
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
@@ -264,14 +263,14 @@ def open_file_manager(mount):
         path = None
         for f in os.listdir(LIN_CONST.GVFS_DIR):
             if LIN_CONST.GVFS_GENERATION == 1:
-                if re.match(r'{server_share} \S+ {server_name}'.format(**mount.settings), f):
+                if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
                     path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
             else:
-                if (re.match(r'^smb-share:', f) and
-                   re.search(r'domain={realm_domain}(,|$)'.format(**mount.settings), f, flags=re.IGNORECASE) and
-                   re.search(r'server={server_name}(,|$)'.format(**mount.settings), f) and
-                   re.search(r'share={server_share}(,|$)'.format(**mount.settings), f) and
-                   re.search(r'user={realm_username}(,|$)'.format(**mount.settings), f)):
+                if (re.match(r"^smb-share:", f) and
+                   re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
+                   re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
+                   re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
+                   re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
                     path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
         if path is None:
             raise Exception("Error: Could not find the GVFS mountpoint.")

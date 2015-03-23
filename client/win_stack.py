@@ -22,7 +22,7 @@ class WIN_CONST():
 
 def cifs_is_mounted(mount):
     current_mounts = win32net.NetUseEnum(None, 0, 0)[0]
-    # ([{'local': 'Z:', 'remote': '\\\\files9.epfl.ch\\data\\bancal'}], 1, 0)
+    # ([{"local": "Z:", "remote": "\\\\files9.epfl.ch\\data\\bancal"}], 1, 0)
     for m in current_mounts:
         # Output.write("{0} : {1}".format(m["local"], m["remote"]))
         if m["remote"] == r"\\{server_name}\{server_path}".format(**mount.settings):
@@ -49,9 +49,9 @@ def cifs_mount(mount):
         Output.write("succeeded")
         return True
     except pywintypes.error as e:
-        if e.winerror == 86:  # (86, 'WNetAddConnection2', 'The specified network password is not correct.')
+        if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
             pass
-        elif e.winerror == 1326:  # (1326, 'WNetAddConnection2', 'Logon failure: unknown user name or bad password.')
+        elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
             pass
         else:
             Output.write("failed : {0}".format(e))
@@ -69,7 +69,7 @@ def cifs_mount(mount):
                 local,
                 remote,
                 None,
-                r'{0}\{1}'.format(mount.settings["realm_domain"], mount.settings["realm_username"]),
+                r"{0}\{1}".format(mount.settings["realm_domain"], mount.settings["realm_username"]),
                 pw,
                 0
             )
@@ -77,10 +77,10 @@ def cifs_mount(mount):
             Output.write("succeeded")
             return True
         except pywintypes.error as e:
-            if e.winerror == 86:  # (86, 'WNetAddConnection2', 'The specified network password is not correct.')
+            if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
                 mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
-            elif e.winerror == 1326:  # (1326, 'WNetAddConnection2', 'Logon failure: unknown user name or bad password.')
+            elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
                 mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
             else:
@@ -97,7 +97,7 @@ def cifs_umount(mount):
         Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
     except pywintypes.error as e:
-        if e.winerror == 2401:  # (2401, 'WNetCancelConnection2', 'There are open files on the connection.')
+        if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)
         else:
             Output.write("failed : {0}".format(e))
