@@ -102,3 +102,47 @@ cx-Freeze==4.3.4
 ~~~ cmd
 pip install winpexpect
 ~~~
+
+
+2015.03.24 - SB ● MacOSX install py2app
+--------------------------------------------------------------------------------
+
+~~~ cmd
+pip install py2app
+~~~
+
+
+2015.03.24 - SB ● MacOSX created mount_filers.icns (icon set)
+--------------------------------------------------------------------------------
+
+Instructions at http://applehelpwriter.com/2012/12/16/make-your-own-icns-icons-for-free/
+
+create Folder "iconbuilder.iconset" (accept the extension ".iconset")
+With image preview, save 10 files in that folder :
+
+* icon_16x16.png (= 16 x 16)
+* icon_16x16@2x.png (= 32 x 32)
+* icon_32x32.png (= 32 x 32)
+* icon_32x32@2x.png (= 64 x 64)
+* icon_128x128.png (= 128 x 128)
+* icon_128x128@2x.png (= 256 x 256)
+* icon_256x256.png (= 256 x 256)
+* icon_256x256@2x.png (= 512 x 512)
+* icon_512x512.png (= 512 x 512)
+* icon_512x512@2x.png (= 1024 x 1024)
+
+In Terminal, run :
+
+iconutil -c icns ~/Desktop/iconbuilder.iconset
+
+It's done. Rename it "mount_filers.icns"!
+
+
+2015.03.24 - SB ● Create mount_filers.app
+--------------------------------------------------------------------------------
+
+py2applet --make-setup mount_filers.py mount_filers.icns
+
+This creates a setup.py ... rename it to setup_osx.py
+
+python setup_osx.py py2app
