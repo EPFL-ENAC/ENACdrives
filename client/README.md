@@ -146,3 +146,81 @@ py2applet --make-setup mount_filers.py mount_filers.icns
 This creates a setup.py ... rename it to setup_osx.py
 
 python setup_osx.py py2app
+
+1) This fails with :
+Traceback (most recent call last):
+  File "setup_osx.py", line 21, in <module>
+    setup_requires=['py2app'],
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/core.py", line 148, in setup
+    dist.run_commands()
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/dist.py", line 955, in run_commands
+    self.run_command(cmd)
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/dist.py", line 974, in run_command
+    cmd_obj.run()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 659, in run
+    self._run()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 865, in _run
+    self.run_normal()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 959, in run_normal
+    self.create_binaries(py_files, pkgdirs, extensions, loader_files)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 1205, in create_binaries
+    mm.mm.run_file(runtime)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py", line 81, in run_file
+    raise ValueError('%r does not exist' % (pathname,))
+ValueError: '/Users/bancal/anaconda/lib/libpython3.4.dylib' does not exist
+
+Workaround :
+ln -s libpython3.4m.dylib /Users/bancal/anaconda/lib/libpython3.4.dylib
+
+2) fails with :
+Traceback (most recent call last):
+  File "setup_osx.py", line 21, in <module>
+    setup_requires=['py2app'],
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/core.py", line 148, in setup
+    dist.run_commands()
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/dist.py", line 955, in run_commands
+    self.run_command(cmd)
+  File "/Users/bancal/anaconda/lib/python3.4/distutils/dist.py", line 974, in run_command
+    cmd_obj.run()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 659, in run
+    self._run()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 865, in _run
+    self.run_normal()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 959, in run_normal
+    self.create_binaries(py_files, pkgdirs, extensions, loader_files)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/py2app/build_app.py", line 1214, in create_binaries
+    platfiles = mm.run()
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOStandalone.py", line 105, in run
+    mm.run_file(fn)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py", line 84, in run_file
+    self.scan_node(m)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py", line 110, in scan_node
+    m = self.load_file(filename, caller=node)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py", line 93, in load_file
+    newname = self.locate(name, loader=caller)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOStandalone.py", line 23, in locate
+    newname = super(FilteredMachOGraph, self).locate(filename, loader)
+  File "/Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py", line 49, in locate
+    loader=loader.filename)
+TypeError: dyld_find() got an unexpected keyword argument 'loader'
+
+Workaround :
+vi /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/dyld.py /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py 
+--- orig/MachOGraph.py	2015-03-24 15:41:05.320297546 +0100
++++ modif/MachOGraph.py	2015-03-24 15:41:28.676297559 +0100
+@@ -46,7 +46,7 @@
+                 try:
+                     fn = dyld_find(filename, env=self.env,
+                         executable_path=self.executable_path,
+-                        loader=loader.filename)
++                        loader_path=loader.filename)
+                     self.trans_table[(loader.filename, filename)] = fn
+                 except ValueError:
+                     return None
+
+now build goes to the end :
+
+rm -rf build dist/
+python setup_osx.py py2app
+[...]
+done!
