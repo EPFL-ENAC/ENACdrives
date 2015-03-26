@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ['mount_filers.py']
-DATA_FILES = []
+DATA_FILES = ["mount_filers.png"]
 OPTIONS = {
     'argv_emulation': True,
     'iconfile': '/Users/bancal/SWITCHdrive/mount_filers/client/mount_filers.icns'

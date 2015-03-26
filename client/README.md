@@ -224,3 +224,28 @@ rm -rf build dist/
 python setup_osx.py py2app
 [...]
 done!
+
+
+2015.03.26 - SB ● Create mount_filers.app
+--------------------------------------------------------------------------------
+
+Applications throws an exception when launched :
+
+26.03.15 11:25:08.172	mount_filers[4382]	Traceback (most recent call last):
+26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/__boot__.py", line 351, in <module>
+26.03.15 11:25:08.173	mount_filers[4382]	    _run()
+26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/__boot__.py", line 336, in _run
+26.03.15 11:25:08.173	mount_filers[4382]	    exec(compile(source, path, 'exec'), globals(), globals())
+26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/mount_filers.py", line 7, in <module>
+26.03.15 11:25:08.173	mount_filers[4382]	    from gui import main_GUI
+26.03.15 11:25:08.173	mount_filers[4382]	  File "gui.pyc", line 9, in <module>
+26.03.15 11:25:08.174	mount_filers[4382]	  File "PyQt4/QtGui.pyc", line 14, in <module>
+26.03.15 11:25:08.174	mount_filers[4382]	  File "PyQt4/QtGui.pyc", line 10, in __load
+26.03.15 11:25:08.175	mount_filers[4382]	ImportError: dlopen(/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so, 2): Library not loaded: @loader_path/../../../libQtGui.4.dylib
+26.03.15 11:25:08.175	mount_filers[4382]	  Referenced from: /Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so
+26.03.15 11:25:08.175	mount_filers[4382]	  Reason: image not found
+
+
+Workaround/fix :
+cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/mount_filers.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/mount_filers.app/Contents/Resources/lib/
