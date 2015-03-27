@@ -6,3 +6,4 @@ venv_py3/
 activate
 dependencies/
 build/
+dist/

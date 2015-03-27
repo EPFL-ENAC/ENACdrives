@@ -16,7 +16,7 @@ buildOptions = dict(
 if sys.platform == "win32":
     # target_dir = "build_windows"
     base = "Win32GUI"  # Tells the build script to hide the console.
-elif sys.platform == "linux":
+elif sys.platform in ("linux", "linux2", "linux3"):
     # target_dir = "build_linux"
     base = None
 else:

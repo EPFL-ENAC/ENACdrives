@@ -34,7 +34,7 @@ export PYTHONPATH=/usr/lib/python3/dist-packages
 ~~~
 
 
-2015.01.19 - SB ● cx_Freeze (compile Python to executables)
+2015.01.19 - SB ● Linux cx_Freeze (compile Python to executables)
 --------------------------------------------------------------------------------
 
 Installing with pip gives
@@ -86,7 +86,7 @@ cx-Freeze==4.3.4
 ~~~
 
 
-2015.02.02 - SB ● cx_Freeze Install on MacOSX
+2015.02.02 - SB ● cx_Freeze Install on MacOSX (not used)
 --------------------------------------------------------------------------------
 
 1. Install Xcode
@@ -96,7 +96,7 @@ cx-Freeze==4.3.4
    FAILED !!!
 
 
-2015.02.19 - SB ● Windows install winpexpect
+2015.02.19 - SB ● Windows install winpexpect (not used)
 --------------------------------------------------------------------------------
 
 ~~~ cmd
@@ -249,3 +249,38 @@ Applications throws an exception when launched :
 Workaround/fix :
 cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/mount_filers.app/Contents/Resources/lib/
 cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/mount_filers.app/Contents/Resources/lib/
+
+
+2015.03.27 - SB ● Build on Precise (12.04)
+--------------------------------------------------------------------------------
+
+Running 14.04 compiled application raises the following error :
+
+~~~ out
+./build/exe.linux-x86_64-3.4/mount_filers: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.17' not found (required by /home/bancal/mount_filers_client/build/exe.linux-x86_64-3.4/libpython3.4m.so.1.0)
+~~~
+
+FIX : Copmile on Ubuntu 12.04 (Precise)
+
+~~~ bash
+sudo apt-get install python3-minimal python-virtualenv
+virtualenv -p python3.2 venv_py3
+ln -s venv_py3/bin/activate .
+. activate
+pip install pexpect
+~~~
+
+Install PyQt4
+
+~~~ bash
+sudo apt-get install python3-pyqt4
+
+export PYTHONPATH=/usr/lib/python3/dist-packages
+~~~
+
+Installing with pip works
+
+~~~ bash
+sudo apt-get install python3-dev
+pip install cx_Freeze
+~~~
