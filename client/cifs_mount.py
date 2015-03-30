@@ -11,11 +11,11 @@ import re
 from utility import CONST, Output
 
 if CONST.OS_SYS == "Linux":
-    from lin_stack import cifs_is_mounted, cifs_mount, cifs_umount, open_file_manager
+    from lin_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
 elif CONST.OS_SYS == "Windows":
-    from win_stack import cifs_is_mounted, cifs_mount, cifs_umount, open_file_manager
+    from win_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
 elif CONST.OS_SYS == "Darwin":
-    from osx_stack import cifs_is_mounted, cifs_mount, cifs_umount, open_file_manager
+    from osx_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
     
 
 class CIFS_Mount():
@@ -78,11 +78,22 @@ class CIFS_Mount():
         self.settings["realm_username"] = "bancal"
         self.settings["local_uid"] = CONST.LOCAL_UID
         self.settings["local_gid"] = CONST.LOCAL_GID
+        self._cache = {
+            "is_mounted": None,
+        }
         self.ui = ui
         self.key_chain = key_chain
 
     def is_mounted(self):
-        return cifs_is_mounted(self)
+        is_mounted = cifs_is_mounted(self)
+        if is_mounted != self._cache["is_mounted"]:
+            Output.write("{0} is_mounted : {1} -> {2}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
+            if is_mounted:
+                cifs_post_mount(self)
+            else:
+                cifs_post_umount(self)
+            self._cache["is_mounted"] = is_mounted
+        return is_mounted
 
     def mount(self):
         Output.write()

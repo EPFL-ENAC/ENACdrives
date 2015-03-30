@@ -5,7 +5,9 @@
 # Offers Windows stack for :
 # + cifs_is_mount
 # + cifs_mount
+# + cifs_post_mount
 # + cifs_umount
+# + cifs_post_umount
 # + open_file_manager
 
 import win32net
@@ -92,6 +94,14 @@ def cifs_mount(mount):
     return False
 
 
+def cifs_post_mount(mount):
+    """
+    Performs tasks when mount is done.
+    May happen some seconds after cifs_mount is completed (OS)
+    """
+    pass
+
+
 def cifs_umount(mount):
     try:
         Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
@@ -102,6 +112,14 @@ def cifs_umount(mount):
         else:
             Output.write("failed : {0}".format(e))
             debug_send("umount:\n{0}".format(e))
+
+
+def cifs_post_umount(mount):
+    """
+    Performs tasks when umount is done.
+    May happen some seconds after cifs_umount is completed (OS)
+    """
+    pass
 
 
 def open_file_manager(mount):

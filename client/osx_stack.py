@@ -3,7 +3,11 @@
 # Bancal Samuel
 
 # Offers Mac OSX stack for :
-# + CIFS (is_mount, mount, umount)
+# + cifs_is_mount
+# + cifs_mount
+# + cifs_post_mount
+# + cifs_umount
+# + cifs_post_umount
 # + open_file_manager
 
 import os
@@ -78,6 +82,14 @@ def cifs_mount(mount):
     mount.ui.notify_user("Mount failure")
 
 
+def cifs_post_mount(mount):
+    """
+    Performs tasks when mount is done.
+    May happen some seconds after cifs_mount is completed (OS)
+    """
+    pass
+
+
 def cifs_umount(mount):
     cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
     Output.write("cmd : %s" % cmd)
@@ -87,6 +99,12 @@ def cifs_umount(mount):
     if subproc.returncode != 0:
         raise Exception("Error while umounting : %s\n%s" % (stdout, stderr))
 
+
+def cifs_post_umount(mount):
+    """
+    Performs tasks when umount is done.
+    May happen some seconds after cifs_umount is completed (OS)
+    """
     if (os.path.isdir(mount.settings["local_path"]) and
        os.listdir(mount.settings["local_path"]) == []):
         os.rmdir(mount.settings["local_path"])

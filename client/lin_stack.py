@@ -3,7 +3,11 @@
 # Bancal Samuel
 
 # Offers Linux stack for :
-# + CIFS (is_mount, mount, umount)
+# + cifs_is_mount
+# + cifs_mount
+# + cifs_post_mount
+# + cifs_umount
+# + cifs_post_umount
 # + open_file_manager
 
 import os
@@ -45,6 +49,7 @@ def cifs_is_mounted(mount):
             if re.search(i_search, l):
                 # Output.write(l)
                 return True
+        return False
     else:  # "mount.cifs"
         return os.path.ismount(mount.settings["local_path"])
 
@@ -97,32 +102,6 @@ def cifs_mount(mount):
                 mount.ui.notify_user("Mount failure")
                 raise Exception("Error while mounting : %d %s" % (exit_status, output))
         Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
-
-        # 3) Symlink
-        if mount.settings["Linux_gvfs_symlink"]:
-            mount_point = None
-            for f in os.listdir(LIN_CONST.GVFS_DIR):
-                if LIN_CONST.GVFS_GENERATION == 1:
-                    if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
-                        mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
-                else:
-                    if (re.match(r"^smb-share:", f) and
-                       re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
-                       re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
-                       re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
-                       re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
-                        mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
-
-            if mount_point is None:
-                raise Exception("Error: Could not find the GVFS mountpoint.")
-
-            target = os.path.join(mount_point, mount.settings["server_subdir"])
-            try:
-                os.symlink(target, mount.settings["local_path"])
-            except OSError as e:
-                raise Exception("Could not create symbolic link : %s" % e.args[1])
-            if not os.path.islink(mount.settings["local_path"]):
-                raise Exception("Could not create symbolic link : %s <- %s" % (target, mount.settings["local_path"]))
 
     else:  # "mount.cifs"
         # 1) Make mount dir (remove broken symlink if needed)
@@ -184,7 +163,44 @@ def cifs_mount(mount):
                 mount.ui.notify_user("Mount failure")
                 raise Exception("Error while mounting : %d %s" % (exit_status, output))
     return True
-    
+
+
+def cifs_post_mount(mount):
+    """
+    Performs tasks when mount is done.
+    May happen some seconds after cifs_mount is completed (OS)
+    """
+    if mount.settings["Linux_CIFS_method"] == "gvfs":
+        # 3) Symlink
+        if mount.settings["Linux_gvfs_symlink"]:
+            if not os.path.lexists(mount.settings["local_path"]):
+                mount_point = None
+                for f in os.listdir(LIN_CONST.GVFS_DIR):
+                    if LIN_CONST.GVFS_GENERATION == 1:
+                        if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
+                            mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
+                    else:
+                        if (re.match(r"^smb-share:", f) and
+                           re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
+                           re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
+                           re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
+                           re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
+                            mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
+
+                if mount_point is None:
+                    raise Exception("Error: Could not find the GVFS mountpoint.")
+
+                target = os.path.join(mount_point, mount.settings["server_subdir"])
+                try:
+                    os.symlink(target, mount.settings["local_path"])
+                except OSError as e:
+                    raise Exception("Could not create symbolic link : %s" % e.args[1])
+                if not os.path.islink(mount.settings["local_path"]):
+                    raise Exception("Could not create symbolic link : %s <- %s" % (target, mount.settings["local_path"]))
+
+    else:  # "mount.cifs"
+        pass
+
 
 def cifs_umount(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
@@ -202,12 +218,6 @@ def cifs_umount(mount):
             mount.ui.notify_user("Umount failure")
             raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
         Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
-
-        # 2) Remove symlink
-        if mount.settings["Linux_gvfs_symlink"]:
-            if (os.path.lexists(mount.settings["local_path"]) and
-               not os.path.exists(mount.settings["local_path"])):
-                os.unlink(mount.settings["local_path"])
 
     else:  # "mount.cifs"
         # 1) uMount
@@ -248,6 +258,20 @@ def cifs_umount(mount):
                 mount.ui.notify_user("Umount failure")
                 raise Exception("Error while umounting : %d %s" % (exit_status, output))
 
+
+def cifs_post_umount(mount):
+    """
+    Performs tasks when umount is done.
+    May happen some seconds after cifs_umount is completed (OS)
+    """
+    if mount.settings["Linux_CIFS_method"] == "gvfs":
+        # 2) Remove symlink
+        if mount.settings["Linux_gvfs_symlink"]:
+            if (os.path.lexists(mount.settings["local_path"]) and
+               not os.path.exists(mount.settings["local_path"])):
+                os.unlink(mount.settings["local_path"])
+
+    else:  # "mount.cifs"
         # 2) Remove mount dir
         if (os.path.exists(mount.settings["local_path"]) and
            os.listdir(mount.settings["local_path"]) == []):
