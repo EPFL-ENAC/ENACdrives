@@ -75,6 +75,12 @@ def cifs_mount(mount):
         else:
             mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
             if process_meta["was_cancelled"]:
+                if (os.path.isdir(mount.settings["local_path"]) and
+                   os.listdir(mount.settings["local_path"]) == []):
+                    try:
+                        os.rmdir(mount.settings["local_path"])
+                    except OSError as e:
+                        Output.write("Warning, could not rmdir : {0}".format(e))
                 return False
             else:
                 mount.ui.notify_user("Mount failure")
@@ -107,7 +113,10 @@ def cifs_post_umount(mount):
     """
     if (os.path.isdir(mount.settings["local_path"]) and
        os.listdir(mount.settings["local_path"]) == []):
-        os.rmdir(mount.settings["local_path"])
+        try:
+            os.rmdir(mount.settings["local_path"])
+        except OSError as e:
+            Output.write("Warning, could not rmdir : {0}".format(e))
 
 
 def open_file_manager(mount):
