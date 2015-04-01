@@ -55,6 +55,8 @@ def cifs_mount(mount):
             pass
         elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
             pass
+        elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+            mount.ui.notify_user(e.strerror)
         else:
             Output.write("failed : {0}".format(e))
             debug_send("mount without password:\n{0}".format(e))
@@ -85,6 +87,9 @@ def cifs_mount(mount):
             elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
                 mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
+            elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+                mount.ui.notify_user(e.strerror)
+                return False
             else:
                 Output.write("failed : {0}".format(e))
                 debug_send("mount with password:\n{0}".format(e))
