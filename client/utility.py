@@ -99,8 +99,11 @@ class CONST():
 
 
 class Output():
-    def __init__(self):
-        self.output = sys.stdout
+    def __init__(self, dest=None):
+        if dest is not None:
+            self.output = dest
+        else:
+            self.output = sys.stdout
 
     def __enter__(self):
         Output.set_instance(self)

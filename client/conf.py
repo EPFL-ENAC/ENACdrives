@@ -32,9 +32,9 @@ def validate_value(option, value):
     return value
 
 
-def read_config(f):
+def read_config_source(src):
     """
-        Readlines on f 
+        Readlines on src
             [global]
             Linux_CIFS_method = gvfs
             
@@ -115,7 +115,7 @@ def read_config(f):
     current_section = ""
     current_entry = {}
     line_nb = 0
-    for line in f.readlines():
+    for line in src.readlines():
         line_nb += 1
         l = line
         l = re.sub(r"#.*", "", l)  # remove comments
@@ -156,12 +156,15 @@ def read_config(f):
             Output.write("Error : Unexpected option at line {0}:\n{1}".format(line_nb, line))
             continue
         
-        if current_section in multi_entries_sections:
-            # This is a multi entries section type
-            current_entry[k] = validate_value(k, v)
-        else:
-            # This is a single entry section type
-            cfg.setdefault(current_section, {})[k] = validate_value(k, v)
+        try:
+            if current_section in multi_entries_sections:
+                # This is a multi entries section type
+                current_entry[k] = validate_value(k, v)
+            else:
+                # This is a single entry section type
+                cfg.setdefault(current_section, {})[k] = validate_value(k, v)
+        except Exception as e:
+            Output.write(str(e))
             
         # Output.write("'{0}' = '{1}'".format(k, v))
     
@@ -176,7 +179,7 @@ def main():
     with Output():
         f_name = "test.conf"
         with open(f_name, "r") as f:
-            cfg = read_config(f)
+            cfg = read_config_source(f)
             Output.write(pprint.pformat(cfg))
 
 if __name__ == "__main__":
