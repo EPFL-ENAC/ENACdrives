@@ -9,10 +9,14 @@ import pprint
 from utility import Output
 
 
+class ConfigException(Exception):
+    pass
+
+
 def validate_value(option, value):
     if option == "Linux_CIFS_method":
         if value not in ("gvfs", "mount.cifs"):
-            raise Exception("Error, Linux_CIFS_method has to be 'gvfs' or 'mount.cifs'.")
+            raise ConfigException("Error, Linux_CIFS_method has to be 'gvfs' or 'mount.cifs'.")
     elif option in ("server_path", "local_path"):
         value = re.sub(r"\\", "/", value)
     elif option == "domain":
@@ -21,14 +25,14 @@ def validate_value(option, value):
         value = value.lower()
     elif option == "server_name":
         if bool(re.search(r"[^a-zA-Z0-9.-]", value)):
-            raise Exception("Error, server_name can only contain alphanumeric, and '-' and '.' symbols.")
+            raise ConfigException("Error, server_name can only contain alphanumeric, and '-' and '.' symbols.")
     elif option in ("stared", "Linux_gvfs_symlink"):
         value = str(value).lower()
         return value in ("yes", "y", "true", "1", "on")
     elif option == "Windows_letter":
         value = value.upper()
         if not re.match(r"[A-Z]:$", value):
-            raise Exception("Error, Windows drive letter has to be on the form 'Z:'.")
+            raise ConfigException("Error, Windows drive letter has to be on the form 'Z:'.")
     return value
 
 
@@ -70,7 +74,7 @@ def read_config_source(src):
             #    Drive letter to use for the mount
 
         And return cfg as
-            {'CIFS_mount': [{'Linux_CIFS_method': 'gvfs',
+            {'CIFS_mount': {"private": {'Linux_CIFS_method': 'gvfs',
                              'Linux_gvfs_symlink': True,
                              'Linux_mountcifs_dirmode': '0770',
                              'Linux_mountcifs_filemode': '0770',
@@ -78,14 +82,24 @@ def read_config_source(src):
                              'Windows_letter': 'Z:',
                              'label': 'bancal@files9',
                              'local_path': '{MNT_DIR}/bancal_on_files9',
-                             'name': 'private',
                              'realm': 'EPFL',
                              'server_name': 'files9.epfl.ch',
                              'server_path': 'data/bancal',
-                             'stared': False}],
+                             'stared': False}, },
              'global': {'Linux_CIFS_method': 'gvfs'},
              'realm': [{'domain': 'INTRANET', 'name': 'EPFL', 'username': 'bancal'}]}
     """
+    
+    def save_current_section():
+        try:
+            name = current_section_values["name"]
+            del(current_section_values["name"])
+            cfg.setdefault(current_section_name, {})
+            cfg[current_section_name].setdefault(name, {})
+            cfg[current_section_name][name].update(current_section_values)
+        except KeyError:
+            Output.write("Error : Expected name option not found in at line {0}. Skipping that section.".format(section_line_nb))
+    
     multi_entries_sections = ("CIFS_mount", "realm")
     allowed_options = {
         "global": ("Linux_CIFS_method", ),
@@ -112,9 +126,10 @@ def read_config_source(src):
     }
     
     cfg = {}
-    current_section = ""
-    current_entry = {}
+    current_section_name = ""
+    current_section_values = {}
     line_nb = 0
+    section_line_nb = 0
     for line in src.readlines():
         line_nb += 1
         l = line
@@ -131,18 +146,19 @@ def read_config_source(src):
             except AttributeError:
                 Output.write("Error : Unexpected content at line {0}:\n{1}".format(line_nb, line))
                 continue
-            if current_section in multi_entries_sections and current_entry != {}:
+            if current_section_name in multi_entries_sections and current_section_values != {}:
                 # Save previous section content
-                cfg.setdefault(current_section, []).append(current_entry)
+                save_current_section()
             if new_section in allowed_options:
-                current_section = new_section
-                current_entry = {}
+                current_section_name = new_section
+                current_section_values = {}
+                section_line_nb = line_nb
             else:
                 Output.write("Error : Unexpected section name '{0}' at line {1}:\n{2}".format(new_section, line_nb, line))
-                current_section = ""
+                current_section_name = ""
             continue
         
-        if current_section == "":
+        if current_section_name == "":
             Output.write("Error : Unexpected content at line {0}:\n{1}".format(line_nb, line))
             continue
         
@@ -152,26 +168,55 @@ def read_config_source(src):
             k, v = k.strip(), v.strip()
         except AttributeError:
             continue
-        if k not in allowed_options[current_section]:
+        if k not in allowed_options[current_section_name]:
             Output.write("Error : Unexpected option at line {0}:\n{1}".format(line_nb, line))
             continue
         
         try:
-            if current_section in multi_entries_sections:
+            if current_section_name in multi_entries_sections:
                 # This is a multi entries section type
-                current_entry[k] = validate_value(k, v)
+                current_section_values[k] = validate_value(k, v)
             else:
                 # This is a single entry section type
-                cfg.setdefault(current_section, {})[k] = validate_value(k, v)
-        except Exception as e:
+                cfg.setdefault(current_section_name, {})[k] = validate_value(k, v)
+        except ConfigException as e:
             Output.write(str(e))
             
         # Output.write("'{0}' = '{1}'".format(k, v))
     
-    if current_section in multi_entries_sections and current_entry != {}:
+    if current_section_name in multi_entries_sections and current_section_values != {}:
         # Save last section content
-        cfg.setdefault(current_section, []).append(current_entry)
+        save_current_section()
     
+    return cfg
+
+
+def validate_config(cfg):
+    """
+    Validates that there is everything necessary in the config to do the job.
+    Will output error message otherwise
+    """
+    
+    def expect_option(entry, option, section):
+        if option not in entry:
+            Output.write("Error: expected '{0}' option in {1} section.".format(option, section))
+            return False
+        return True
+
+    invalid_entries = []
+    for name, cifs_m in cfg.get("CIFS_mount", {}).items():
+        is_ok = (
+            expect_option(cifs_m, "label", "CIFS_mount") and
+            expect_option(cifs_m, "realm", "CIFS_mount") and
+            expect_option(cifs_m, "server_name", "CIFS_mount") and
+            expect_option(cifs_m, "server_path", "CIFS_mount") and
+            expect_option(cifs_m, "local_path", "CIFS_mount")
+        )
+        if not is_ok:
+            Output.write("Removing incomplete CIFS_mount '{0}'.".format(cifs_m.get("name", "unnamed")))
+            invalid_entries.append(name)
+    for name in invalid_entries:
+        del(cfg["CIFS_mount"][name])
     return cfg
 
 
