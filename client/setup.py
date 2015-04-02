@@ -9,7 +9,8 @@ from cx_Freeze import setup, Executable
 buildOptions = dict(
     packages=[],
     excludes=[],
-    include_files=["mount_filers.png"]
+    include_files=["mount_filers.png"],
+    include_msvcr=True  # skip error msvcr100.dll missing
 )
 
 
