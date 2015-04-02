@@ -284,3 +284,49 @@ Installing with pip works
 sudo apt-get install python3-dev
 pip install cx_Freeze
 ~~~
+
+
+2015.04.02 - SB ● Created some unittests
+--------------------------------------------------------------------------------
+
+~~~ bash
+./client/test_conf.py
+~~~
+
+~~~ out
+python client/test_conf.py 
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 0.003s
+
+OK
+~~~
+
+Or globaly on all test files discovered
+
+~~~ bash
+pip install nose
+
+nosetests -v client/
+~~~
+
+~~~ out
+test_bad_option (test_conf.TestReadConfigSource) ... ok
+test_bad_servername (test_conf.TestReadConfigSource) ... ok
+test_bool_false (test_conf.TestReadConfigSource) ... ok
+test_bool_true (test_conf.TestReadConfigSource) ... ok
+test_comment (test_conf.TestReadConfigSource) ... ok
+test_complete_cifs_mount_entry (test_conf.TestReadConfigSource) ... ok
+test_empty (test_conf.TestReadConfigSource) ... ok
+test_path (test_conf.TestReadConfigSource) ... ok
+test_unknown_option (test_conf.TestReadConfigSource) ... ok
+test_unknown_section (test_conf.TestReadConfigSource) ... ok
+test_basic_cifs_mount (test_conf.TestValidateConfig) ... ok
+test_empty (test_conf.TestValidateConfig) ... ok
+test_incomplete_cifs_mount (test_conf.TestValidateConfig) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.029s
+
+OK
+~~~
