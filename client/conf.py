@@ -41,6 +41,10 @@ def read_config_source(src):
         Readlines on src
             [global]
             Linux_CIFS_method = gvfs
+            Linux_mountcifs_filemode = 0770
+            Linux_mountcifs_dirmode = 0770
+            Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+            Linux_gvfs_symlink = true
             
             [realm]
             name = EPFL
@@ -74,20 +78,30 @@ def read_config_source(src):
             #    Drive letter to use for the mount
 
         And return cfg as
-            {'CIFS_mount': {"private": {'Linux_CIFS_method': 'gvfs',
-                             'Linux_gvfs_symlink': True,
-                             'Linux_mountcifs_dirmode': '0770',
-                             'Linux_mountcifs_filemode': '0770',
-                             'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm',
-                             'Windows_letter': 'Z:',
-                             'label': 'bancal@files9',
-                             'local_path': '{MNT_DIR}/bancal_on_files9',
-                             'realm': 'EPFL',
-                             'server_name': 'files9.epfl.ch',
-                             'server_path': 'data/bancal',
-                             'stared': False}, },
-             'global': {'Linux_CIFS_method': 'gvfs'},
-             'realm': [{'domain': 'INTRANET', 'name': 'EPFL', 'username': 'bancal'}]}
+            {'CIFS_mount': {
+              'private': {
+               'Linux_CIFS_method': 'gvfs',
+               'Linux_gvfs_symlink': True,
+               'Linux_mountcifs_dirmode': '0770',
+               'Linux_mountcifs_filemode': '0770',
+               'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm',
+               'Windows_letter': 'Z:',
+               'label': 'bancal@files9',
+               'local_path': '{MNT_DIR}/bancal_on_files9',
+               'realm': 'EPFL',
+               'server_name': 'files9.epfl.ch',
+               'server_path': 'data/bancal',
+               'stared': False}},
+             'global': {
+              'Linux_CIFS_method': 'gvfs',
+              'Linux_gvfs_symlink': True,
+              'Linux_mountcifs_dirmode': '0770',
+              'Linux_mountcifs_filemode': '0770',
+              'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+             'realm': {
+              'EPFL': {
+               'domain': 'INTRANET',
+               'username': 'bancal'}}}
     """
     
     def save_current_section():
@@ -102,7 +116,13 @@ def read_config_source(src):
     
     multi_entries_sections = ("CIFS_mount", "realm")
     allowed_options = {
-        "global": ("Linux_CIFS_method", ),
+        "global": (
+            "Linux_CIFS_method",
+            "Linux_mountcifs_filemode",
+            "Linux_mountcifs_dirmode",
+            "Linux_mountcifs_options",
+            "Linux_gvfs_symlink",
+        ),
         "CIFS_mount": (
             "name",
             "label",

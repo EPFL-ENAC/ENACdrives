@@ -165,6 +165,78 @@ local_path = \home\user\Desktop\mnt
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
 
+    def test_complete_config(self):
+        s_in = io.StringIO(r"""
+[global]
+Linux_CIFS_method = gvfs
+Linux_mountcifs_filemode = 0770
+Linux_mountcifs_dirmode = 0770
+Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+Linux_gvfs_symlink = true
+
+[realm]
+name = EPFL
+domain = INTRANET
+username = bancal
+
+[CIFS_mount]
+name = private
+label = bancal@files9
+realm = EPFL
+server_name = files9.epfl.ch
+server_path = data/bancal
+local_path = {MNT_DIR}/bancal_on_files9
+#    {MNT_DIR}
+#    {HOME_DIR}
+#    {DESKTOP_DIR}
+#    {LOCAL_USERNAME}
+#    {LOCAL_GROUPNAME}
+stared = false
+#    default : False
+Linux_CIFS_method = gvfs
+#    mount.cifs : Linux's mount.cifs (requires sudo ability)
+#    gvfs : Linux's gvfs-mount
+Linux_mountcifs_filemode = 0770
+Linux_mountcifs_dirmode = 0770
+Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+Linux_gvfs_symlink = yes
+#    Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
+#    default : True
+Windows_letter = Z:
+#    Drive letter to use for the mount
+""")
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(
+                read_config_source(s_in),
+                {'CIFS_mount': {
+                  'private': {
+                   'Linux_CIFS_method': 'gvfs',
+                   'Linux_gvfs_symlink': True,
+                   'Linux_mountcifs_dirmode': '0770',
+                   'Linux_mountcifs_filemode': '0770',
+                   'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm',
+                   'Windows_letter': 'Z:',
+                   'label': 'bancal@files9',
+                   'local_path': '{MNT_DIR}/bancal_on_files9',
+                   'realm': 'EPFL',
+                   'server_name': 'files9.epfl.ch',
+                   'server_path': 'data/bancal',
+                   'stared': False}},
+                 'global': {
+                  'Linux_CIFS_method': 'gvfs',
+                  'Linux_gvfs_symlink': True,
+                  'Linux_mountcifs_dirmode': '0770',
+                  'Linux_mountcifs_filemode': '0770',
+                  'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+                 'realm': {
+                  'EPFL': {
+                   'domain': 'INTRANET',
+                   'username': 'bancal'}}}
+            )
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
 
 class TestValidateConfig(unittest.TestCase):
     def test_empty(self):
