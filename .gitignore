@@ -7,5 +7,5 @@ activate
 dependencies/
 build/
 dist/
-WIP
+WIP.md
 web_app/EnacDrives/db.sqlite3
