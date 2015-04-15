@@ -6,9 +6,11 @@
 
 import os
 import sys
+import pprint
 from PyQt4 import QtGui, QtCore
-from utility import CONST, Key_Chain, CancelOperationException
+from utility import CONST, Key_Chain, CancelOperationException, Output
 from cifs_mount import CIFS_Mount
+import conf
 
 
 class UI_Label_Entry(QtGui.QHBoxLayout):
@@ -57,15 +59,18 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
 class GUI(QtGui.QWidget):
 
-    def __init__(self):
+    def __init__(self, cfg):
         super(GUI, self).__init__()
+        
+        self.cfg = cfg
 
         self.key_chain = Key_Chain(self)
 
         self.entries = []
-
-        mount_bancal = CIFS_Mount(self, self.key_chain)
-        self.entries.append(UI_Mount_Entry(self, mount_bancal))
+        
+        for entry_name in self.cfg.get("CIFS_mount", {}):
+            entry = CIFS_Mount(self, self.cfg, entry_name, self.key_chain)
+            self.entries.append(UI_Mount_Entry(self, entry))
 
         self.bt_quit = QtGui.QPushButton('Quit', self)
         self.bt_quit.clicked.connect(QtGui.qApp.quit)
@@ -119,6 +124,15 @@ class GUI(QtGui.QWidget):
 
 
 def main_GUI():
+    cfg = conf.get_default_config()
+    try:
+        with open("./mount_filers.conf", "r") as f:
+            cfg.update(conf.read_config_source(f))
+    except FileNotFoundError:
+        pass
+    cfg = conf.validate_config(cfg)
+    Output.write(pprint.pformat(cfg))
+    
     app = QtGui.QApplication(sys.argv)
-    ui = GUI()
+    ui = GUI(cfg)
     sys.exit(app.exec_())

@@ -13,6 +13,16 @@ class ConfigException(Exception):
     pass
 
 
+def get_default_config():
+    return {'global': {
+             'Linux_CIFS_method': 'gvfs',
+             'Linux_gvfs_symlink': True,
+             'Linux_mountcifs_dirmode': '0770',
+             'Linux_mountcifs_filemode': '0770',
+             'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+            }
+
+
 def validate_value(option, value):
     if option == "Linux_CIFS_method":
         if value not in ("gvfs", "mount.cifs"):
@@ -217,26 +227,56 @@ def validate_config(cfg):
     Will output error message otherwise
     """
     
-    def expect_option(entry, option, section):
+    def expect_option(entry, section, option):
         if option not in entry:
             Output.write("Error: expected '{0}' option in {1} section.".format(option, section))
             return False
         return True
 
-    invalid_entries = []
-    for name, cifs_m in cfg.get("CIFS_mount", {}).items():
+    invalid_cifs_m = []
+    invalid_realm = []
+    expected_realms = {}
+    for m_name in cfg.get("CIFS_mount", {}):
         is_ok = (
-            expect_option(cifs_m, "label", "CIFS_mount") and
-            expect_option(cifs_m, "realm", "CIFS_mount") and
-            expect_option(cifs_m, "server_name", "CIFS_mount") and
-            expect_option(cifs_m, "server_path", "CIFS_mount") and
-            expect_option(cifs_m, "local_path", "CIFS_mount")
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "realm") and
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_name") and
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_path") and
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "local_path")
+        )
+        if is_ok:
+            realm = cfg["CIFS_mount"][m_name]["realm"]
+            expected_realms.setdefault(realm, [])
+            expected_realms[realm].append(m_name)
+        else:
+            Output.write("Removing incomplete CIFS_mount '{0}'.".format(m_name))
+            invalid_cifs_m.append(m_name)
+    
+    for realm in expected_realms:
+        if realm not in cfg.get("realm", []):
+            Output.write("Missing realm '{0}'.".format(realm))
+            for m_name in expected_realms[realm]:
+                Output.write("Removing CIFS_mount '{0}' depending on realm '{1}'.".format(m_name, realm))
+                invalid_cifs_m.append(m_name)
+
+    for realm in cfg.get("realm", []):
+        is_ok = (
+            expect_option(cfg["realm"][realm], "realm", "username") and
+            expect_option(cfg["realm"][realm], "realm", "domain")
         )
         if not is_ok:
-            Output.write("Removing incomplete CIFS_mount '{0}'.".format(cifs_m.get("name", "unnamed")))
-            invalid_entries.append(name)
-    for name in invalid_entries:
-        del(cfg["CIFS_mount"][name])
+            Output.write("Removing incomplete realm '{0}'.".format(realm))
+            invalid_realm.append(realm)
+            for m_name in expected_realms.get(realm, []):
+                Output.write("Removing CIFS_mount '{0}' depending on realm '{1}'.".format(m_name, realm))
+                invalid_cifs_m.append(m_name)
+
+    for m_name in invalid_cifs_m:
+        del(cfg["CIFS_mount"][m_name])
+
+    for realm in invalid_realm:
+        del(cfg["realm"][realm])
+    
     return cfg
 
 

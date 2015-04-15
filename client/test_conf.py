@@ -248,12 +248,17 @@ class TestValidateConfig(unittest.TestCase):
             self.assertEqual(s_out.readlines(), [])
 
     def test_basic_cifs_mount(self):
-        cfg = {"CIFS_mount": {"name": {
-                "label": "label",
-                "realm": "realm",
-                "server_name": "server_name",
-                "server_path": "server_path",
-                "local_path": "local_path", }}}
+        cfg = {"CIFS_mount": {
+                "name": {
+                 "label": "label",
+                 "realm": "r_name",
+                 "server_name": "server_name",
+                 "server_path": "server_path",
+                 "local_path": "local_path", }},
+               "realm": {
+                "r_name": {
+                 "username": "u",
+                 "domain": "d", }}}
         cfg_expected = copy.deepcopy(cfg)
         s_out = io.StringIO("")
         with Output(dest=s_out):
@@ -262,18 +267,42 @@ class TestValidateConfig(unittest.TestCase):
             self.assertEqual(s_out.readlines(), [])
 
     def test_incomplete_cifs_mount(self):
-        cfg = {"CIFS_mount": {"name": {
-                "label": "label",
-                # "realm": "realm",
-                "server_name": "server_name",
-                "server_path": "server_path",
-                "local_path": "local_path", }}}
-        cfg_expected = {"CIFS_mount": {}, }
+        cfg = {"CIFS_mount": {
+                "name": {
+                 # "label": "label",
+                 "realm": "realm",
+                 "server_name": "server_name",
+                 "server_path": "server_path",
+                 "local_path": "local_path", }},
+                "realm": {
+                 "r_name": {
+                  "username": "u",
+                  "domain": "d", }}}
+        cfg_expected = {"CIFS_mount": {}, 
+                        "realm": {
+                         "r_name": {
+                          "username": "u",
+                          "domain": "d", }}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
-            self.assertIn("expected 'realm' option in CIFS_mount section.", s_out.readlines()[0])
+            self.assertIn("expected 'label' option in CIFS_mount section.", s_out.readlines()[0])
+
+    def test_missing_realm(self):
+        cfg = {"CIFS_mount": {
+                "name": {
+                 "label": "label",
+                 "realm": "r_name",
+                 "server_name": "server_name",
+                 "server_path": "server_path",
+                 "local_path": "local_path", }}}
+        cfg_expected = {"CIFS_mount": {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), ["Missing realm 'r_name'.\n", "Removing CIFS_mount 'name' repending on realm 'r_name'.\n"])
 
 
 if __name__ == "__main__":

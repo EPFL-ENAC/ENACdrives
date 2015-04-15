@@ -47,22 +47,44 @@ class CIFS_Mount():
             Drive letter to use for the mount (only on Windows)
     """
 
-    def __init__(self, ui, key_chain):
+    def __init__(self, ui, cfg, mount_name, key_chain):
+        
+        def _cf(option, default=None):
+            try:
+                if option == "realm_domain":
+                    realm = cfg["CIFS_mount"][mount_name]["realm"]
+                    return cfg["realm"][realm]["domain"]
+                elif option == "realm_username":
+                    realm = cfg["CIFS_mount"][mount_name]["realm"]
+                    return cfg["realm"][realm]["username"]
+                elif option in ("Linux_CIFS_method", "Linux_mountcifs_filemode", "Linux_mountcifs_dirmode", "Linux_mountcifs_options", "Linux_gvfs_symlink"):
+                    if option in cfg["CIFS_mount"][mount_name]:
+                        return cfg["CIFS_mount"][mount_name][option]
+                    else:
+                        return cfg["global"][option]
+                else:
+                    return cfg["CIFS_mount"][mount_name][option]
+            except KeyError:
+                return default
+
         self.settings = {
-            "name": "private",
-            "label": "bancal@files9 (individuel)",
-            "realm": "EPFL",
-            "server_name": "files9.epfl.ch",
-            "server_path": "data/bancal",
-            "local_path": "{MNT_DIR}/bancal_on_files9",
-            "stared": False,
-            "Linux_CIFS_method": "gvfs",  # "mount.cifs",
-            "Linux_mountcifs_filemode": "0770",
-            "Linux_mountcifs_dirmode": "0770",
-            "Linux_mountcifs_options": "rw,nobrl,noserverino,iocharset=utf8,sec=ntlm",
-            "Linux_gvfs_symlink": True,
-            "Windows_letter": "Z:",  # may be overwritten in "is_mounted"
+            "name": mount_name,
+            "label": _cf("label"),
+            "realm": _cf("realm"),
+            "realm_domain": _cf("realm_domain"),
+            "realm_username": _cf("realm_username"),
+            "server_name": _cf("server_name"),
+            "server_path": _cf("server_path"),
+            "local_path": _cf("local_path"),
+            "stared": _cf("stared", False),
+            "Linux_CIFS_method": _cf("Linux_CIFS_method"),
+            "Linux_mountcifs_filemode": _cf("Linux_mountcifs_filemode"),
+            "Linux_mountcifs_dirmode": _cf("Linux_mountcifs_dirmode"),
+            "Linux_mountcifs_options": _cf("Linux_mountcifs_options"),
+            "Linux_gvfs_symlink": _cf("Linux_gvfs_symlink"),
+            "Windows_letter": _cf("Windows_letter"),  # may be overwritten in "is_mounted"
         }
+        
         self.settings["local_path"] = self.settings["local_path"].format(
             MNT_DIR=CONST.DEFAULT_MNT_DIR,
             HOME_DIR=CONST.HOME_DIR,
@@ -74,8 +96,6 @@ class CIFS_Mount():
         if CONST.OS_SYS == "Windows":
             self.settings["server_path"] = self.settings["server_path"].replace("/", "\\")
             self.settings["local_path"] = self.settings["local_path"].replace("/", "\\")
-        self.settings["realm_domain"] = "INTRANET"
-        self.settings["realm_username"] = "bancal"
         self.settings["local_uid"] = CONST.LOCAL_UID
         self.settings["local_gid"] = CONST.LOCAL_GID
         self._cache = {
