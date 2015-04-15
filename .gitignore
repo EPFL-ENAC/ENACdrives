@@ -7,3 +7,4 @@ activate
 dependencies/
 build/
 dist/
+web_app/EnacDrives/db.sqlite3
