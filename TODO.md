@@ -14,8 +14,6 @@ web_app :
 client :
 ========
 
-* config from different sources & merge
-* cache config from http:// sources
 * rank entries
 * Windows drive letters
 * Nice GUI
