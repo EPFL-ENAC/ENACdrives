@@ -8,9 +8,9 @@ Global :
 web_app :
 =========
 
-* Return config for http://127.0.0.1:8000/config?username=bancal according to user's DB entries
+* define groups architecture
 * implement groups
-* admin interface
+* rank entries
 
 
 client :
@@ -18,6 +18,7 @@ client :
 
 * config from different sources & merge
 * cache config from http:// sources
+* rank entries
 * Windows drive letters
 * Nice GUI
 * CLI
