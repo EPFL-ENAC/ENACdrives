@@ -11,17 +11,43 @@
 #  + merge them
 #  + validate
 
+import os
 import re
+import io
 import pprint
+import hashlib
 import urllib.request
-from utility import Output
+import urllib.error
+from utility import Output, CONST
 
 
 class ConfigException(Exception):
     pass
 
 
-def get_config():
+def get_config(username):
+    
+    def _update_cfg(stacked_cfg):
+        cfg.setdefault("global", {})
+        cfg["global"].update(stacked_cfg.get("global", {}))
+        
+        cfg.setdefault("CIFS_mount", {})
+        for cifs_m in stacked_cfg.get("CIFS_mount", {}):
+            cfg["CIFS_mount"].setdefault(cifs_m, {})
+            cfg["CIFS_mount"][cifs_m].update(stacked_cfg["CIFS_mount"][cifs_m])
+        
+        cfg.setdefault("realm", {})
+        for realm in stacked_cfg.get("realm", {}):
+            cfg["realm"].setdefault(realm, {})
+            cfg["realm"][realm].update(stacked_cfg["realm"][realm])
+
+    #
+
+    # Create cache_dir if not already existent
+    if not os.path.exists(CONST.USER_CACHE_DIR):
+        os.makedirs(CONST.USER_CACHE_DIR)
+
+    # HARD CODED CONFIG
     default_config = {
         'global': {
          'Linux_CIFS_method': 'gvfs',
@@ -32,11 +58,47 @@ def get_config():
         }
     cfg = default_config
     
-    with urllib.request.urlopen('http://salsa.epfl.ch:8000/config?username=bancal') as response:
-        enacdrives_config = read_config_source(response)
-        enacdrives_config = validate_config(enacdrives_config)
-        cfg.update(enacdrives_config)
+    # ENACDRIVE SERVER CONFIG (included cache function)
+    config_url = CONST.CONFIG_URL.format(username=username)
+    cache_filename = os.path.join(CONST.USER_CACHE_DIR, hashlib.md5(config_url.encode()).hexdigest())
+    try:
+        with urllib.request.urlopen(config_url) as response:
+            lines = [l.decode() for l in response.readlines()]
+            s_io = io.StringIO("".join(lines))
+            enacdrives_config = read_config_source(s_io)
+            _update_cfg(enacdrives_config)
+            s_io.seek(0)
+            with open(cache_filename, "w") as f:
+                f.writelines(s_io.readlines())
+    except urllib.error.URLError:
+        Output.write("Warning, could not load config ENACdrives server. ({0})".format(config_url))
+        try:
+            with open(cache_filename, "r") as f:
+                cached_config = read_config_source(f)
+                _update_cfg(cached_config)
+            Output.write("Loaded config from cache file. ({0})".format(cache_filename))
+        except FileNotFoundError:
+            Output.write("!!! Error, could not load config from cache file. ({0})".format(cache_filename))
+
+    # SYSTEM CONFIG
+    try:
+        with open(CONST.SYSTEM_CONF_FILE, "r") as f:
+            system_config = read_config_source(f)
+            _update_cfg(system_config)
+        Output.write("Loaded config from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
+    except FileNotFoundError:
+        Output.write("No config found from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
     
+    # USER CONFIG
+    try:
+        with open(CONST.USER_CONF_FILE, "r") as f:
+            user_config = read_config_source(f)
+            _update_cfg(user_config)
+        Output.write("Loaded config from User context. ({0})".format(CONST.USER_CONF_FILE))
+    except FileNotFoundError:
+        Output.write("No config found from User context. ({0})".format(CONST.USER_CONF_FILE))
+    
+    cfg = validate_config(cfg)
     return cfg
         
 

@@ -54,11 +54,14 @@ def which(program):
 
 class CONST():
 
-    VERSION = "2015-03-06"
+    VERSION = "0.1.0"
+    FULL_VERSION = "2015-04-16 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
+    
+    CONFIG_URL = "http://salsa.epfl.ch:8000/config?username={username}&version=" + VERSION
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
@@ -78,6 +81,9 @@ class CONST():
         except FileNotFoundError:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
+        USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
+        USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
+        SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -86,6 +92,9 @@ class CONST():
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR
+        USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
+        USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
+        SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -94,6 +103,9 @@ class CONST():
         LOCAL_GID = -1
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
+        USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
+        USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
+        SYSTEM_CONF_FILE = "C:\\enacdrives.conf"
     else:
         OS_VERSION = "Error: OS not supported."
 
