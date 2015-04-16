@@ -20,13 +20,13 @@
 # ! Copied to /home/bancal/server_basics/usr/local/bin/enacit1logs.py !
 # ! By hand ;) !
 
-# ! Copied to ~/Projects/mount_filers/client/enacit1logs.py !
+# ! Copied to ~/Projects/enacdrives/client/enacit1logs.py !
 # ! By hand ;) !
 
 
 # Implemented in :
 # - SSIE room
-# - mount_filers
+# - ENACdrives
 # - Duplicity backups
 
 import sys

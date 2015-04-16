@@ -8,4 +8,4 @@ dependencies/
 build/
 dist/
 WIP.md
-web_app/EnacDrives/db.sqlite3
+web_app/enacdrives/db.sqlite3

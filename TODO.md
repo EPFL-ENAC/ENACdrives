@@ -2,8 +2,6 @@
 Global :
 ========
 
-* rename mount_filers -> EnacDrives ? (or MyDrives?)
-
 
 web_app :
 =========

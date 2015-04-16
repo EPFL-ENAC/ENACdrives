@@ -7,12 +7,12 @@ Usage:
 
 from setuptools import setup
 
-APP = ["mount_filers.py"]
-DATA_FILES = ["mount_filers.png"]
+APP = ["enacdrives.py"]
+DATA_FILES = ["enacdrives.png"]
 OPTIONS = {
     "argv_emulation": True,
     # "frameworks": ["libQtCore.4.dylib", "libQtGui.4.dylib"],
-    "iconfile": "/Users/bancal/mount_filers_client/mount_filers.icns",
+    "iconfile": "/Users/bancal/enacdrives_client/enacdrives.icns",
     "includes": ["sip", "PyQt4", "PyQt4.QtCore", "PyQt4.QtGui"],
     "qt_plugins": ["QtGui", "QtCore"]
 }

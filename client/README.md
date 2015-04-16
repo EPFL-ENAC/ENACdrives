@@ -1,4 +1,4 @@
-% mount_filers
+% ENACdrives
 % enac.epfl.ch - Samuel Bancal
 
 
@@ -16,7 +16,7 @@ sudo apt-get install python3-pyqt4
 --------------------------------------------------------------------------------
 
 ~~~ bash
-cd ~/Projects/mount_filers
+cd ~/Projects/enacdrives
 virtualenv -p python3.4 venv_py3
 ln -s venv_py3/bin/activate .
 . activate
@@ -112,7 +112,7 @@ pip install py2app
 ~~~
 
 
-2015.03.24 - SB ● MacOSX created mount_filers.icns (icon set)
+2015.03.24 - SB ● MacOSX created enacdrives.icns (icon set)
 --------------------------------------------------------------------------------
 
 Instructions at http://applehelpwriter.com/2012/12/16/make-your-own-icns-icons-for-free/
@@ -135,13 +135,13 @@ In Terminal, run :
 
 iconutil -c icns ~/Desktop/iconbuilder.iconset
 
-It's done. Rename it "mount_filers.icns"!
+It's done. Rename it "enacdrives.icns"!
 
 
-2015.03.24 - SB ● Create mount_filers.app
+2015.03.24 - SB ● Create enacdrives.app
 --------------------------------------------------------------------------------
 
-py2applet --make-setup mount_filers.py mount_filers.icns
+py2applet --make-setup enacdrives.py enacdrives.icns
 
 This creates a setup.py ... rename it to setup_osx.py
 
@@ -226,29 +226,29 @@ python setup_osx.py py2app
 done!
 
 
-2015.03.26 - SB ● Create mount_filers.app
+2015.03.26 - SB ● Create enacdrives.app
 --------------------------------------------------------------------------------
 
 Applications throws an exception when launched :
 
-26.03.15 11:25:08.172	mount_filers[4382]	Traceback (most recent call last):
-26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/__boot__.py", line 351, in <module>
-26.03.15 11:25:08.173	mount_filers[4382]	    _run()
-26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/__boot__.py", line 336, in _run
-26.03.15 11:25:08.173	mount_filers[4382]	    exec(compile(source, path, 'exec'), globals(), globals())
-26.03.15 11:25:08.173	mount_filers[4382]	  File "/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/mount_filers.py", line 7, in <module>
-26.03.15 11:25:08.173	mount_filers[4382]	    from gui import main_GUI
-26.03.15 11:25:08.173	mount_filers[4382]	  File "gui.pyc", line 9, in <module>
-26.03.15 11:25:08.174	mount_filers[4382]	  File "PyQt4/QtGui.pyc", line 14, in <module>
-26.03.15 11:25:08.174	mount_filers[4382]	  File "PyQt4/QtGui.pyc", line 10, in __load
-26.03.15 11:25:08.175	mount_filers[4382]	ImportError: dlopen(/Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so, 2): Library not loaded: @loader_path/../../../libQtGui.4.dylib
-26.03.15 11:25:08.175	mount_filers[4382]	  Referenced from: /Users/bancal/SWITCHdrive/mount_filers/client/dist/mount_filers.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so
-26.03.15 11:25:08.175	mount_filers[4382]	  Reason: image not found
+26.03.15 11:25:08.172	enacdrives[4382]	Traceback (most recent call last):
+26.03.15 11:25:08.173	enacdrives[4382]	  File "/Users/bancal/SWITCHdrive/enacdrives/client/dist/enacdrives.app/Contents/Resources/__boot__.py", line 351, in <module>
+26.03.15 11:25:08.173	enacdrives[4382]	    _run()
+26.03.15 11:25:08.173	enacdrives[4382]	  File "/Users/bancal/SWITCHdrive/enacdrives/client/dist/enacdrives.app/Contents/Resources/__boot__.py", line 336, in _run
+26.03.15 11:25:08.173	enacdrives[4382]	    exec(compile(source, path, 'exec'), globals(), globals())
+26.03.15 11:25:08.173	enacdrives[4382]	  File "/Users/bancal/SWITCHdrive/enacdrives/client/dist/enacdrives.app/Contents/Resources/enacdrives.py", line 7, in <module>
+26.03.15 11:25:08.173	enacdrives[4382]	    from gui import main_GUI
+26.03.15 11:25:08.173	enacdrives[4382]	  File "gui.pyc", line 9, in <module>
+26.03.15 11:25:08.174	enacdrives[4382]	  File "PyQt4/QtGui.pyc", line 14, in <module>
+26.03.15 11:25:08.174	enacdrives[4382]	  File "PyQt4/QtGui.pyc", line 10, in __load
+26.03.15 11:25:08.175	enacdrives[4382]	ImportError: dlopen(/Users/bancal/SWITCHdrive/enacdrives/client/dist/enacdrives.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so, 2): Library not loaded: @loader_path/../../../libQtGui.4.dylib
+26.03.15 11:25:08.175	enacdrives[4382]	  Referenced from: /Users/bancal/SWITCHdrive/enacdrives/client/dist/enacdrives.app/Contents/Resources/lib/python3.4/lib-dynload/PyQt4/QtGui.so
+26.03.15 11:25:08.175	enacdrives[4382]	  Reason: image not found
 
 
 Workaround/fix :
-cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/mount_filers.app/Contents/Resources/lib/
-cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/mount_filers.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/enacdrives.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/enacdrives.app/Contents/Resources/lib/
 
 
 2015.03.27 - SB ● Build on Precise (12.04)
@@ -257,7 +257,7 @@ cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/mount_filers.app/Contents/Re
 Running 14.04 compiled application raises the following error :
 
 ~~~ out
-./build/exe.linux-x86_64-3.4/mount_filers: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.17' not found (required by /home/bancal/mount_filers_client/build/exe.linux-x86_64-3.4/libpython3.4m.so.1.0)
+./build/exe.linux-x86_64-3.4/enacdrives: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.17' not found (required by /home/bancal/enacdrives_client/build/exe.linux-x86_64-3.4/libpython3.4m.so.1.0)
 ~~~
 
 FIX : Copmile on Ubuntu 12.04 (Precise)

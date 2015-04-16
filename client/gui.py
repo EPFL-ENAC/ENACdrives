@@ -92,8 +92,8 @@ class GUI(QtGui.QWidget):
         self.refresh_timer.start(5000)  # every 5s.
 
         self.setGeometry(300, 300, 290, 150)
-        self.setWindowTitle("Test compiled Python (Win/Lin/OSX)")
-        self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "mount_filers.png")))
+        self.setWindowTitle("ENACdrives")
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "enacdrives.png")))
         self.show()
 
     def notify_user(self, msg):

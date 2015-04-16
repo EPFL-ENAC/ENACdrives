@@ -9,7 +9,7 @@ from cx_Freeze import setup, Executable
 buildOptions = dict(
     packages=[],
     excludes=[],
-    include_files=["mount_filers.png"],
+    include_files=["enacdrives.png"],
     include_msvcr=True  # skip error msvcr100.dll missing
 )
 
@@ -24,18 +24,18 @@ else:
     raise Exception("Not managed platform %s" % sys.platform)
 
 setup(
-    name='MultiOS PyQt mount_filers',
+    name='ENACdrives',
     version='0.1',
-    description='Test ability to compile PyQt app on 3 OS',
+    description='Access your Network Drives easily.',
     options=dict(build_exe=buildOptions),
     executables=[Executable(
-        script="mount_filers.py",
+        script="enacdrives.py",
         # initScript = None,
         # targetDir = target_dir,
-        # targetName = "mount_filers.exe",
+        # targetName = "enacdrives.exe",
         base=base,
         compress=True,
-        icon="mount_filers.ico"
+        icon="enacdrives.ico"
         # copyDependentFiles = False,
         # appendScriptToExe = False,
         # appendScriptToLibrary = False,
