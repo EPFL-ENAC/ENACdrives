@@ -282,7 +282,7 @@ def validate_config(cfg):
 
 def main():
     with Output():
-        f_name = "test.conf"
+        f_name = "mount_filers.conf"
         with open(f_name, "r") as f:
             cfg = read_config_source(f)
             Output.write(pprint.pformat(cfg))
