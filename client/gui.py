@@ -124,13 +124,7 @@ class GUI(QtGui.QWidget):
 
 
 def main_GUI():
-    cfg = conf.get_default_config()
-    try:
-        with open("./mount_filers.conf", "r") as f:
-            cfg.update(conf.read_config_source(f))
-    except FileNotFoundError:
-        pass
-    cfg = conf.validate_config(cfg)
+    cfg = conf.get_config()
     Output.write(pprint.pformat(cfg))
     
     app = QtGui.QApplication(sys.argv)

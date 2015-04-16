@@ -2,10 +2,18 @@
 
 # Bancal Samuel
 
-# Offers Config parsing from different sources
+# Offers get_config() which
+#  + parse config from
+#    + default values (hard coded in source)
+#    + http://enacdrives.epfl.ch/config?username=xxx
+#    + System's config
+#    + User's config
+#  + merge them
+#  + validate
 
 import re
 import pprint
+import urllib.request
 from utility import Output
 
 
@@ -13,15 +21,24 @@ class ConfigException(Exception):
     pass
 
 
-def get_default_config():
-    return {'global': {
-             'Linux_CIFS_method': 'gvfs',
-             'Linux_gvfs_symlink': True,
-             'Linux_mountcifs_dirmode': '0770',
-             'Linux_mountcifs_filemode': '0770',
-             'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
-            }
-
+def get_config():
+    default_config = {
+        'global': {
+         'Linux_CIFS_method': 'gvfs',
+         'Linux_gvfs_symlink': True,
+         'Linux_mountcifs_dirmode': '0770',
+         'Linux_mountcifs_filemode': '0770',
+         'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+        }
+    cfg = default_config
+    
+    with urllib.request.urlopen('http://salsa.epfl.ch:8000/config?username=bancal') as response:
+        enacdrives_config = read_config_source(response)
+        enacdrives_config = validate_config(enacdrives_config)
+        cfg.update(enacdrives_config)
+    
+    return cfg
+        
 
 def validate_value(option, value):
     if option == "Linux_CIFS_method":
@@ -161,6 +178,8 @@ def read_config_source(src):
     line_nb = 0
     section_line_nb = 0
     for line in src.readlines():
+        if type(line) == bytes:
+            line = line.decode()
         line_nb += 1
         l = line
         l = re.sub(r"#.*", "", l)  # remove comments
@@ -282,10 +301,8 @@ def validate_config(cfg):
 
 def main():
     with Output():
-        f_name = "mount_filers.conf"
-        with open(f_name, "r") as f:
-            cfg = read_config_source(f)
-            Output.write(pprint.pformat(cfg))
+        cfg = get_config()
+        Output.write(pprint.pformat(cfg))
 
 if __name__ == "__main__":
     main()
