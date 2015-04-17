@@ -9,7 +9,7 @@ import io
 import copy
 import unittest
 from utility import Output
-from conf import read_config_source, validate_config
+from conf import read_config_source, validate_config, merge_configs
 
 
 class TestReadConfigSource(unittest.TestCase):
@@ -302,7 +302,49 @@ class TestValidateConfig(unittest.TestCase):
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
-            self.assertEqual(s_out.readlines(), ["Missing realm 'r_name'.\n", "Removing CIFS_mount 'name' repending on realm 'r_name'.\n"])
+            self.assertEqual(s_out.readlines(), ["Missing realm 'r_name'.\n", "Removing CIFS_mount 'name' depending on realm 'r_name'.\n"])
+
+
+class TestMergeConfigs(unittest.TestCase):
+    def test_empty(self):
+        cfg = {}
+        cfg_to_merge = {}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': []}, 'realm': {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
+    def test_yes_no(self):
+        cfg = {'global': {'entries_order': ["a", "b"]}}
+        cfg_to_merge = {}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
+    def test_no_yes(self):
+        cfg = {}
+        cfg_to_merge = {'global': {'entries_order': ["a", "b"]}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
+    def test_yes_yes(self):
+        cfg = {'global': {'entries_order': ["a", "b", "c", "d"]}}
+        cfg_to_merge = {'global': {'entries_order': ["c", "a"]}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["c", "a", "b", "d"]}, 'realm': {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
 
 
 if __name__ == "__main__":

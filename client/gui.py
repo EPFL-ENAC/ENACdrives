@@ -67,10 +67,19 @@ class GUI(QtGui.QWidget):
         self.key_chain = Key_Chain(self)
 
         self.entries = []
-        
+
+        entries_added = []
+        for entry_name in self.cfg["global"]["entries_order"]:
+            if entry_name in self.cfg["CIFS_mount"]:
+                entry = CIFS_Mount(self, self.cfg, entry_name, self.key_chain)
+                self.entries.append(UI_Mount_Entry(self, entry))
+                entries_added.append(entry_name)
+            else:
+                Output.write("Warning, Entry not found '{0}'.".format(entry_name))
         for entry_name in self.cfg.get("CIFS_mount", {}):
-            entry = CIFS_Mount(self, self.cfg, entry_name, self.key_chain)
-            self.entries.append(UI_Mount_Entry(self, entry))
+            if entry_name not in entries_added:
+                entry = CIFS_Mount(self, self.cfg, entry_name, self.key_chain)
+                self.entries.append(UI_Mount_Entry(self, entry))
 
         self.bt_quit = QtGui.QPushButton('Quit', self)
         self.bt_quit.clicked.connect(QtGui.qApp.quit)

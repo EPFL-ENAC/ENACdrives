@@ -26,23 +26,6 @@ class ConfigException(Exception):
 
 
 def get_config(username):
-    
-    def _update_cfg(stacked_cfg):
-        cfg.setdefault("global", {})
-        cfg["global"].update(stacked_cfg.get("global", {}))
-        
-        cfg.setdefault("CIFS_mount", {})
-        for cifs_m in stacked_cfg.get("CIFS_mount", {}):
-            cfg["CIFS_mount"].setdefault(cifs_m, {})
-            cfg["CIFS_mount"][cifs_m].update(stacked_cfg["CIFS_mount"][cifs_m])
-        
-        cfg.setdefault("realm", {})
-        for realm in stacked_cfg.get("realm", {}):
-            cfg["realm"].setdefault(realm, {})
-            cfg["realm"][realm].update(stacked_cfg["realm"][realm])
-
-    #
-
     # Create cache_dir if not already existent
     if not os.path.exists(CONST.USER_CACHE_DIR):
         os.makedirs(CONST.USER_CACHE_DIR)
@@ -66,7 +49,7 @@ def get_config(username):
             lines = [l.decode() for l in response.readlines()]
             s_io = io.StringIO("".join(lines))
             enacdrives_config = read_config_source(s_io)
-            _update_cfg(enacdrives_config)
+            merge_configs(cfg, enacdrives_config)
             s_io.seek(0)
             with open(cache_filename, "w") as f:
                 f.writelines(s_io.readlines())
@@ -75,7 +58,7 @@ def get_config(username):
         try:
             with open(cache_filename, "r") as f:
                 cached_config = read_config_source(f)
-                _update_cfg(cached_config)
+                merge_configs(cfg, cached_config)
             Output.write("Loaded config from cache file. ({0})".format(cache_filename))
         except FileNotFoundError:
             Output.write("!!! Error, could not load config from cache file. ({0})".format(cache_filename))
@@ -84,7 +67,7 @@ def get_config(username):
     try:
         with open(CONST.SYSTEM_CONF_FILE, "r") as f:
             system_config = read_config_source(f)
-            _update_cfg(system_config)
+            merge_configs(cfg, system_config)
         Output.write("Loaded config from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
     except FileNotFoundError:
         Output.write("No config found from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
@@ -93,19 +76,49 @@ def get_config(username):
     try:
         with open(CONST.USER_CONF_FILE, "r") as f:
             user_config = read_config_source(f)
-            _update_cfg(user_config)
+            merge_configs(cfg, user_config)
         Output.write("Loaded config from User context. ({0})".format(CONST.USER_CONF_FILE))
     except FileNotFoundError:
         Output.write("No config found from User context. ({0})".format(CONST.USER_CONF_FILE))
     
     cfg = validate_config(cfg)
     return cfg
-        
+
+
+def merge_configs(cfg, cfg_to_merge):
+    cfg.setdefault("global", {})
+    
+    # merge entries_order (priority to cfg_to_merge, then add missing from cfg)
+    cfg_to_merge.setdefault("global", {})
+    cfg_to_merge["global"].setdefault("entries_order", [])
+    for entry in cfg["global"].get("entries_order", []):
+        if entry not in cfg_to_merge["global"]["entries_order"]:
+            cfg_to_merge["global"]["entries_order"].append(entry)
+            
+    # merge ["global"]
+    cfg["global"].update(cfg_to_merge.get("global", {}))
+    
+    # merge ["CIFS_mount"]
+    cfg.setdefault("CIFS_mount", {})
+    for cifs_m in cfg_to_merge.get("CIFS_mount", {}):
+        cfg["CIFS_mount"].setdefault(cifs_m, {})
+        cfg["CIFS_mount"][cifs_m].update(cfg_to_merge["CIFS_mount"][cifs_m])
+    
+    # merge ["realm"]
+    cfg.setdefault("realm", {})
+    for realm in cfg_to_merge.get("realm", {}):
+        cfg["realm"].setdefault(realm, {})
+        cfg["realm"][realm].update(cfg_to_merge["realm"][realm])
+    
+    return cfg
+
 
 def validate_value(option, value):
     if option == "Linux_CIFS_method":
         if value not in ("gvfs", "mount.cifs"):
             raise ConfigException("Error, Linux_CIFS_method has to be 'gvfs' or 'mount.cifs'.")
+    elif option == "entries_order":
+        value = [e.strip() for e in value.split(",")]
     elif option in ("server_path", "local_path"):
         value = re.sub(r"\\", "/", value)
     elif option == "domain":
@@ -206,6 +219,7 @@ def read_config_source(src):
     multi_entries_sections = ("CIFS_mount", "realm")
     allowed_options = {
         "global": (
+            "entries_order",
             "Linux_CIFS_method",
             "Linux_mountcifs_filemode",
             "Linux_mountcifs_dirmode",
