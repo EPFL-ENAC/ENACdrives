@@ -1,0 +1,4 @@
+Django==1.8
+mod-wsgi==4.4.11
+pyasn1==0.1.7
+python3-ldap==0.9.7
