@@ -15,17 +15,31 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+SERVICE_NAME = "ENACDRIVES"
+
+RELEASE_VERSION = "0.1.0"
+RELEASE_DATE = "2015-04-20"
+
+SERVER_HOSTNAME = os.uname()[1]
+
+if SERVER_HOSTNAME == "enacit1sbtest4":
+    CONTEXT = "dev"
+    from enacdrives.settings_enacit1sbtest4 import *
+if SERVER_HOSTNAME == "enacit1pc4":
+    CONTEXT = "dev"
+    from enacdrives.settings_enacit1pc4 import *
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=-s95apy2p(w9tnk#-n=h76r1xag4x^g)tvak#w#cssh$h6br!'
+# SECRET_KEY = '=-s95apy2p(w9tnk#-n=h76r1xag4x^g)tvak#w#cssh$h6br!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -45,10 +59,15 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.RemoteUserBackend',
 )
 
 ROOT_URLCONF = 'enacdrives.urls'
@@ -75,12 +94,12 @@ WSGI_APPLICATION = 'enacdrives.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 
 # Internationalization

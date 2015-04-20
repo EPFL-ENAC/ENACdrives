@@ -109,6 +109,16 @@ def rsync():
 
 
 @task
+def migrate():
+    run(sub("{python} {code_dir}/manage.py migrate"))
+
+
+@task
+def admin_staff_setup():
+    run(sub("{python} {code_dir}/tools/admin_staff_setup.py"))
+
+
+@task
 def deploy():
     rsync()
     apache_reload()
@@ -120,6 +130,8 @@ def full_deploy():
     rm_pyc()
     virtualenv_init()
     virtualenv_setup()
+    migrate()
+    admin_staff_setup()
     mod_wsgi_express_setup()
     apache_setup()
     apache_restart()
