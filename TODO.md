@@ -2,8 +2,6 @@
 Global :
 ========
 
-* test-server enacdrives.epfl.ch (alias of enacit1sbtest4.epfl.ch)
-
 
 
 web_app :
