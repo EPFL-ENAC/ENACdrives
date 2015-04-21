@@ -1,11 +1,12 @@
 # from django.shortcuts import render
 from django.http import HttpResponse, Http404
-from django.core.exceptions import ObjectDoesNotExist
+# from django.shortcuts import render_to_response
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from config import models as mo
 
 
-def http_config(request):
+def http_get(request):
     if request.method != "GET":
         raise Http404
 
@@ -20,3 +21,7 @@ def http_config(request):
             pass
     
     return HttpResponse(config_given + "\n", content_type="text/plain; charset=utf-8")
+
+
+def http_home(request):
+    raise PermissionDenied

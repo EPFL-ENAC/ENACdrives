@@ -2,6 +2,11 @@
 
 import os
 
+ADMINS = (('Samuel Bancal', 'Samuel.Bancal@epfl.ch'),)
+EMAIL_HOST = "mail.epfl.ch"
+EMAIL_SUBJECT_PREFIX = "[ENACdrives on enacit1pc4] "
+SERVER_EMAIL = "no-reply@enacit1pc4.epfl.ch"
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '=-s95apy2p(w9tnk#-n=h76r1xag4x^g)tvak#w#cssh$h6br!'
 
