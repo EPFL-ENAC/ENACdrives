@@ -1,5 +1,9 @@
+import os
 import re
+import json
 import ldap3
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class UserNotFoundException(Exception):
@@ -25,12 +29,13 @@ class Ldap():
                 + other accreditations come after, unsorted
         """
         with self.c:
-            self.c.search(
+            if not self.c.search(
                 search_base=self.base_dn,
                 search_filter=l_filter,
                 search_scope=self.scope,
                 attributes=l_attrs,
-            )
+            ):
+                raise Exception("Could not search to {0}".format(self.server_name))
 
             if self.c.response is None:
                 return []
@@ -53,19 +58,20 @@ class AD(object):
         self.server_name = "ldap://intranet.epfl.ch:3268"
         self.base_dn = "DC=intranet,DC=epfl,DC=ch"
         self.scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
-        self.dn = "intranet\\enacmoni"
-        self.secret = "amcEMjmtl/E"
+        with open(BASE_DIR + "/ad_credentials.json", "r") as f:
+            self.dn, self.secret = json.load(f)
         self.s = ldap3.Server(self.server_name)
         self.c = ldap3.Connection(self.s, user=self.dn, password=self.secret, read_only=True)
 
     def read_ldap(self, l_filter, l_attrs):
         with self.c:
-            self.c.search(
+            if not self.c.search(
                 search_base=self.base_dn,
                 search_filter=l_filter,
                 search_scope=self.scope,
                 attributes=l_attrs,
-            )
+            ):
+                raise Exception("Could not search to {0}".format(self.server_name))
 
             if self.c.response is None:
                 return []
