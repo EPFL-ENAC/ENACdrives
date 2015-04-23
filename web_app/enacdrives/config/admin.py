@@ -1,20 +1,27 @@
 from django.contrib import admin
 
-from .models import User, Group, Config
+from .models import User, EpflUnit, LdapGroup, Config
 
 
 class ConfigAdmin(admin.ModelAdmin):
-    fields = ['users', 'groups', 'data']
-    list_display = ("get_users", "get_groups", "get_data")
+    fieldsets = (
+        ("Who", {"fields": ("users", "epfl_units", "ldap_groups")}),
+        ("What", {"fields": ("rank", "data")})
+    )
+    list_display = ("rank", "get_users", "get_epfl_units", "get_ldap_groups", "get_data")
     list_display_links = ("get_data",)
     
     def get_users(self, obj):
-        return self.short(", ".join([u.name for u in obj.users.all()]), 20)
-    get_users.short_description = 'Users'
+        return ", ".join([u.name for u in obj.users.all()])
+    get_users.short_description = "Users"
     
-    def get_groups(self, obj):
-        return self.short(", ".join([g.name for g in obj.groups.all()]), 20)
-    get_groups.short_description = 'Groups'
+    def get_epfl_units(self, obj):
+        return ", ".join([g.name for g in obj.epfl_units.all()])
+    get_epfl_units.short_description = "EPFL Units"
+    
+    def get_ldap_groups(self, obj):
+        return ", ".join([g.name for g in obj.ldap_groups.all()])
+    get_ldap_groups.short_description = "Ldap Groups"
     
     def get_data(self, obj):
         return obj.data.replace("\n", "<br/>")
@@ -28,5 +35,6 @@ class ConfigAdmin(admin.ModelAdmin):
             return string
 
 admin.site.register(User)
-admin.site.register(Group)
+admin.site.register(EpflUnit)
+admin.site.register(LdapGroup)
 admin.site.register(Config, ConfigAdmin)
