@@ -13,29 +13,30 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Config',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('rank', models.IntegerField(default=0)),
+                ('name', models.CharField(max_length=256)),
                 ('data', models.TextField(blank=True)),
             ],
         ),
         migrations.CreateModel(
             name='EpflUnit',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=256)),
             ],
         ),
         migrations.CreateModel(
             name='LdapGroup',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=256)),
             ],
         ),
         migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=256)),
             ],
         ),
