@@ -25,7 +25,9 @@ class ConfigException(Exception):
     pass
 
 
-def get_config(username):
+def get_config():
+    username = "bancal"
+    
     # Create cache_dir if not already existent
     if not os.path.exists(CONST.USER_CACHE_DIR):
         os.makedirs(CONST.USER_CACHE_DIR)

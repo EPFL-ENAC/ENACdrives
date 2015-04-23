@@ -54,14 +54,14 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.1"
-    FULL_VERSION = "2015-04-17 " + VERSION
+    VERSION = "0.1.2"
+    FULL_VERSION = "2015-04-23 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
     
-    CONFIG_URL = "http://salsa.epfl.ch:8000/config?username={username}&version=" + VERSION
+    CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):

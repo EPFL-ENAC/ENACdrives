@@ -7,9 +7,6 @@ Global :
 web_app :
 =========
 
-* define groups architecture
-* implement groups
-
 
 
 client :

@@ -133,7 +133,7 @@ class GUI(QtGui.QWidget):
 
 
 def main_GUI():
-    cfg = conf.get_config("bancal")
+    cfg = conf.get_config()
     Output.write(pprint.pformat(cfg))
     
     app = QtGui.QApplication(sys.argv)
