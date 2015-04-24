@@ -54,8 +54,8 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.2"
-    FULL_VERSION = "2015-04-23 " + VERSION
+    VERSION = "0.1.3"
+    FULL_VERSION = "2015-04-24 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
@@ -70,6 +70,10 @@ class CONST():
     else:
         # The application is not frozen
         RESOURCES_DIR = os.path.dirname(__file__)
+    
+    # use full ABSOLUTE path to the image, not relative
+    MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
+    UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
 
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]

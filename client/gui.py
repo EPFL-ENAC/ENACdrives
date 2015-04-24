@@ -30,11 +30,15 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.ui = ui
         self.mount_instance = mount_instance
 
+        self.label_status = QtGui.QLabel()
+        self.label_status.setGeometry(0, 0, 15, 15)
+
         self.label = QtGui.QLabel(self.mount_instance.settings["label"])
         self.bt_mount = QtGui.QPushButton("Mount", self.ui)
         self.bt_mount.clicked.connect(self.toggle_mount)
         self.bt_open = QtGui.QPushButton('Open', self.ui)
         self.bt_open.clicked.connect(self.mount_instance.open_file_manager)
+        self.addWidget(self.label_status)
         self.addWidget(self.label)
         self.addStretch(1)
         self.addWidget(self.bt_mount)
@@ -50,11 +54,13 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
     def update_status(self):
         if self.mount_instance.is_mounted():
-            self.bt_mount.setText("unMount")
-            self.label.setText(self.mount_instance.settings["label"] + "[mounted]")
+            self.bt_mount.setText("Disconnect")
+            self.label_status.setPixmap(QtGui.QPixmap(CONST.MOUNTED_PNG))
+            self.bt_open.setEnabled(True)
         else:
-            self.bt_mount.setText("Mount")
-            self.label.setText(self.mount_instance.settings["label"] + "[not mounted]")
+            self.bt_mount.setText("Connect")
+            self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
+            self.bt_open.setEnabled(False)
 
 
 class GUI(QtGui.QWidget):
