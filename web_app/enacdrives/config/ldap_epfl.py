@@ -29,13 +29,14 @@ class Ldap():
                 + other accreditations come after, unsorted
         """
         with self.c:
-            if not self.c.search(
+            if not self.c.bound:
+                raise Exception("Could not bind to {}".format(self.server_name))
+            self.c.search(
                 search_base=self.base_dn,
                 search_filter=l_filter,
                 search_scope=self.scope,
                 attributes=l_attrs,
-            ):
-                raise Exception("Could not search to {0}".format(self.server_name))
+            )                
 
             if self.c.response is None:
                 return []
@@ -65,13 +66,15 @@ class AD(object):
 
     def read_ldap(self, l_filter, l_attrs):
         with self.c:
-            if not self.c.search(
+            if not self.c.bound:
+                raise Exception("Could not bind to {}".format(self.server_name))
+
+            self.c.search(
                 search_base=self.base_dn,
                 search_filter=l_filter,
                 search_scope=self.scope,
                 attributes=l_attrs,
-            ):
-                raise Exception("Could not search to {0}".format(self.server_name))
+            )
 
             if self.c.response is None:
                 return []
