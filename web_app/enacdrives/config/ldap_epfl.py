@@ -54,34 +54,6 @@ class Ldap():
         )
 
 
-class AD(object):
-    def __init__(self):
-        self.server_name = "ldap://intranet.epfl.ch:3268"
-        self.base_dn = "DC=intranet,DC=epfl,DC=ch"
-        self.scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
-        with open(BASE_DIR + "/ad_credentials.json", "r") as f:
-            self.dn, self.secret = json.load(f)
-        self.s = ldap3.Server(self.server_name)
-        self.c = ldap3.Connection(self.s, user=self.dn, password=self.secret, read_only=True)
-
-    def read_ldap(self, l_filter, l_attrs):
-        with self.c:
-            if not self.c.bound:
-                raise Exception("Could not bind to {}".format(self.server_name))
-
-            self.c.search(
-                search_base=self.base_dn,
-                search_filter=l_filter,
-                search_scope=self.scope,
-                attributes=l_attrs,
-            )
-
-            if self.c.response is None:
-                return []
-            
-            return self.c.response
-
-
 def get_user_settings(username):
     """
     1) Search ldap.epfl.ch for that username
@@ -101,7 +73,7 @@ def get_user_settings(username):
     l = Ldap()
     user_settings = {
         "username": username,
-        "auth_domain": None,
+        "auth_domain": "INTRANET",
         "displayName": None,
         "sciper": None,
         "last_sciper_digit": None,
@@ -136,11 +108,4 @@ def get_user_settings(username):
             pass
     user_settings["ldap_groups"] = list(ldap_groups)
 
-    # C) Look in AD
-    # -> auth_domain
-    ad = AD()
-    r = ad.read_ldap(l_filter="(sAMAccountName={0})".format(username), l_attrs=["dn"])
-    all_dc = re.findall(r"DC=(\w+)", r[0]["dn"])
-    user_settings["auth_domain"] = all_dc[0].upper()
-    
     return user_settings
