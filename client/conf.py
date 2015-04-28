@@ -21,6 +21,9 @@ import urllib.request
 from utility import Output, CONST
 
 
+FileNotFoundException = getattr(__builtins__, 'FileNotFoundError', IOError)
+
+
 class ConfigException(Exception):
     pass
 
@@ -52,7 +55,7 @@ def get_config():
             Output.write("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
         else:
             Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
-    except FileNotFoundError:
+    except FileNotFoundException:
         Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
 
     # ENACDRIVE SERVER CONFIG (included cache function)
@@ -76,7 +79,7 @@ def get_config():
                     cached_config = read_config_source(f)
                     merge_configs(cfg, cached_config)
                 Output.write("Loaded config from cache file. ({})".format(cache_filename))
-            except FileNotFoundError:
+            except FileNotFoundException:
                 Output.write("!!! Error, could not load config from cache file. ({})".format(cache_filename))
     else:
         Output.write("Skipping config from ENACdrives server (no username).")
@@ -87,7 +90,7 @@ def get_config():
             system_config = read_config_source(f)
             merge_configs(cfg, system_config)
         Output.write("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
-    except FileNotFoundError:
+    except FileNotFoundException:
         Output.write("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
     
     # USER CONFIG
@@ -150,7 +153,7 @@ def save_username(username):
             lines.insert(0, "[global]\n")
             lines.insert(1, "username = {}\n".format(username))
         
-    except FileNotFoundError:
+    except FileNotFoundException:
         Output.write("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
         lines.insert(0, "[global]\n")
         lines.insert(1, "username = {}\n".format(username))

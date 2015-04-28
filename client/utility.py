@@ -28,6 +28,9 @@ import enacit1logs
 # /ENACIT1LOGS
 
 
+FileNotFoundException = getattr(__builtins__, 'FileNotFoundError', IOError)
+
+
 class CancelOperationException(Exception):
     """
         Raised when user want to abort an operation
@@ -56,7 +59,7 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.4"
+    VERSION = "0.1.5"
     FULL_VERSION = "2015-04-28 " + VERSION
 
     OS_SYS = platform.system()
@@ -85,7 +88,7 @@ class CONST():
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         try:
             DESKTOP_DIR = subprocess.check_output(["xdg-user-dir", "DESKTOP"]).decode().strip()
-        except FileNotFoundError:
+        except FileNotFoundException:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
@@ -212,8 +215,8 @@ class Key_Chain():
             gc.collect()
 
     def wipe_passwords(self):
-        for realm in self.keys:
-            del(self.keys[realm])
+        del(self.keys)
+        self.keys = {}
         gc.collect()
 
 

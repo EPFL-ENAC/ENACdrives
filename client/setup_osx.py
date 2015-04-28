@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ["enacdrives.py"]
-DATA_FILES = ["enacdrives.png"]
+DATA_FILES = ["enacdrives.png", "mounted.png", "umounted.png"]
 OPTIONS = {
     "argv_emulation": True,
     # "frameworks": ["libQtCore.4.dylib", "libQtGui.4.dylib"],
