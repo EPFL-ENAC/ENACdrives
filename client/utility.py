@@ -14,6 +14,8 @@ import tempfile
 import datetime
 import platform
 import subprocess
+import urllib.error
+import urllib.request
 
 try:
     import grp
@@ -54,14 +56,15 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.3"
-    FULL_VERSION = "2015-04-24 " + VERSION
+    VERSION = "0.1.4"
+    FULL_VERSION = "2015-04-28 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
     
     CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
+    VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
@@ -284,3 +287,15 @@ class Live_Cache():
             cls.cache.pop(str_cmd)
         except (AttributeError, KeyError):
             pass
+
+
+def validate_username(username):
+    validate_url = CONST.VALIDATE_USERNAME_URL.format(username=username)
+    try:
+        with urllib.request.urlopen(validate_url) as response:
+            lines = [l.decode() for l in response.readlines()]
+        return lines[0]
+    except urllib.error.URLError:
+        Output.write("Warning, could not load validate url. ({0})".format(validate_url))
+        return "Error, could not contact config server."
+        

@@ -10,6 +10,29 @@ from config import utility as ut
 from config.ldap_epfl import get_user_settings, UserNotFoundException
 
 
+def http_home(request):
+    raise PermissionDenied
+
+
+def http_validate_username(request):
+    if request.method != "GET":
+        raise Http404
+
+    username = ut.validate_input(request.GET.get, "username")
+
+    answer = "ok"
+    if username == "":
+        answer = "No information given."
+    elif "\\" in username:
+        answer = "Do not prefix your username with the domain."
+    else:
+        try:
+            get_user_settings(username)
+        except UserNotFoundException:
+            answer = "Username mistyped."
+    return HttpResponse(answer, content_type="text/plain; charset=utf-8")
+
+
 def http_get(request):
     if request.method != "GET":
         raise Http404
@@ -145,7 +168,3 @@ def http_ldap_settings(request):
         pass
     
     return HttpResponse(output + "\n", content_type="text/plain; charset=utf-8")
-
-
-def http_home(request):
-    raise PermissionDenied

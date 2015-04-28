@@ -168,6 +168,7 @@ local_path = \home\user\Desktop\mnt
     def test_complete_config(self):
         s_in = io.StringIO(r"""
 [global]
+username = bancal
 Linux_CIFS_method = gvfs
 Linux_mountcifs_filemode = 0770
 Linux_mountcifs_dirmode = 0770
@@ -224,6 +225,7 @@ Windows_letter = Z:
                    'server_path': 'data/bancal',
                    'stared': False}},
                  'global': {
+                  'username': 'bancal',
                   'Linux_CIFS_method': 'gvfs',
                   'Linux_gvfs_symlink': True,
                   'Linux_mountcifs_dirmode': '0770',

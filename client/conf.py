@@ -16,8 +16,8 @@ import re
 import io
 import pprint
 import hashlib
-import urllib.request
 import urllib.error
+import urllib.request
 from utility import Output, CONST
 
 
@@ -26,8 +26,6 @@ class ConfigException(Exception):
 
 
 def get_config():
-    username = "bancal"
-    
     # Create cache_dir if not already existent
     if not os.path.exists(CONST.USER_CACHE_DIR):
         os.makedirs(CONST.USER_CACHE_DIR)
@@ -43,50 +41,124 @@ def get_config():
         }
     cfg = default_config
     
-    # ENACDRIVE SERVER CONFIG (included cache function)
-    config_url = CONST.CONFIG_URL.format(username=username)
-    cache_filename = os.path.join(CONST.USER_CACHE_DIR, hashlib.md5(config_url.encode()).hexdigest())
+    # USER CONFIG -> get only username from [global]
+    user_config = None
+    username = None
     try:
-        with urllib.request.urlopen(config_url) as response:
-            lines = [l.decode() for l in response.readlines()]
-            s_io = io.StringIO("".join(lines))
-            enacdrives_config = read_config_source(s_io)
-            merge_configs(cfg, enacdrives_config)
-            s_io.seek(0)
-            with open(cache_filename, "w") as f:
-                f.writelines(s_io.readlines())
-    except urllib.error.URLError:
-        Output.write("Warning, could not load config ENACdrives server. ({0})".format(config_url))
+        with open(CONST.USER_CONF_FILE, "r") as f:
+            user_config = read_config_source(f)
+        username = user_config.get("global", {}).get("username", None)
+        if username is not None:
+            Output.write("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
+        else:
+            Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+    except FileNotFoundError:
+        Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+
+    # ENACDRIVE SERVER CONFIG (included cache function)
+    if username is not None:
+        config_url = CONST.CONFIG_URL.format(username=username)
+        cache_filename = os.path.join(CONST.USER_CACHE_DIR, hashlib.md5(config_url.encode()).hexdigest())
         try:
-            with open(cache_filename, "r") as f:
-                cached_config = read_config_source(f)
-                merge_configs(cfg, cached_config)
-            Output.write("Loaded config from cache file. ({0})".format(cache_filename))
-        except FileNotFoundError:
-            Output.write("!!! Error, could not load config from cache file. ({0})".format(cache_filename))
+            with urllib.request.urlopen(config_url) as response:
+                lines = [l.decode() for l in response.readlines()]
+                s_io = io.StringIO("".join(lines))
+                enacdrives_config = read_config_source(s_io)
+                merge_configs(cfg, enacdrives_config)
+                s_io.seek(0)
+                with open(cache_filename, "w") as f:
+                    f.writelines(s_io.readlines())
+            Output.write("Loaded config from ENACdrives server ({})".format(config_url))
+        except urllib.error.URLError:
+            Output.write("Warning, could not load config ENACdrives server. ({})".format(config_url))
+            try:
+                with open(cache_filename, "r") as f:
+                    cached_config = read_config_source(f)
+                    merge_configs(cfg, cached_config)
+                Output.write("Loaded config from cache file. ({})".format(cache_filename))
+            except FileNotFoundError:
+                Output.write("!!! Error, could not load config from cache file. ({})".format(cache_filename))
+    else:
+        Output.write("Skipping config from ENACdrives server (no username).")
 
     # SYSTEM CONFIG
     try:
         with open(CONST.SYSTEM_CONF_FILE, "r") as f:
             system_config = read_config_source(f)
             merge_configs(cfg, system_config)
-        Output.write("Loaded config from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
+        Output.write("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
     except FileNotFoundError:
-        Output.write("No config found from System context. ({0})".format(CONST.SYSTEM_CONF_FILE))
+        Output.write("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
     
     # USER CONFIG
-    try:
-        with open(CONST.USER_CONF_FILE, "r") as f:
-            user_config = read_config_source(f)
-            merge_configs(cfg, user_config)
-        Output.write("Loaded config from User context. ({0})".format(CONST.USER_CONF_FILE))
-    except FileNotFoundError:
-        Output.write("No config found from User context. ({0})".format(CONST.USER_CONF_FILE))
+    if user_config is not None:
+        merge_configs(cfg, user_config)
+        Output.write("Loaded config from User context. ({})".format(CONST.USER_CONF_FILE))
+    else:
+        Output.write("No config found from User context. ({})".format(CONST.USER_CONF_FILE))
     
     cfg = validate_config(cfg)
     return cfg
 
 
+def save_username(username):
+    lines = ["", ]
+    try:
+        user_config = None
+        with open(CONST.USER_CONF_FILE, "r") as f:
+            lines = f.readlines()
+            
+        # Parse file, search for username = xxx in [global]
+        current_section = None
+        line_nb = -1
+        global_section_line_nb = None
+        username_line_nb = None
+        for l in lines:
+            line_nb += 1
+            if l.startswith("["):
+                try:
+                    current_section = re.match(r"\[(\S+)\]$", l).groups()[0]
+                    if current_section == "global" and global_section_line_nb is None:
+                        global_section_line_nb = line_nb
+                except AttributeError:
+                    current_section = None
+                continue
+            if current_section != "global":
+                continue
+            try:
+                k, v = re.match(r"([^=]*)=(.*)", l).groups()
+                k, v = k.strip(), v.strip()
+            except AttributeError:
+                continue
+            if k == "username":
+                username_line_nb = line_nb
+                break
+        
+        # username found in config file
+        if username_line_nb is not None:
+            Output.write("Changing to username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            lines[username_line_nb] = "username = {}\n".format(username)
+        
+        # username not found, but [global] found
+        elif global_section_line_nb is not None:
+            Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            lines.insert(global_section_line_nb+1, "username = {}\n".format(username))
+        
+        # username not found, [global] not found
+        else:
+            Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            lines.insert(0, "[global]\n")
+            lines.insert(1, "username = {}\n".format(username))
+        
+    except FileNotFoundError:
+        Output.write("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
+        lines.insert(0, "[global]\n")
+        lines.insert(1, "username = {}\n".format(username))
+    
+    with open(CONST.USER_CONF_FILE, "w") as f:
+        f.writelines(lines)
+    
+    
 def merge_configs(cfg, cfg_to_merge):
     cfg.setdefault("global", {})
     
@@ -144,6 +216,7 @@ def read_config_source(src):
     """
         Readlines on src
             [global]
+            username = bancal
             Linux_CIFS_method = gvfs
             Linux_mountcifs_filemode = 0770
             Linux_mountcifs_dirmode = 0770
@@ -197,6 +270,7 @@ def read_config_source(src):
                'server_path': 'data/bancal',
                'stared': False}},
              'global': {
+              'username': 'bancal',
               'Linux_CIFS_method': 'gvfs',
               'Linux_gvfs_symlink': True,
               'Linux_mountcifs_dirmode': '0770',
@@ -216,11 +290,12 @@ def read_config_source(src):
             cfg[current_section_name].setdefault(name, {})
             cfg[current_section_name][name].update(current_section_values)
         except KeyError:
-            Output.write("Error : Expected name option not found in at line {0}. Skipping that section.".format(section_line_nb))
+            Output.write("Error : Expected name option not found in at line {}. Skipping that section.".format(section_line_nb))
     
     multi_entries_sections = ("CIFS_mount", "realm")
     allowed_options = {
         "global": (
+            "username",
             "entries_order",
             "Linux_CIFS_method",
             "Linux_mountcifs_filemode",
@@ -271,7 +346,7 @@ def read_config_source(src):
             try:
                 new_section = re.match(r"\[(\S+)\]$", l).groups()[0]
             except AttributeError:
-                Output.write("Error : Unexpected content at line {0}:\n{1}".format(line_nb, line))
+                Output.write("Error : Unexpected content at line {}:\n{}".format(line_nb, line))
                 continue
             if current_section_name in multi_entries_sections and current_section_values != {}:
                 # Save previous section content
@@ -281,12 +356,12 @@ def read_config_source(src):
                 current_section_values = {}
                 section_line_nb = line_nb
             else:
-                Output.write("Error : Unexpected section name '{0}' at line {1}:\n{2}".format(new_section, line_nb, line))
+                Output.write("Error : Unexpected section name '{}' at line {}:\n{}".format(new_section, line_nb, line))
                 current_section_name = ""
             continue
         
         if current_section_name == "":
-            Output.write("Error : Unexpected content at line {0}:\n{1}".format(line_nb, line))
+            Output.write("Error : Unexpected content at line {}:\n{}".format(line_nb, line))
             continue
         
         # New option
@@ -296,7 +371,7 @@ def read_config_source(src):
         except AttributeError:
             continue
         if k not in allowed_options[current_section_name]:
-            Output.write("Error : Unexpected option at line {0}:\n{1}".format(line_nb, line))
+            Output.write("Error : Unexpected option at line {}:\n{}".format(line_nb, line))
             continue
         
         try:
@@ -309,7 +384,7 @@ def read_config_source(src):
         except ConfigException as e:
             Output.write(str(e))
             
-        # Output.write("'{0}' = '{1}'".format(k, v))
+        # Output.write("'{}' = '{}'".format(k, v))
     
     if current_section_name in multi_entries_sections and current_section_values != {}:
         # Save last section content
@@ -326,7 +401,7 @@ def validate_config(cfg):
     
     def expect_option(entry, section, option):
         if option not in entry:
-            Output.write("Error: expected '{0}' option in {1} section.".format(option, section))
+            Output.write("Error: expected '{}' option in {} section.".format(option, section))
             return False
         return True
 
@@ -346,14 +421,14 @@ def validate_config(cfg):
             expected_realms.setdefault(realm, [])
             expected_realms[realm].append(m_name)
         else:
-            Output.write("Removing incomplete CIFS_mount '{0}'.".format(m_name))
+            Output.write("Removing incomplete CIFS_mount '{}'.".format(m_name))
             invalid_cifs_m.append(m_name)
     
     for realm in expected_realms:
         if realm not in cfg.get("realm", []):
-            Output.write("Missing realm '{0}'.".format(realm))
+            Output.write("Missing realm '{}'.".format(realm))
             for m_name in expected_realms[realm]:
-                Output.write("Removing CIFS_mount '{0}' depending on realm '{1}'.".format(m_name, realm))
+                Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
 
     for realm in cfg.get("realm", []):
@@ -362,10 +437,10 @@ def validate_config(cfg):
             expect_option(cfg["realm"][realm], "realm", "domain")
         )
         if not is_ok:
-            Output.write("Removing incomplete realm '{0}'.".format(realm))
+            Output.write("Removing incomplete realm '{}'.".format(realm))
             invalid_realm.append(realm)
             for m_name in expected_realms.get(realm, []):
-                Output.write("Removing CIFS_mount '{0}' depending on realm '{1}'.".format(m_name, realm))
+                Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
 
     for m_name in invalid_cifs_m:

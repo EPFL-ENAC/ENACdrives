@@ -7,13 +7,10 @@ Global :
 web_app :
 =========
 
-* validate usernames
-
 
 client :
 ========
 
-* manage user identity (username) -> .enacdrives.conf
 * Windows drive letters
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
 * GUI message if no CIFS_mount is available
