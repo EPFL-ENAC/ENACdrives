@@ -45,7 +45,7 @@ class UI_Username_Box(QtGui.QWidget):
     def _set_username(self, username):
         if username is None:
             username = "..."
-        self.identified_label.setText("Drives available for {}".format(username))
+        self.identified_label.setText("Drives available for username <b>{}</b>".format(username))
 
     def _save_username(self, username):
         self.ui.switch_username(username)
@@ -86,21 +86,46 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.ui = ui
         self.mount_instance = mount_instance
 
+        self.bookmark = False
+        self.bt_bookmark = QtGui.QPushButton()
+        self.bt_bookmark.setGeometry(0, 0, 15, 15)
+        self.bt_bookmark.clicked.connect(self.toggle_bookmark)
+        self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))
+        
         self.label_status = QtGui.QLabel()
         self.label_status.setGeometry(0, 0, 15, 15)
 
         self.label = QtGui.QLabel(self.mount_instance.settings["label"])
+        
+        self.win_letter = QtGui.QComboBox()
+        self.win_letter.addItem("Z:")
+        self.win_letter.addItem("U:")
+        self.win_letter.addItem("V:")
+        self.win_letter.addItem("R:")
+        self.win_letter.addItem("Y:")
+        self.win_letter.addItem("X:")
+        self.win_letter.addItem("")
+        
         self.bt_mount = QtGui.QPushButton("Mount", self.ui)
         self.bt_mount.clicked.connect(self.toggle_mount)
         self.bt_open = QtGui.QPushButton('Open', self.ui)
         self.bt_open.clicked.connect(self.mount_instance.open_file_manager)
+        self.addWidget(self.bt_bookmark)
         self.addWidget(self.label_status)
         self.addWidget(self.label)
         self.addStretch(1)
+        self.addWidget(self.win_letter)
         self.addWidget(self.bt_mount)
         self.addWidget(self.bt_open)
         self.update_status()
 
+    def toggle_bookmark(self):
+        self.bookmark = not self.bookmark
+        if self.bookmark:
+            self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_ON_PNG))
+        else:
+            self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))
+    
     def toggle_mount(self):
         if self.mount_instance.is_mounted():
             self.mount_instance.umount()
@@ -123,8 +148,10 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             This Mount_Entry has to be deleted.
             Happens when switching username.
         """
+        self.bt_bookmark.setParent(None)
         self.label_status.setParent(None)
         self.label.setParent(None)
+        self.win_letter.setParent(None)
         self.bt_mount.setParent(None)
         self.bt_open.setParent(None)
         self.setParent(None)
@@ -154,6 +181,7 @@ class GUI(QtGui.QWidget):
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.entries_layer)
+        self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.hbox_bt_quit)
 
         self.setLayout(self.vbox_layout)
@@ -195,8 +223,8 @@ class GUI(QtGui.QWidget):
     
     def switch_username(self, username):
         conf.save_username(username)
-        self.load_config()
         self.key_chain.wipe_passwords()
+        self.load_config()
     
     def load_config(self):
         self.cfg = conf.get_config()

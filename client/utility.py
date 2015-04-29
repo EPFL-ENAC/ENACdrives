@@ -80,6 +80,8 @@ class CONST():
     # use full ABSOLUTE path to the image, not relative
     MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
     UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
+    BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
+    BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
 
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
