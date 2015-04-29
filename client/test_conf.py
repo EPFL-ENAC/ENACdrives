@@ -118,14 +118,14 @@ local_path = \home\user\Desktop\mnt
             s_in = io.StringIO("""
 [CIFS_mount]
 name = test
-stared = {0}
+bookmark = {0}
 """.format(s))
             s_out = io.StringIO("")
             with Output(dest=s_out):
                 self.assertEqual(
                     read_config_source(s_in),
                     {"CIFS_mount": {"test": {
-                                     "stared": False, }}}
+                                     "bookmark": False, }}}
                 )
                 s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
@@ -192,7 +192,7 @@ local_path = {MNT_DIR}/bancal_on_files9
 #    {DESKTOP_DIR}
 #    {LOCAL_USERNAME}
 #    {LOCAL_GROUPNAME}
-stared = false
+bookmark = false
 #    default : False
 Linux_CIFS_method = gvfs
 #    mount.cifs : Linux's mount.cifs (requires sudo ability)
@@ -223,7 +223,7 @@ Windows_letter = Z:
                    'realm': 'EPFL',
                    'server_name': 'files9.epfl.ch',
                    'server_path': 'data/bancal',
-                   'stared': False}},
+                   'bookmark': False}},
                  'global': {
                   'username': 'bancal',
                   'Linux_CIFS_method': 'gvfs',

@@ -86,11 +86,10 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.ui = ui
         self.mount_instance = mount_instance
 
-        self.bookmark = False
         self.bt_bookmark = QtGui.QPushButton()
         self.bt_bookmark.setGeometry(0, 0, 15, 15)
         self.bt_bookmark.clicked.connect(self.toggle_bookmark)
-        self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))
+        self.update_bookmark()
         
         self.label_status = QtGui.QLabel()
         self.label_status.setGeometry(0, 0, 15, 15)
@@ -120,8 +119,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.update_status()
 
     def toggle_bookmark(self):
-        self.bookmark = not self.bookmark
-        if self.bookmark:
+        self.mount_instance.settings["bookmark"] = not self.mount_instance.settings["bookmark"]
+        conf.save_bookmark(self.mount_instance.settings["name"], self.mount_instance.settings["bookmark"])
+        self.update_bookmark()
+    
+    def update_bookmark(self):
+        if self.mount_instance.settings["bookmark"]:
             self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_ON_PNG))
         else:
             self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))

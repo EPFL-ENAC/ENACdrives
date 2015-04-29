@@ -107,7 +107,6 @@ def get_config():
 def save_username(username):
     lines = ["", ]
     try:
-        user_config = None
         with open(CONST.USER_CONF_FILE, "r") as f:
             lines = f.readlines()
             
@@ -147,16 +146,98 @@ def save_username(username):
             Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(global_section_line_nb+1, "username = {}\n".format(username))
         
-        # username not found, [global] not found
+        # [global] not found
         else:
             Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(0, "[global]\n")
             lines.insert(1, "username = {}\n".format(username))
+            lines.insert(2, "\n")
         
     except FileNotFoundException:
         Output.write("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
         lines.insert(0, "[global]\n")
         lines.insert(1, "username = {}\n".format(username))
+        lines.insert(2, "\n")
+    
+    with open(CONST.USER_CONF_FILE, "w") as f:
+        f.writelines(lines)
+    
+    
+def save_bookmark(section_name, bookmark_on):
+    lines = ["", ]
+    try:
+        with open(CONST.USER_CONF_FILE, "r") as f:
+            lines = f.readlines()
+            
+        # Parse file, search for name = section_name in [CIFS_mount]
+        line_nb = -1
+        good_section_name = False
+        bookmark_w_no_section_name_line_nb = None
+        skip_this_section = True
+        section_name_line_nb = None
+        option_line_nb = None
+        for l in lines:
+            line_nb += 1
+            if l.startswith("["):
+                good_section_name = False
+                bookmark_w_no_section_name_line_nb = None
+                try:
+                    current_section = re.match(r"\[(\S+)\]$", l).groups()[0]
+                    if current_section == "CIFS_mount":
+                        skip_this_section = False
+                except AttributeError:
+                    skip_this_section = True
+                continue
+            if skip_this_section:
+                continue
+            
+            try:
+                k, v = re.match(r"([^=]*)=(.*)", l).groups()
+                k, v = k.strip(), v.strip()
+            except AttributeError:
+                continue
+            if k == "name":
+                if v == section_name:
+                    good_section_name = True
+                    if bookmark_w_no_section_name_line_nb is not None:
+                        option_line_nb = bookmark_w_no_section_name_line_nb
+                        break
+                    if section_name_line_nb is None:
+                        section_name_line_nb = line_nb
+                else:
+                    skip_this_section = True
+                continue
+            elif k == "bookmark":
+                if good_section_name:
+                    option_line_nb = line_nb
+                    break
+                else:  # Unknown name=xyz yet
+                    bookmark_w_no_section_name_line_nb = line_nb
+        
+        # bookmark found in config file
+        if option_line_nb is not None:
+            Output.write("Changing {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            lines[option_line_nb] = "bookmark = {}\n".format(bookmark_on)
+        
+        # bookmark not found, but [CIFS_mount] found
+        elif section_name_line_nb is not None:
+            Output.write("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            lines.insert(section_name_line_nb+1, "bookmark = {}\n".format(bookmark_on))
+        
+        # [CIFS_mount] not found
+        else:
+            Output.write("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            lines.append("[CIFS_mount]\n")
+            lines.append("name = {}\n".format(section_name))
+            lines.append("bookmark = {}\n".format(bookmark_on))
+            lines.append("\n")
+        
+    except FileNotFoundException:
+        Output.write("Saving {}'s bookmark='{}' to new config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+        lines.append("[CIFS_mount]\n")
+        lines.append("name = {}\n".format(section_name))
+        lines.append("bookmark = {}\n".format(bookmark_on))
+        lines.append("\n")
     
     with open(CONST.USER_CONF_FILE, "w") as f:
         f.writelines(lines)
@@ -205,7 +286,7 @@ def validate_value(option, value):
     elif option == "server_name":
         if bool(re.search(r"[^a-zA-Z0-9.-]", value)):
             raise ConfigException("Error, server_name can only contain alphanumeric, and '-' and '.' symbols.")
-    elif option in ("stared", "Linux_gvfs_symlink"):
+    elif option in ("bookmark", "Linux_gvfs_symlink"):
         value = str(value).lower()
         return value in ("yes", "y", "true", "1", "on")
     elif option == "Windows_letter":
@@ -243,7 +324,7 @@ def read_config_source(src):
             #    {DESKTOP_DIR}
             #    {LOCAL_USERNAME}
             #    {LOCAL_GROUPNAME}
-            stared = false
+            bookmark = false
             #    default : False
             Linux_CIFS_method = gvfs
             #    mount.cifs : Linux's mount.cifs (requires sudo ability)
@@ -271,7 +352,7 @@ def read_config_source(src):
                'realm': 'EPFL',
                'server_name': 'files9.epfl.ch',
                'server_path': 'data/bancal',
-               'stared': False}},
+               'bookmark': False}},
              'global': {
               'username': 'bancal',
               'Linux_CIFS_method': 'gvfs',
@@ -313,7 +394,7 @@ def read_config_source(src):
             "server_name",
             "server_path",
             "local_path",
-            "stared",
+            "bookmark",
             "Linux_CIFS_method",
             "Linux_mountcifs_filemode",
             "Linux_mountcifs_dirmode",

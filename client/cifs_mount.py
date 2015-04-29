@@ -32,7 +32,7 @@ class CIFS_Mount():
             * {DESKTOP_DIR}
             * {LOCAL_USERNAME}
             * {LOCAL_GROUPNAME}
-        * stared = boolean
+        * bookmark = boolean
             default : False
         * Linux_CIFS_method = default method used for CIFS on Linux
             * mount.cifs : Linux's mount.cifs (requires sudo ability)
@@ -76,7 +76,7 @@ class CIFS_Mount():
             "server_name": _cf("server_name"),
             "server_path": _cf("server_path"),
             "local_path": _cf("local_path"),
-            "stared": _cf("stared", False),
+            "bookmark": _cf("bookmark", False),
             "Linux_CIFS_method": _cf("Linux_CIFS_method"),
             "Linux_mountcifs_filemode": _cf("Linux_mountcifs_filemode"),
             "Linux_mountcifs_dirmode": _cf("Linux_mountcifs_dirmode"),

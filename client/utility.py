@@ -59,8 +59,8 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.5"
-    FULL_VERSION = "2015-04-28 " + VERSION
+    VERSION = "0.1.6"
+    FULL_VERSION = "2015-04-29 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
