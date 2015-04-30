@@ -228,6 +228,7 @@ class GUI(QtGui.QWidget):
         conf.save_username(username)
         self.key_chain.wipe_passwords()
         self.load_config()
+        self.resize_window_to_minimum()
     
     def load_config(self):
         self.cfg = conf.get_config()
@@ -254,6 +255,12 @@ class GUI(QtGui.QWidget):
 
         for entry in self.entries:
             self.entries_layer.addLayout(entry)
+    
+    def resize_window_to_minimum(self):
+        # http://stackoverflow.com/a/28667119/446302
+        def _func_to_call():
+            self.resize(self.minimumSizeHint())
+        QtCore.QTimer.singleShot(500, _func_to_call)
 
 
 def main_GUI():
