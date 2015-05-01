@@ -59,7 +59,7 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.8"
+    VERSION = "0.1.9"
     FULL_VERSION = "2015-05-01 " + VERSION
 
     OS_SYS = platform.system()
@@ -134,7 +134,7 @@ class Output():
         if (CONST.OS_SYS == "Windows" and
            getattr(sys, 'frozen', False)):
             # Windows frozen application
-            self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "a")
+            self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "w")
 
     def __exit__(self, typ, value, traceback):
         Output.del_instance()
