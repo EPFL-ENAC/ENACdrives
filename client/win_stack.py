@@ -10,12 +10,13 @@
 # + cifs_post_umount
 # + open_file_manager
 
-import win32net
+import re
+import win32api
 import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import Output, CancelOperationException, debug_send
+from utility import Output, CancelOperationException, debug_send, Live_Cache
 
 
 class WIN_CONST():
@@ -23,17 +24,29 @@ class WIN_CONST():
 
 
 def cifs_is_mounted(mount):
-    current_mounts = win32net.NetUseEnum(None, 0, 0)[0]
-    # ([{"local": "Z:", "remote": "\\\\files9.epfl.ch\\data\\bancal"}], 1, 0)
-    for m in current_mounts:
-        # Output.write("{0} : {1}".format(m["local"], m["remote"]))
-        if m["remote"] == r"\\{server_name}\{server_path}".format(**mount.settings):
-            # Output.write("MATCH!")
-            mount.settings["Windows_letter"] = m["local"]
-            return True
-    # Output.write("NO-MATCH.")
+    cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
+    lines = Live_Cache.subprocess_check_output(cmd)
+    lines = lines.split("\n")
+    caption_index = lines[0].index("Caption")
+    providername_index = lines[0].index("ProviderName")
+    i_search = r"^\\{server_name}\{server_path}$".format(**mount.settings)
+    i_search = i_search.replace("\\", "\\\\")
+    # Output.write("i_search='{0}'".format(i_search))
+    for l in lines[1:]:
+        try:
+            drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
+            try:
+                provider = re.findall(r"^(\S+)", l[providername_index:])[0]
+                if re.search(i_search, provider):
+                    mount.settings["Windows_letter"] = drive_letter
+                    return True
+            except IndexError:
+                provider = ""
+            # Output.write("{0} : '{1}'".format(drive_letter, provider))
+        except IndexError:
+            pass
     return False
-    
+
 
 def cifs_mount(mount):
     remote = r"\\{server_name}\{server_path}".format(**mount.settings)
@@ -49,6 +62,7 @@ def cifs_mount(mount):
             remote,
         )
         Output.write("succeeded")
+        Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
         return True
     except pywintypes.error as e:
         if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -79,6 +93,7 @@ def cifs_mount(mount):
             )
             mount.key_chain.ack_password(mount.settings["realm"])
             Output.write("succeeded")
+            Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
             return True
         except pywintypes.error as e:
             if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -111,6 +126,7 @@ def cifs_umount(mount):
     try:
         Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
+        Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
     except pywintypes.error as e:
         if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)
@@ -132,3 +148,43 @@ def open_file_manager(mount):
     cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
     subprocess.call(cmd)
+
+
+class WindowsLettersManager():
+    """
+    Manages booking of letters by
+    + Windows (read its state)
+    + All CIFS_mount entries (read their state + disable already booked letters)
+    """
+    def __init__(self):
+        self.entries = []
+
+    def add_mount_entry(self, entry):
+        self.entries.append(entry)
+        
+    def clear_entries(self):
+        self.entries = []
+        
+    def refresh_letters(self):
+        # 1) read state
+        letter_booking = {}
+        
+        # 1.1) Windows letters
+        letters_string = win32api.GetLogicalDriveStrings()  # 'C:\\\x00D:\\\x00'
+        for letter in letters_string.split('\x00'):
+            if letter != "":
+                letter_booking[letter[:2]] = None
+            
+        # 1.2) ENACdrives letters
+        for e in self.entries:
+            letter = e.settings.get("Windows_letter", "")
+            if letter != "":
+                letter_booking[letter] = e
+        
+        # 2) notify entries
+        for e in self.entries:
+            disabled_letters = []
+            for letter in letter_booking:
+                if letter_booking[letter] != e:
+                    disabled_letters.append(letter)
+            e.set_disabled_windows_letters(disabled_letters)

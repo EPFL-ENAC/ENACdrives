@@ -82,7 +82,7 @@ class CIFS_Mount():
             "Linux_mountcifs_dirmode": _cf("Linux_mountcifs_dirmode"),
             "Linux_mountcifs_options": _cf("Linux_mountcifs_options"),
             "Linux_gvfs_symlink": _cf("Linux_gvfs_symlink"),
-            "Windows_letter": _cf("Windows_letter"),  # may be overwritten in "is_mounted"
+            "Windows_letter": _cf("Windows_letter", ""),  # may be overwritten in "is_mounted"
         }
         
         self.settings["local_path"] = self.settings["local_path"].format(

@@ -59,8 +59,8 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.7"
-    FULL_VERSION = "2015-04-30 " + VERSION
+    VERSION = "0.1.8"
+    FULL_VERSION = "2015-05-01 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
@@ -168,7 +168,7 @@ def debug_send(msg, additional_tags=None):
     Output.write("GONNA SEND MSG TO ENACIT1LOGS : " + msg)
     enacit1logs.send(
         message=str(msg),
-        tags=["dev_mountfilers2015", "notify_bancal", CONST.VERSION] + additional_tags
+        tags=["ENACdrives_debug", "notify_bancal", CONST.VERSION] + additional_tags
     )
 
 # /ENACIT1LOGS

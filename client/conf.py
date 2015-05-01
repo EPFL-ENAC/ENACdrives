@@ -105,6 +105,10 @@ def get_config():
 
 
 def save_username(username):
+    """
+    Parse config file and change/add only what is necessary
+    """
+
     lines = ["", ]
     try:
         with open(CONST.USER_CONF_FILE, "r") as f:
@@ -164,6 +168,10 @@ def save_username(username):
     
     
 def save_bookmark(section_name, bookmark_on):
+    """
+    Parse config file and change/add only what is necessary
+    """
+
     lines = ["", ]
     try:
         with open(CONST.USER_CONF_FILE, "r") as f:
@@ -243,6 +251,90 @@ def save_bookmark(section_name, bookmark_on):
         f.writelines(lines)
     
     
+def save_windows_letter(section_name, letter):
+    """
+    Parse config file and change/add only what is necessary
+    """
+    
+    lines = ["", ]
+    try:
+        with open(CONST.USER_CONF_FILE, "r") as f:
+            lines = f.readlines()
+            
+        # Parse file, search for name = section_name in [CIFS_mount]
+        line_nb = -1
+        good_section_name = False
+        letter_w_no_section_name_line_nb = None
+        skip_this_section = True
+        section_name_line_nb = None
+        option_line_nb = None
+        for l in lines:
+            line_nb += 1
+            if l.startswith("["):
+                good_section_name = False
+                letter_w_no_section_name_line_nb = None
+                try:
+                    current_section = re.match(r"\[(\S+)\]$", l).groups()[0]
+                    if current_section == "CIFS_mount":
+                        skip_this_section = False
+                except AttributeError:
+                    skip_this_section = True
+                continue
+            if skip_this_section:
+                continue
+            
+            try:
+                k, v = re.match(r"([^=]*)=(.*)", l).groups()
+                k, v = k.strip(), v.strip()
+            except AttributeError:
+                continue
+            if k == "name":
+                if v == section_name:
+                    good_section_name = True
+                    if letter_w_no_section_name_line_nb is not None:
+                        option_line_nb = letter_w_no_section_name_line_nb
+                        break
+                    if section_name_line_nb is None:
+                        section_name_line_nb = line_nb
+                else:
+                    skip_this_section = True
+                continue
+            elif k == "Windows_letter":
+                if good_section_name:
+                    option_line_nb = line_nb
+                    break
+                else:  # Unknown name=xyz yet
+                    letter_w_no_section_name_line_nb = line_nb
+        
+        # Windows_letter found in config file
+        if option_line_nb is not None:
+            Output.write("Changing {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            lines[option_line_nb] = "Windows_letter = {}\n".format(letter)
+        
+        # Windows_letter not found, but [CIFS_mount] found
+        elif section_name_line_nb is not None:
+            Output.write("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            lines.insert(section_name_line_nb+1, "Windows_letter = {}\n".format(letter))
+        
+        # [CIFS_mount] not found
+        else:
+            Output.write("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            lines.append("[CIFS_mount]\n")
+            lines.append("name = {}\n".format(section_name))
+            lines.append("Windows_letter = {}\n".format(letter))
+            lines.append("\n")
+        
+    except FileNotFoundException:
+        Output.write("Saving {}'s Windows_letter='{}' to new config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+        lines.append("[CIFS_mount]\n")
+        lines.append("name = {}\n".format(section_name))
+        lines.append("Windows_letter = {}\n".format(letter))
+        lines.append("\n")
+    
+    with open(CONST.USER_CONF_FILE, "w") as f:
+        f.writelines(lines)
+    
+    
 def merge_configs(cfg, cfg_to_merge):
     cfg.setdefault("global", {})
     
@@ -290,9 +382,11 @@ def validate_value(option, value):
         value = str(value).lower()
         return value in ("yes", "y", "true", "1", "on")
     elif option == "Windows_letter":
-        value = value.upper()
-        if not re.match(r"[A-Z]:$", value):
-            raise ConfigException("Error, Windows drive letter has to be on the form 'Z:'.")
+        # Letter can be forced to <empty> or any Letter followed by ":"
+        if value != "":
+            value = value.upper()
+            if not re.match(r"[A-Z]:$", value):
+                raise ConfigException("Error, Windows drive letter has to be empty or a letter formated like 'Z:'.")
     return value
 
 
