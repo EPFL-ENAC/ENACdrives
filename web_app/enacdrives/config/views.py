@@ -39,7 +39,7 @@ def http_get(request):
 
     username = ut.validate_input(request.GET.get, "username")
     
-    ranked_mount_names = {}
+    ranked_mount_names = []
     config_given = ""
     try:
         user_settings = get_user_settings(username)
@@ -61,9 +61,7 @@ def http_get(request):
             config_given += data + "\n\n"
 
             mount_names = ut.grep_mount_names(data)
-            if mount_names != []:
-                ranked_mount_names.setdefault(conf.rank, [])
-                ranked_mount_names[conf.rank].extend(mount_names)
+            ranked_mount_names.extend(mount_names)
 
         # Config for that user
         for conf in mo.Config.objects.filter(users__name=username).order_by("rank"):
@@ -82,9 +80,7 @@ def http_get(request):
             config_given += data + "\n\n"
 
             mount_names = ut.grep_mount_names(data)
-            if mount_names != []:
-                ranked_mount_names.setdefault(conf.rank, [])
-                ranked_mount_names[conf.rank].extend(mount_names)
+            ranked_mount_names.extend(mount_names)
 
         # Config for his/her EPFL Units
         for unit in user_settings["epfl_units"]:
@@ -105,9 +101,7 @@ def http_get(request):
                 config_given += data + "\n\n"
                 
                 mount_names = ut.grep_mount_names(data)
-                if mount_names != []:
-                    ranked_mount_names.setdefault(conf.rank, [])
-                    ranked_mount_names[conf.rank].extend(mount_names)
+                ranked_mount_names.extend(mount_names)
 
         # Config for his/her Ldap groups
         for group in user_settings["ldap_groups"]:
@@ -128,17 +122,12 @@ def http_get(request):
                 config_given += data + "\n\n"
                 
                 mount_names = ut.grep_mount_names(data)
-                if mount_names != []:
-                    ranked_mount_names.setdefault(conf.rank, [])
-                    ranked_mount_names[conf.rank].extend(mount_names)
+                ranked_mount_names.extend(mount_names)
         
         # Rank *_mount entries
         if len(ranked_mount_names) != 0:
-            entries_order = []
-            for rank in sorted(ranked_mount_names):
-                entries_order.extend(ranked_mount_names[rank])
             config_given += "[global]\n"
-            config_given += "entries_order = {0}\n\n".format(", ".join(entries_order))
+            config_given += "entries_order = {0}\n\n".format(", ".join(ranked_mount_names))
 
     except UserNotFoundException:
         pass
