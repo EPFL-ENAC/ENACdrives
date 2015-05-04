@@ -94,8 +94,11 @@ def get_user_settings(username):
     user_settings["last_sciper_digit"] = sciper_no[-1]
 
     # B) Look for all his/her accreditations
-    # -> epfl_units
-    # -> ldap_groups
+    # -> epfl_units sorted as :
+    #    #1 is main accred
+    #    #2++ are alphabeticaly sorted
+    # -> ldap_groups sorted alphabeticaly
+    user_settings["epfl_units"] = []
     ldap_groups = set()
     r = l.read_ldap("(uniqueIdentifier={0})".format(sciper_no), ["uid", "memberOf", ])
     for accred in r:
@@ -106,6 +109,7 @@ def get_user_settings(username):
             ldap_groups = ldap_groups.union(accred["attributes"]["memberOf"])
         except KeyError:
             pass
-    user_settings["ldap_groups"] = list(ldap_groups)
+    user_settings["epfl_units"] = user_settings["epfl_units"][:1] + sorted(user_settings["epfl_units"][1:])
+    user_settings["ldap_groups"] = sorted(list(ldap_groups))
 
     return user_settings
