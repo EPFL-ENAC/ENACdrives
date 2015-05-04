@@ -34,15 +34,18 @@ class UI_Username_Box(QtGui.QWidget):
         # Identified Layout
         identified_hlayout = QtGui.QHBoxLayout()
         self.identified_label = QtGui.QLabel()
-        bt_change_username = QtGui.QPushButton("Change user")
-        bt_change_username.clicked.connect(self._bt_change_username)
+        self.bt_change_username = QtGui.QPushButton("Change user")
+        self.bt_change_username.clicked.connect(self._bt_change_username)
         identified_hlayout.addWidget(self.identified_label)
         identified_hlayout.addStretch(1)
-        identified_hlayout.addWidget(bt_change_username)
+        identified_hlayout.addWidget(self.bt_change_username)
 
         self.setLayout(identified_hlayout)
         
         self._set_username(username)
+    
+    def get_widgets_order(self):
+        return [self.bt_change_username, ]
             
     def _set_username(self, username):
         if username is None:
@@ -125,6 +128,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.addWidget(self.bt_mount)
         self.addWidget(self.bt_open)
         self.update_status()
+    
+    def get_widgets_order(self):
+        if CONST.OS_SYS == "Windows":
+            return [self.bt_bookmark, self.win_letter, self.bt_mount, self.bt_open]
+        else:
+            return [self.bt_bookmark, self.bt_mount, self.bt_open]
 
     def win_letter_changed(self):
         self.settings["Windows_letter"] = self.win_letter.currentText()
@@ -220,6 +229,7 @@ class GUI(QtGui.QWidget):
         self.vbox_layout.addLayout(self.hbox_bt_quit)
 
         self.setLayout(self.vbox_layout)
+        self.set_tab_order()
         
         self.refresh_timer = QtCore.QTimer()
         self.refresh_timer.timeout.connect(self._refresh_entries)
@@ -264,6 +274,7 @@ class GUI(QtGui.QWidget):
         conf.save_username(username)
         self.key_chain.wipe_passwords()
         self.load_config()
+        self.set_tab_order()
         self.resize_window_to_minimum()
     
     def load_config(self):
@@ -293,6 +304,18 @@ class GUI(QtGui.QWidget):
 
         for entry in self.entries:
             self.entries_layer.addLayout(entry)
+        
+    def set_tab_order(self):
+        widgets_ordered = self.username_box.get_widgets_order()
+        for entry in self.entries:
+            widgets_ordered.extend(entry.get_widgets_order())
+        widgets_ordered.append(self.bt_quit)
+        
+        prev_wid = None
+        for wid in widgets_ordered:
+            if prev_wid is not None:
+                self.setTabOrder(prev_wid, wid)
+            prev_wid = wid
     
     def resize_window_to_minimum(self):
         # http://stackoverflow.com/a/28667119/446302
