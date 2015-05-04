@@ -1,0 +1,7 @@
+TequilaService  "Ressources enacit1sbtest2 (enacshare-test2.epfl.ch)"
+# Accès strictement limité aux personnes (comptes Gaspar) :
+TequilaAllowIf  org=EPFL&username=bancal
+TequilaAllowIf  org=EPFL&username=bonjour
+TequilaAllowIf  org=EPFL&username=nepa
+TequilaAllowIf  org=EPFL&username=ndubois
+TequilaAllowIf  org=EPFL&username=pdejesus
