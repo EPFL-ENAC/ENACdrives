@@ -235,6 +235,10 @@ class GUI(QtGui.QWidget):
         self.refresh_timer.timeout.connect(self._refresh_entries)
         self.refresh_timer.start(5000)  # every 5s.
 
+        if CONST.OS_SYS == "Darwin":
+            self.setContentsMargins(2, 2, 2, 2)
+            self.vbox_layout.setSpacing(0)
+            self.vbox_layout.setContentsMargins(0, 0, 0, 0)
         self.setGeometry(300, 300, 200, 100)
         self.setWindowTitle("ENACdrives")
         self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "enacdrives.png")))
