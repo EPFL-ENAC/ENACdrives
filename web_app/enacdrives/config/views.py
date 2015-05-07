@@ -45,7 +45,7 @@ def http_get(request):
         user_settings = get_user_settings(username)
         
         # Config for all users
-        for conf in mo.Config.objects.filter(users=None, epfl_units=None, ldap_groups=None).order_by("rank"):
+        for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_ALL).order_by("rank"):
             data = conf.data.format(
                 username=username,
                 auth_domain=user_settings["auth_domain"],
@@ -64,7 +64,7 @@ def http_get(request):
             ranked_mount_names.extend(mount_names)
 
         # Config for that user
-        for conf in mo.Config.objects.filter(users__name=username).order_by("rank"):
+        for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_USER, users__name=username).order_by("rank"):
             data = conf.data.format(
                 username=username,
                 auth_domain=user_settings["auth_domain"],
@@ -84,7 +84,7 @@ def http_get(request):
 
         # Config for his/her EPFL Units
         for unit in user_settings["epfl_units"]:
-            for conf in mo.Config.objects.filter(epfl_units__name=unit).order_by("rank"):
+            for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_EPFL_UNIT, epfl_units__name=unit).order_by("rank"):
                 data = conf.data.format(
                     username=username,
                     auth_domain=user_settings["auth_domain"],
@@ -105,7 +105,7 @@ def http_get(request):
 
         # Config for his/her Ldap groups
         for group in user_settings["ldap_groups"]:
-            for conf in mo.Config.objects.filter(ldap_groups__name=group).order_by("rank"):
+            for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_LDAP_GROUP, ldap_groups__name=group).order_by("rank"):
                 data = conf.data.format(
                     username=username,
                     auth_domain=user_settings["auth_domain"],

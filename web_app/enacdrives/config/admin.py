@@ -5,10 +5,10 @@ from .models import User, EpflUnit, LdapGroup, Config
 
 class ConfigAdmin(admin.ModelAdmin):
     fieldsets = (
-        ("What", {"fields": ("name", "rank", "data")}),
-        ("Who", {"fields": ("users", "epfl_units", "ldap_groups")}),
+        ("What", {"fields": (("name", "enabled"), "rank", "data")}),
+        ("Who", {"fields": ("category", "users", "epfl_units", "ldap_groups")}),
     )
-    list_display = ("rank", "name", "get_users", "get_epfl_units", "get_ldap_groups", "get_data")
+    list_display = ("name", "enabled", "rank", "category", "get_users", "get_epfl_units", "get_ldap_groups", "get_data")
     list_display_links = ("name", "get_data")
     ordering = ("rank", )
     

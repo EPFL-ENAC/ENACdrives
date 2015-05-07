@@ -17,8 +17,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SERVICE_NAME = "ENACDRIVES"
 
-RELEASE_VERSION = "0.1.10"
-RELEASE_DATE = "2015-05-04"
+RELEASE_VERSION = "0.1.11"
+RELEASE_DATE = "2015-05-07"
 
 SERVER_HOSTNAME = os.uname()[1]
 
