@@ -19,7 +19,7 @@ WINDOWS
 <SB>
 
 ~~~ bash
-cp -R client/ /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/
+cp -R client/ /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/
 ~~~
 
 ~~~

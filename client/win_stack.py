@@ -71,6 +71,19 @@ def cifs_mount(mount):
             pass
         elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
             mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
+            mount.ui.notify_user(e.strerror)
+            return False
         else:
             Output.write("failed : {0}".format(e))
             debug_send("mount without password:\n{0}".format(e))
@@ -103,6 +116,18 @@ def cifs_mount(mount):
                 mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
             elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
                 mount.ui.notify_user(e.strerror)
                 return False
             else:
