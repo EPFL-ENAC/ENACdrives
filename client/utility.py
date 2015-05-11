@@ -74,7 +74,7 @@ class CONST():
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
         # The application is frozen (applies to Linux and Windows)
-        RESOURCES_DIR = os.path.dirname(sys.executable)
+        RESOURCES_DIR = os.path.dirname(os.path.realpath(sys.executable))
     else:
         # The application is not frozen
         RESOURCES_DIR = os.path.dirname(__file__)
