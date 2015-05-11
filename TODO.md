@@ -15,12 +15,12 @@ web_app :
 client :
 ========
 
+* Check for update ++
 * add menus for
   + Documentation link
   + Show/Hide entries
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
 * GUI message if no CIFS_mount is available
-* Check for update ++
 * CLI
 * enacit1logs
 

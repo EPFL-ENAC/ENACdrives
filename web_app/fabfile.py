@@ -78,6 +78,7 @@ def apache_setup():
     sudo("mkdir -p /var/www/enacdrives.epfl.ch/public_html")
     sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/public_html")
     sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/enacdrives_app.conf /etc/apache2/sites-available/enacdrives_app.conf"))
+    sudo(sub("cp {server_config_dir}/etc/apache2/tequila_admins_rules.conf /etc/apache2/tequila_admins_rules.conf"))
     sudo("a2ensite enacdrives_app")
     apache_reload()
 

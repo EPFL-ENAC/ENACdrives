@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="UTF-8">
+ <title>ENACdrives Admin packages and installers</title>
+</head>
+<body>
+    <h1>ENACdrives - Admin the packages and installers</h1>
+    <h2>Current installers</h2>
+    <table>
+        <tr>
+            <th>Uploaded by</th>
+            <th>Upload date</th>
+            <th>OS</th>
+            <th>Filename</th>
+            <th>Release number</th>
+            <th>enabled</th>
+        </tr>
+        {% for inst in installers %}
+        <tr>
+            <td>{{inst.upload_username}}</td>
+            <td>{{inst.upload_date}}</td>
+            <td>{{inst.get_os_display}}</td>
+            <td>{{inst.file_name}}</td>
+            <td>{{inst.release_number}}</td>
+            <td>{{inst.enabled}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Upload a new installer</h2>
+    <form action="{{ upload_url }}" method="POST">{% csrf_token %}
+        <label for="username">Upload new version as :</label>
+        <input id="username" value={{ username }} readonly /> <br />
+        <label for="os">for :</label>
+        <select id="os">
+            {% for os in oss %}
+            <option value="{{ os }}" {% if forloop.first %}selected{% endif %}>{{ os }}</option>
+            {% endfor %}
+        </select> <br />
+        <label for="release_number">Release number :</label>
+        <input id="release_number" /> <br />
+        <label for="file">File :</label>
+        <input id="file" type=file /><br />
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

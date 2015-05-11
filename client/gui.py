@@ -8,7 +8,7 @@ import os
 import sys
 import pprint
 from PyQt4 import QtGui, QtCore
-from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username
+from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number
 from cifs_mount import CIFS_Mount
 import conf
 if CONST.OS_SYS == "Windows":
@@ -23,6 +23,23 @@ class UI_Label_Entry(QtGui.QHBoxLayout):
         self.addWidget(self.label)
         self.addStretch(1)
 
+
+class UI_Download_New_Release(QtGui.QWidget):
+    
+    def __init__(self):
+        super(UI_Download_New_Release, self).__init__()
+        
+        hlayout = QtGui.QHBoxLayout()
+        if CONST.OS_SYS == "Linux":
+            label = QtGui.QLabel("You are not running the latest release.<br>Please upgrade the package enacdrives.")
+        else:
+            label = QtGui.QLabel(
+                "You are not running the latest release.<br>Please download if from <a href='{}'>here</a>.".format(CONST.DOWNLOAD_NEW_RELEASE_URL),
+                openExternalLinks=True)
+        hlayout.addStretch(1)
+        hlayout.addWidget(label)
+        self.setLayout(hlayout)
+        
 
 class UI_Username_Box(QtGui.QWidget):
 
@@ -222,6 +239,8 @@ class GUI(QtGui.QWidget):
         self.hbox_bt_quit.addWidget(self.bt_quit)
 
         self.vbox_layout = QtGui.QVBoxLayout()
+        if not validate_release_number():
+            self.vbox_layout.addWidget(UI_Download_New_Release())
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.entries_layer)

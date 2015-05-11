@@ -17,8 +17,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SERVICE_NAME = "ENACDRIVES"
 
-RELEASE_VERSION = "0.1.11"
-RELEASE_DATE = "2015-05-07"
+RELEASE_VERSION = "0.1.12"
+RELEASE_DATE = "2015-05-11"
 
 SERVER_HOSTNAME = os.uname()[1]
 
@@ -51,7 +51,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'config',
+    "config",
+    "releases"
 )
 
 MIDDLEWARE_CLASSES = (

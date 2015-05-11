@@ -59,8 +59,8 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.12"
-    FULL_VERSION = "2015-05-07 " + VERSION
+    VERSION = "0.1.13"
+    FULL_VERSION = "2015-05-11 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
@@ -96,6 +96,8 @@ class CONST():
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -107,6 +109,8 @@ class CONST():
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -118,6 +122,8 @@ class CONST():
         USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
         USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
         SYSTEM_CONF_FILE = "C:\\enacdrives.conf"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
     else:
         OS_VERSION = "Error: OS not supported."
 
@@ -304,3 +310,8 @@ def validate_username(username):
         Output.write("Warning, could not load validate url. ({0})".format(validate_url))
         return "Error, could not contact config server."
         
+
+def validate_release_number():
+    with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL) as response:
+        latest_release = response.readline().decode()
+        return latest_release == CONST.VERSION

@@ -10,10 +10,6 @@ from config import utility as ut
 from config.ldap_epfl import get_user_settings, UserNotFoundException
 
 
-def http_home(request):
-    raise PermissionDenied
-
-
 def http_validate_username(request):
     if request.method != "GET":
         raise Http404
