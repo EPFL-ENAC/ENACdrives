@@ -2,6 +2,7 @@
 # Bancal Samuel
 
 import sys
+import utility
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need
@@ -25,7 +26,7 @@ else:
 
 setup(
     name='ENACdrives',
-    version='0.1',
+    version=utility.CONST.VERSION,
     description='Access your Network Drives easily.',
     options=dict(build_exe=buildOptions),
     executables=[Executable(

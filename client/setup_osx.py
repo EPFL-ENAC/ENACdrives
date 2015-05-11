@@ -5,6 +5,7 @@ Usage:
     python setup_osx.py py2app
 """
 
+import utility
 from setuptools import setup
 
 APP = ["enacdrives.py"]
@@ -19,6 +20,7 @@ OPTIONS = {
 
 setup(
     app=APP,
+    version=utility.CONST.VERSION,
     data_files=DATA_FILES,
     options={"py2app": OPTIONS},
     setup_requires=["py2app"],
