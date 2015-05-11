@@ -260,7 +260,7 @@ class GUI(QtGui.QWidget):
             self.vbox_layout.setContentsMargins(0, 0, 0, 0)
         self.setGeometry(300, 300, 200, 100)
         self.setWindowTitle("ENACdrives")
-        self.setWindowIcon(QtGui.QIcon(os.path.join(CONST.RESOURCES_DIR, "enacdrives.png")))
+        self.setWindowIcon(QtGui.QIcon(CONST.ENACDRIVES_PNG))
         self.show()
 
     def notify_user(self, msg):

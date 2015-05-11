@@ -59,7 +59,9 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.13"
+    VERSION = "0.1.14"  # Note : always copy this to PACKAGE_SIGNATURE_VERSION
+    PACKAGE_SIGNATURE_VERSION = "ABCXYZ_0.1.14_ZYXCBA"  # This is used to auto-recognize software version inside a package
+    PACKAGE_SIGNATURE_VERSION2 = "ABCDEF_" + VERSION + "_FEDCBA"  # This is used to auto-recognize software version inside a package
     FULL_VERSION = "2015-05-11 " + VERSION
 
     OS_SYS = platform.system()
@@ -71,18 +73,12 @@ class CONST():
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
-        # The application is frozen
+        # The application is frozen (applies to Linux and Windows)
         RESOURCES_DIR = os.path.dirname(sys.executable)
     else:
         # The application is not frozen
         RESOURCES_DIR = os.path.dirname(__file__)
     
-    # use full ABSOLUTE path to the image, not relative
-    MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
-    UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
-    BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
-    BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
-
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
@@ -111,6 +107,8 @@ class CONST():
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
+        if getattr(sys, 'frozen', False):
+            RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -126,6 +124,13 @@ class CONST():
         DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
     else:
         OS_VERSION = "Error: OS not supported."
+    
+    # use full ABSOLUTE path to the image, not relative
+    ENACDRIVES_PNG = RESOURCES_DIR + "/enacdrives.png"
+    MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
+    UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
+    BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
+    BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
 
 
 class Output():
