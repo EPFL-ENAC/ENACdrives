@@ -59,10 +59,10 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.15"  # Note : always copy this to PACKAGE_SIGNATURE_VERSION
-    PACKAGE_SIGNATURE_VERSION = "ABCXYZ_0.1.15_ZYXCBA"  # This is used to auto-recognize software version inside a package
+    VERSION = "0.1.16"  # Note : always copy this to PACKAGE_SIGNATURE_VERSION
+    PACKAGE_SIGNATURE_VERSION = "ABCXYZ_0.1.16_ZYXCBA"  # This is used to auto-recognize software version inside a package
     PACKAGE_SIGNATURE_VERSION2 = "ABCDEF_" + VERSION + "_FEDCBA"  # This is used to auto-recognize software version inside a package
-    FULL_VERSION = "2015-05-11 " + VERSION
+    FULL_VERSION = "2015-05-12 " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()

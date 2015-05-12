@@ -270,9 +270,9 @@ class GUI(QtGui.QWidget):
         
     def get_password(self, realm, password_mistyped=False):
         if password_mistyped:
-            msg = "Password was mistyped, try again.\nGive your " + realm + " password"
+            msg = "Password was mistyped, try again.<br>Give your <b>{}</b> password".format(realm)
         else:
-            msg = "Give your " + realm + " password"
+            msg = "Give your <b>{}</b> password".format(realm)
         password, ok = QtGui.QInputDialog.getText(
             self,
             "Please enter a password",

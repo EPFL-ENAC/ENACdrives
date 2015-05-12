@@ -104,6 +104,10 @@ def cifs_mount(mount):
         Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
 
     else:  # "mount.cifs"
+        if LIN_CONST.CMD_MOUNT_CIFS is None:
+            mount.ui.notify_user("Error missing binary <b>mount.cifs</b>. On Ubuntu you can install it with <i>sudo apt-get install cifs-utils</i>")
+            raise Exception("Error missing binary mount.cifs. On Ubuntu you can install it with sudo apt-get install cifs-utils")
+            
         # 1) Make mount dir (remove broken symlink if needed)
         if (os.path.lexists(mount.settings["local_path"]) and
            not os.path.exists(mount.settings["local_path"])):
@@ -114,6 +118,7 @@ def cifs_mount(mount):
             except OSError:
                 pass
         if not os.path.isdir(mount.settings["local_path"]):
+            mount.ui.notify_user("Error while creating dir : %s" % mount.settings["local_path"])
             raise Exception("Error while creating dir : %s" % mount.settings["local_path"])
 
         # 2) Mount
