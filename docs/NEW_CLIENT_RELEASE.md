@@ -44,6 +44,7 @@ export SHORT_SOFT_VER=$(python tell_version.py)
 export SOFT_VER=$(python tell_version.py)
 export PACKAGE_VER=1
 export DIR_DEB_CREATION=~/Projects/enacdrives/deb_building/${PACKAGE}
+echo "${SOFT} ${SOFT_VER} -> ${DIR_DEB_CREATION}"
 ~~~
 
 Build a package - Cleanup

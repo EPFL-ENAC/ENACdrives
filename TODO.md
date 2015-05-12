@@ -25,8 +25,15 @@ client :
 
 * Check for update ++
 * add menus for
-  + Documentation link
-  + Show/Hide entries
+  + Help > About ENACdrives : Version, Author, Licence
+  + Help > ENACdrives Documentation : 
+  + Edit > Show/Hide entries
+  + Edit > Preferences
+    + Linux_CIFS_method
+    + Linux_gvfs_symlink
+    + Linux_mountcifs_dirmode
+    + Linux_mountcifs_filemode
+    + Linux_mountcifs_options
 * bad syntax in config received when user is on public-epfl Wifi with no VPN
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
 * GUI message if no CIFS_mount is available
