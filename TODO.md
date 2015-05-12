@@ -40,10 +40,6 @@ Windows
 * If a mount is already done before launch enacdrives and the drive letter is not assigned -> user doesn't know where it's mounted
 * Windows XP is KO
 
-Linux
------
-
-* switch mount.cifs <-> gvfs and some shares are still mounted
 
 client test :
 -------------

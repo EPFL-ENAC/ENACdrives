@@ -65,7 +65,8 @@ def cifs_mount(mount):
                os.listdir(mount.settings["local_path"]) == []):
                 os.rmdir(mount.settings["local_path"])
             if os.path.exists(mount.settings["local_path"]):
-                raise Exception("Error : Path %s already exists" % mount.settings["local_path"])
+                mount.ui.notify_user("Error : Path {} already exists".format(mount.settings["local_path"]))
+                return False
 
         # 2) Mount
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
@@ -91,7 +92,8 @@ def cifs_mount(mount):
                 timeout=5,
             )
         except pexpect.ExceptionPexpect as exc:
-            raise Exception("Error while mounting : %s" % exc.value)
+            mount.ui.notify_user("Error while mounting :<br>{}".format(exc.value))
+            return False
         if exit_status == 0:
             mount.key_chain.ack_password(mount.settings["realm"])
         else:
@@ -99,14 +101,14 @@ def cifs_mount(mount):
             if process_meta["was_cancelled"]:
                 return False
             else:
-                mount.ui.notify_user("Mount failure")
-                raise Exception("Error while mounting : %d %s" % (exit_status, output))
+                mount.ui.notify_user("Mount failure :<br>{}".format(output))
+                return False
         Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
 
     else:  # "mount.cifs"
         if LIN_CONST.CMD_MOUNT_CIFS is None:
             mount.ui.notify_user("Error missing binary <b>mount.cifs</b>. On Ubuntu you can install it with <i>sudo apt-get install cifs-utils</i>")
-            raise Exception("Error missing binary mount.cifs. On Ubuntu you can install it with sudo apt-get install cifs-utils")
+            return False
             
         # 1) Make mount dir (remove broken symlink if needed)
         if (os.path.lexists(mount.settings["local_path"]) and
@@ -117,9 +119,10 @@ def cifs_mount(mount):
                 os.makedirs(mount.settings["local_path"])
             except OSError:
                 pass
-        if not os.path.isdir(mount.settings["local_path"]):
+        if (os.path.islink(mount.settings["local_path"]) or
+           not os.path.isdir(mount.settings["local_path"])):
             mount.ui.notify_user("Error while creating dir : %s" % mount.settings["local_path"])
-            raise Exception("Error while creating dir : %s" % mount.settings["local_path"])
+            return False
 
         # 2) Mount
         cmd = [
@@ -170,8 +173,8 @@ def cifs_mount(mount):
                     except OSError as e:
                         Output.write("Warning, could not rmdir : {0}".format(e))
             else:
-                mount.ui.notify_user("Mount failure")
-                raise Exception("Error while mounting : %d %s" % (exit_status, output))
+                mount.ui.notify_user("Mount failure : {}".format(output))
+                return False
     return True
 
 
@@ -225,8 +228,8 @@ def cifs_umount(mount):
                 env=dict(os.environ, LANG="C", LC_ALL="C"),
             )
         except subprocess.CalledProcessError as e:
-            mount.ui.notify_user("Umount failure")
-            raise Exception("Error (%s) while umounting : %s" % (e.returncode, e.output.decode()))
+            mount.ui.notify_user("Umount failure :<br>{}".format(e.output.decode()))
+            return False
         Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
 
     else:  # "mount.cifs"
@@ -262,11 +265,11 @@ def cifs_umount(mount):
             elif "device is busy" in output:
                 mount.key_chain.ack_password("sudo")
                 mount.ui.notify_user("Umount failure: Device is busy.")
-                raise Exception("Error while umounting (device is busy) : %d %s" % (exit_status, output))
+                return False
             else:
                 mount.key_chain.invalidate_if_no_ack_password("sudo")
                 mount.ui.notify_user("Umount failure")
-                raise Exception("Error while umounting : %d %s" % (exit_status, output))
+                return False
 
 
 def cifs_post_umount(mount):
