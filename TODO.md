@@ -32,7 +32,6 @@ client :
     + Linux_mountcifs_dirmode
     + Linux_mountcifs_filemode
     + Linux_mountcifs_options
-* bad syntax in config received when user is on public-epfl Wifi with no VPN
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
 * GUI message if no CIFS_mount is available
 * CLI
