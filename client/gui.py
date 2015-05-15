@@ -7,6 +7,7 @@
 import os
 import sys
 import pprint
+import webbrowser
 from PyQt4 import QtGui, QtCore
 from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number
 from cifs_mount import CIFS_Mount
@@ -248,12 +249,18 @@ class GUI(QtGui.QMainWindow):
         about_action.setShortcut("Ctrl+?")
         about_action.setStatusTip("About ENACdrives")
         about_action.triggered.connect(self.show_about)
+        # Help > Documentation
+        doc_action = QtGui.QAction("web &Documentation", self)
+        # doc_action.setShortcut("Ctrl+?")
+        doc_action.setStatusTip("ENACdrives web documentation")
+        doc_action.triggered.connect(self.show_web_documentation)
 
         menubar = self.menuBar()
         file_menu = menubar.addMenu("&File")
         file_menu.addAction(quit_action)
         help_menu = menubar.addMenu("&Help")
         help_menu.addAction(about_action)
+        help_menu.addAction(doc_action)
 
         central_widget = QtGui.QWidget()
         central_widget.setLayout(self.vbox_layout)
@@ -374,6 +381,9 @@ License : <b>To be defined!</b>
         about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))
         about_box.setText(msg)
         about_box.exec_()
+
+    def show_web_documentation(self):
+        webbrowser.open('http://enacit.epfl.ch/enacdrives')
 
 
 def main_GUI():

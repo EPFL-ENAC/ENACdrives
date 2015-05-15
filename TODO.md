@@ -25,7 +25,6 @@ client :
 
 * Check for update ++
 * add menus for
-  + Help > ENACdrives Documentation : 
   + Edit > Show/Hide entries
   + Edit > Preferences
     + Linux_CIFS_method
