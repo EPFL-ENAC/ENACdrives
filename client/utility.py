@@ -59,15 +59,14 @@ def which(program):
 
 class CONST():
 
-    VERSION = "0.1.17"  # Note : always copy this to PACKAGE_SIGNATURE_VERSION
-    PACKAGE_SIGNATURE_VERSION = "ABCXYZ_0.1.17_ZYXCBA"  # This is used to auto-recognize software version inside a package
-    PACKAGE_SIGNATURE_VERSION2 = "ABCDEF_" + VERSION + "_FEDCBA"  # This is used to auto-recognize software version inside a package
-    FULL_VERSION = "2015-05-12 " + VERSION
+    VERSION_DATE = "2015-05-15"
+    VERSION = "0.1.18"
+    FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
-    
+
     CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
     VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
@@ -78,7 +77,7 @@ class CONST():
     else:
         # The application is not frozen
         RESOURCES_DIR = os.path.dirname(__file__)
-    
+
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
@@ -124,7 +123,7 @@ class CONST():
         DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
     else:
         OS_VERSION = "Error: OS not supported."
-    
+
     # use full ABSOLUTE path to the image, not relative
     ENACDRIVES_PNG = RESOURCES_DIR + "/enacdrives.png"
     MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
@@ -164,7 +163,7 @@ class Output():
     @classmethod
     def del_instance(cls):
         cls.instance = None
-    
+
     @classmethod
     def write(cls, msg="", end="\n"):
         cls.instance.do_write(msg + end)
@@ -215,7 +214,7 @@ class Key_Chain():
     def ack_password(self, realm):
         if realm in self.keys:
             self.keys[realm]["ack"] = True
-    
+
     def invalidate_if_no_ack_password(self, realm):
         if realm in self.keys:
             if not self.keys[realm]["ack"]:
@@ -314,7 +313,7 @@ def validate_username(username):
     except urllib.error.URLError:
         Output.write("Warning, could not load validate url. ({0})".format(validate_url))
         return "Error, could not contact config server."
-        
+
 
 def validate_release_number():
     with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL) as response:

@@ -25,7 +25,6 @@ client :
 
 * Check for update ++
 * add menus for
-  + Help > About ENACdrives : Version, Author, Licence
   + Help > ENACdrives Documentation : 
   + Edit > Show/Hide entries
   + Edit > Preferences

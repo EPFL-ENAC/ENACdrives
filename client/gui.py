@@ -25,10 +25,10 @@ class UI_Label_Entry(QtGui.QHBoxLayout):
 
 
 class UI_Download_New_Release(QtGui.QWidget):
-    
+
     def __init__(self):
         super(UI_Download_New_Release, self).__init__()
-        
+
         hlayout = QtGui.QHBoxLayout()
         if CONST.OS_SYS == "Linux":
             label = QtGui.QLabel("You are not running the latest release.<br>Please upgrade the package enacdrives.")
@@ -39,15 +39,15 @@ class UI_Download_New_Release(QtGui.QWidget):
         hlayout.addStretch(1)
         hlayout.addWidget(label)
         self.setLayout(hlayout)
-        
+
 
 class UI_Username_Box(QtGui.QWidget):
 
     def __init__(self, ui, username=None):
         super(UI_Username_Box, self).__init__()
-        
+
         self.ui = ui
-        
+
         # Identified Layout
         identified_hlayout = QtGui.QHBoxLayout()
         self.identified_label = QtGui.QLabel()
@@ -58,12 +58,12 @@ class UI_Username_Box(QtGui.QWidget):
         identified_hlayout.addWidget(self.bt_change_username)
 
         self.setLayout(identified_hlayout)
-        
+
         self._set_username(username)
-    
+
     def get_widgets_order(self):
         return [self.bt_change_username, ]
-            
+
     def _set_username(self, username):
         if username is None:
             username = "..."
@@ -113,12 +113,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.bt_bookmark.setGeometry(0, 0, 15, 15)
         self.bt_bookmark.clicked.connect(self.toggle_bookmark)
         self.update_bookmark()
-        
+
         self.label_status = QtGui.QLabel()
         self.label_status.setGeometry(0, 0, 15, 15)
 
         self.label = QtGui.QLabel(self.settings["label"])
-        
+
         # Windows Letters : Z: -> A:
         if CONST.OS_SYS == "Windows":
             self.possible_win_letters = ["{}:".format(chr(i)) for i in range(90, 64, -1)]
@@ -129,12 +129,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
             self.win_letter.currentIndexChanged.connect(self.win_letter_changed)
             self.ui.windows_letter_manager.add_mount_entry(self)
-        
+
         self.bt_mount = QtGui.QPushButton("Mount", self.ui)
         self.bt_mount.clicked.connect(self.toggle_mount)
         if CONST.OS_SYS == "Windows" and self.win_letter.currentText() == "":
             self.bt_mount.setEnabled(False)
-        self.bt_open = QtGui.QPushButton('Open', self.ui)
+        self.bt_open = QtGui.QPushButton("Open", self.ui)
         self.bt_open.clicked.connect(self.mount_instance.open_file_manager)
         self.addWidget(self.bt_bookmark)
         self.addWidget(self.label_status)
@@ -145,7 +145,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.addWidget(self.bt_mount)
         self.addWidget(self.bt_open)
         self.update_status()
-    
+
     def get_widgets_order(self):
         if CONST.OS_SYS == "Windows":
             return [self.bt_bookmark, self.win_letter, self.bt_mount, self.bt_open]
@@ -160,25 +160,25 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             self.bt_mount.setEnabled(False)
         else:
             self.bt_mount.setEnabled(True)
-    
+
     def set_disabled_windows_letters(self, l_letters):
         for i, letter in enumerate(self.possible_win_letters):
             if letter in l_letters:
                 self.win_letter.model().item(i).setEnabled(False)
             else:
                 self.win_letter.model().item(i).setEnabled(True)
-            
+
     def toggle_bookmark(self):
         self.settings["bookmark"] = not self.settings["bookmark"]
         conf.save_bookmark(self.settings["name"], self.settings["bookmark"])
         self.update_bookmark()
-    
+
     def update_bookmark(self):
         if self.settings["bookmark"]:
             self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_ON_PNG))
         else:
             self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))
-    
+
     def toggle_mount(self):
         if self.mount_instance.is_mounted():
             self.mount_instance.umount()
@@ -199,7 +199,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             self.bt_open.setEnabled(False)
             if CONST.OS_SYS == "Windows":
                 self.win_letter.setEnabled(True)
-    
+
     def destroy(self):
         """
             This Mount_Entry has to be deleted.
@@ -215,11 +215,11 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.setParent(None)
 
 
-class GUI(QtGui.QWidget):
+class GUI(QtGui.QMainWindow):
 
     def __init__(self):
         super(GUI, self).__init__()
-        
+
         self.key_chain = Key_Chain(self)
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager = WindowsLettersManager()
@@ -230,13 +230,6 @@ class GUI(QtGui.QWidget):
         self.load_config()
 
         self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
-        
-        self.bt_quit = QtGui.QPushButton('Quit', self)
-        self.bt_quit.clicked.connect(QtGui.qApp.quit)
-
-        self.hbox_bt_quit = QtGui.QHBoxLayout()
-        self.hbox_bt_quit.addStretch(1)
-        self.hbox_bt_quit.addWidget(self.bt_quit)
 
         self.vbox_layout = QtGui.QVBoxLayout()
         if not validate_release_number():
@@ -244,12 +237,29 @@ class GUI(QtGui.QWidget):
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.entries_layer)
-        self.vbox_layout.addWidget(HLine())
-        self.vbox_layout.addLayout(self.hbox_bt_quit)
 
-        self.setLayout(self.vbox_layout)
+        # File > Quit
+        quit_action = QtGui.QAction("&Quit", self)
+        quit_action.setShortcut("Ctrl+Q")
+        quit_action.setStatusTip("Quit ENACdrives")
+        quit_action.triggered.connect(QtGui.qApp.quit)
+        # Help > About
+        about_action = QtGui.QAction("&About", self)
+        about_action.setShortcut("Ctrl+?")
+        about_action.setStatusTip("About ENACdrives")
+        about_action.triggered.connect(self.show_about)
+
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu("&File")
+        file_menu.addAction(quit_action)
+        help_menu = menubar.addMenu("&Help")
+        help_menu.addAction(about_action)
+
+        central_widget = QtGui.QWidget()
+        central_widget.setLayout(self.vbox_layout)
+        self.setCentralWidget(central_widget)
         self.set_tab_order()
-        
+
         self.refresh_timer = QtCore.QTimer()
         self.refresh_timer.timeout.connect(self._refresh_entries)
         self.refresh_timer.start(5000)  # every 5s.
@@ -267,7 +277,7 @@ class GUI(QtGui.QWidget):
         msgBox = QtGui.QMessageBox()
         msgBox.setText(msg)
         msgBox.exec_()
-        
+
     def get_password(self, realm, password_mistyped=False):
         if password_mistyped:
             msg = "Password was mistyped, try again.<br>Give your <b>{}</b> password".format(realm)
@@ -290,7 +300,7 @@ class GUI(QtGui.QWidget):
             entry.update_status()
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager.refresh_letters()
-    
+
     def switch_username(self, username):
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager.clear_entries()
@@ -299,16 +309,16 @@ class GUI(QtGui.QWidget):
         self.load_config()
         self.set_tab_order()
         self.resize_window_to_minimum()
-    
+
     def load_config(self):
         self.cfg = conf.get_config()
         Output.write(pprint.pformat(self.cfg))
-        
+
         # Delete previous config
         for entry in self.entries:
             entry.destroy()
         self.entries = []
-        
+
         # Instanciate new config objects
         entries_added = []
         for entry_name in self.cfg["global"].get("entries_order", ()):
@@ -327,24 +337,43 @@ class GUI(QtGui.QWidget):
 
         for entry in self.entries:
             self.entries_layer.addLayout(entry)
-        
+
     def set_tab_order(self):
         widgets_ordered = self.username_box.get_widgets_order()
         for entry in self.entries:
             widgets_ordered.extend(entry.get_widgets_order())
-        widgets_ordered.append(self.bt_quit)
-        
+
         prev_wid = None
         for wid in widgets_ordered:
             if prev_wid is not None:
                 self.setTabOrder(prev_wid, wid)
             prev_wid = wid
-    
+
     def resize_window_to_minimum(self):
         # http://stackoverflow.com/a/28667119/446302
         def _func_to_call():
             self.resize(self.minimumSizeHint())
         QtCore.QTimer.singleShot(500, _func_to_call)
+
+    def show_about(self):
+        msg = """\
+ENACdrives version : <b>{}</b> ({})
+<br><br>
+Authors : ENAC-IT
+<ul>
+<li>Samuel Bancal</li>
+<li>Jean-Daniel Bonjour</li>
+<li>Paulo De Jesus</li>
+<li>Nicolas Dubois</li>
+<li>Stefano Nepa</li>
+</ul>
+
+License : <b>To be defined!</b>
+""".format(CONST.VERSION, CONST.VERSION_DATE)
+        about_box = QtGui.QMessageBox()
+        about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))
+        about_box.setText(msg)
+        about_box.exec_()
 
 
 def main_GUI():
