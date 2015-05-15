@@ -15,6 +15,7 @@ import os
 import re
 import io
 import pprint
+import socket
 import hashlib
 import urllib.error
 import urllib.request
@@ -63,7 +64,7 @@ def get_config():
         config_url = CONST.CONFIG_URL.format(username=username)
         cache_filename = os.path.join(CONST.USER_CACHE_DIR, hashlib.md5(config_url.encode()).hexdigest())
         try:
-            with urllib.request.urlopen(config_url) as response:
+            with urllib.request.urlopen(config_url, timeout=CONST.URL_TIMEOUT) as response:
                 lines = [l.decode() for l in response.readlines()]
                 s_io = io.StringIO("".join(lines))
                 enacdrives_config = read_config_source(s_io)
@@ -72,7 +73,7 @@ def get_config():
                 with open(cache_filename, "w") as f:
                     f.writelines(s_io.readlines())
             Output.write("Loaded config from ENACdrives server ({})".format(config_url))
-        except (urllib.error.URLError, ConfigException):
+        except (socket.timeout, urllib.error.URLError, ConfigException):
             Output.write("Warning, could not load config ENACdrives server. ({})".format(config_url))
             try:
                 with open(cache_filename, "r") as f:

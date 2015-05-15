@@ -9,6 +9,7 @@ import os
 import gc
 import sys
 import time
+import socket
 import getpass
 import tempfile
 import datetime
@@ -60,13 +61,14 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-15"
-    VERSION = "0.1.20"
+    VERSION = "0.1.21"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
 
+    URL_TIMEOUT = 2
     CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
     VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
@@ -307,15 +309,19 @@ class Live_Cache():
 def validate_username(username):
     validate_url = CONST.VALIDATE_USERNAME_URL.format(username=username)
     try:
-        with urllib.request.urlopen(validate_url) as response:
+        with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) as response:
             lines = [l.decode() for l in response.readlines()]
         return lines[0]
-    except urllib.error.URLError:
+    except (socket.timeout, urllib.error.URLError):
         Output.write("Warning, could not load validate url. ({0})".format(validate_url))
         return "Error, could not contact config server."
 
 
 def validate_release_number():
-    with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL) as response:
-        latest_release = response.readline().decode()
-        return latest_release == CONST.VERSION
+    try:
+        with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) as response:
+            latest_release = response.readline().decode()
+            return latest_release == CONST.VERSION
+    except (socket.timeout, urllib.error.URLError):
+        Output.write("Warning, could not validate release number.")
+        return True
