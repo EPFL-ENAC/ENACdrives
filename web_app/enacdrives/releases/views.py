@@ -29,23 +29,26 @@ def http_admin(request):
     except KeyError:
         return HttpResponseForbidden()
 
+    debug_logger = logging.getLogger("debug")
+    
     installers = {}
-    for o_s, os_name in mo.Installer.OS_CHOICES:
-        installers[os_name] = mo.Installer.objects.filter(os=o_s).order_by("upload_date")
-        
+    current_installer_id = {}
+    for arch in mo.Arch.objects.all():
+        installers[arch] = mo.Installer.objects.filter(arch=arch).order_by("upload_date")
+        if arch.current_installer is not None:
+            current_installer_id[arch] = arch.current_installer.id
+    
     params = {
         "installers": installers,
+        "current_installer_id": current_installer_id,
         "username": username,
-        "oss": [e[1] for e in mo.Installer.OS_CHOICES],
+        "archs": mo.Arch.objects.all().order_by("id"),
         "upload_url": reverse("do_upload"),
         "enable_url": reverse("do_enable"),
     }
     
-    debug_logger = logging.getLogger("debug")
-    debug_logger.error("HELLO")
-    debug_logger.debug("params: {}".format(params))
-    
     params.update(csrf(request))
+    debug_logger.debug("params: {}".format(params))
     return render_to_response("admin.html", params, RequestContext(request))
 
 
@@ -60,18 +63,21 @@ def do_upload(request):
     except KeyError:
         return HttpResponseForbidden()
     
-    # debug_logger = logging.getLogger("debug")
+    debug_logger = logging.getLogger("debug")
     
     try:
         uploaded_file = request.FILES["file"]
         filename = uploaded_file.name
         file_attributes = ut.parse_uploaded_file(filename)
+        debug_logger.debug("file_attributes : {}".format(file_attributes))
     except Exception as e:
         response = {
             "status": "error",
             "msg": e.__str__(),
         }
         return HttpResponse(json.dumps(response), content_type="application/json")
+    
+    arch, _ = mo.Arch.objects.get_or_create(os=file_attributes["os"])
     
     now = datetime.datetime.now()
     storage_name = "{:04}-{:02}-{:02}-{:02}{:02}{:02}-{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second, filename)
@@ -91,10 +97,9 @@ def do_upload(request):
         upload_username=username,
         upload_date=now,
         release_number=file_attributes["release_number"],
-        os=file_attributes["os"],
+        arch=arch,
         file_name=filename,
         storage_name=storage_name,
-        enabled=False
     )
     inst.save()
     
@@ -105,28 +110,39 @@ def do_upload(request):
 
 
 def do_enable(request):
+    debug_logger = logging.getLogger("debug")
+    debug_logger.debug("AA")
     if request.method != "POST":
         raise Http404
+    debug_logger.debug("AB")
     try:
         username = request.META["REMOTE_USER"]
     except KeyError:
         return HttpResponseForbidden()
+    debug_logger.debug("AC")
     
-    installer_id = ut.validate_input(request.POST.get, "int")
-    enabled = ut.validate_input(request.POST.get, "bool")
+    arch_id = ut.validate_input(request.POST.get, "arch", "int")
+    installer_id = ut.validate_input(request.POST.get, "inst", "int")
+    arch = get_object_or_404(
+        mo.Arch,
+        id=arch_id
+    )
     inst = get_object_or_404(
         mo.Installer,
         id=installer_id
     )
-    if enabled:
-        os.symlink(
-            os.path.join(app_settings.APACHE_PRIVATE_DIR, inst.storage_name),
-            os.path.join(app_settings.APACHE_PUBLIC_DIR, inst.file_name)
-        )
-    else:
-        os.unlink(os.path.join(app_settings.APACHE_PUBLIC_DIR, inst.file_name))
-    inst.enabled = enabled
-    inst.save()
+    if inst.arch == arch:
+        arch.current_installer = inst
+        arch.save()
+        response = {
+            "status": "ok",
+        }
+        return HttpResponse(json.dumps(response), content_type="application/json")
+    response = {
+        "status": "error",
+        "msg": "This installer is not of the right Architecture."
+    }
+    return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 def api_latest_release_number(request):
@@ -134,8 +150,8 @@ def api_latest_release_number(request):
         raise Http404
     
     try:
-        os = ut.validate_input(request.GET.get, "os")
-        inst = mo.Installer.objects.filter(os=os).order_by("-upload_date")[0]
+        o_s = ut.validate_input(request.GET.get, "os", "os")
+        inst = mo.Installer.objects.filter(os=o_s).order_by("-upload_date")[0]
         answer = inst.release_number
     except:
         answer = "This OS has no release."

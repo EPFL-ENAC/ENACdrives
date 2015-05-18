@@ -7,25 +7,32 @@
 <body>
     <h1>ENACdrives - Admin the packages and installers</h1>
     <h2>Current installers</h2>
-    {% for os in oss %}
-    <h3>{{ os }}</h3>
+    {% for arch in archs %}
+    <h3>{{ arch.get_os_display }}</h3>
     <table>
         <tr>
             <th>Uploaded by</th>
             <th>Upload date</th>
-            <th>OS</th>
             <th>Filename</th>
             <th>Release number</th>
             <th>enabled</th>
         </tr>
-        {% for inst in installers|get_item:os %}
+        {% for inst in installers|get_item:arch %}
         <tr>
             <td>{{inst.upload_username}}</td>
             <td>{{inst.upload_date}}</td>
-            <td>{{inst.get_os_display}}</td>
             <td>{{inst.file_name}}</td>
             <td>{{inst.release_number}}</td>
-            <td>{{inst.enabled}}</td>
+            <td>{% if inst.id == current_installer_id|get_item:arch %}
+                Current release.
+                {% else %}
+                <form action="{{ enable_url }}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="arch" value="{{ arch.id }}" />
+                    <input type="hidden" name="inst" value="{{ inst.id }}" />
+                    <input type="submit" value="Set as current release">
+                </form>
+                {% endif %}</td>
         </tr>
         {% endfor %}
     </table>

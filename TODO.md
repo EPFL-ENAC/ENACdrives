@@ -10,10 +10,10 @@ Global :
 ========
 
 * host enacdrives.epfl.ch on PROD server
+* Icon design
 + doc Windows installer
 + doc OSX installer
 + FIX Linux package "The package is of bad quality"
-* Icon design
 
 
 web_app :

@@ -3,20 +3,20 @@ import re
 from releases import models as mo
 
 
-def validate_input(data_source, data_type):
+def validate_input(data_source, field_name, data_type):
     """
     Validates data received from HTTP requests
     """
     if data_type == "os":
-        data = data_source(data_type, "")
+        data = data_source(field_name, "")
         data = data.lower()
-        for os in mo.Installer.OS_CHOICES:
+        for os in mo.Arch.OS_CHOICES:
             if data == os[1].lower():
                 return os[0]
         raise Exception("Invalid os '{0}'".format(data))
 
     if data_type == "int":
-        data = data_source(data_type, "")
+        data = data_source(field_name, "")
         if type(data) == int:
             return data
         else:
@@ -26,7 +26,7 @@ def validate_input(data_source, data_type):
                 raise Exception("Invalid integer '{0}'".format(data))
 
     if data_type == "bool":
-        data = data_source(data_type, "")
+        data = data_source(field_name, "")
         if data == "False" or data == "false" or data == "0" or data == 0:
             return False
         elif data:
@@ -41,26 +41,26 @@ def parse_uploaded_file(filename):
     """
     returns {
         "release_number":"x.y.z",
-        "os":mo.Installer.OS_WIN|mo.Installer.OS_LIN|mo.Installer.OS_OSX
+        "os":mo.Arch.OS_WIN|mo.Arch.OS_LIN|mo.Arch.OS_OSX
     }
     """
     answer = {
-        "release_number": mo.Installer.OS_WIN,
+        "release_number": mo.Arch.OS_WIN,
         "os": "Unknown",
     }
 
     # OS
     if filename.endswith("exe"):
-        answer["os"] = mo.Installer.OS_WIN
+        answer["os"] = mo.Arch.OS_WIN
     elif filename.endswith("deb"):
-        answer["os"] = mo.Installer.OS_LIN
+        answer["os"] = mo.Arch.OS_LIN
     elif filename.endswith("dmg"):
-        answer["os"] = mo.Installer.OS_OSX
+        answer["os"] = mo.Arch.OS_OSX
     else:
         raise Exception("Unrecognized OS in {}".format(filename))
     
     # Release Number
-    m = re.search(r"-([0-9.]+)[-.][^0-9]", filename)
+    m = re.search(r"-([0-9.]+)(-[0-9+])?[-.][^0-9]", filename)
     if m:
         answer["release_number"] = m.groups()[0]
     else:

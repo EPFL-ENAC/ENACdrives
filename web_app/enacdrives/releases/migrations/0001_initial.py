@@ -11,16 +11,31 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='Arch',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, verbose_name='ID', primary_key=True)),
+                ('os', models.CharField(default='a', max_length=1, choices=[('a', 'Windows'), ('b', 'Linux'), ('c', 'MacOSX')])),
+            ],
+        ),
+        migrations.CreateModel(
             name='Installer',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
+                ('id', models.AutoField(auto_created=True, serialize=False, verbose_name='ID', primary_key=True)),
                 ('upload_username', models.CharField(max_length=256)),
                 ('upload_date', models.DateTimeField()),
                 ('release_number', models.CharField(max_length=256)),
-                ('os', models.CharField(default='a', choices=[('a', 'Windows'), ('b', 'Linux'), ('c', 'MacOSX')], max_length=1)),
                 ('file_name', models.CharField(max_length=256)),
-                ('file_path', models.CharField(max_length=256)),
-                ('enabled', models.BooleanField(default=False)),
+                ('storage_name', models.CharField(max_length=256)),
+                ('arch', models.ForeignKey(to='releases.Arch')),
             ],
+        ),
+        migrations.AddField(
+            model_name='arch',
+            name='current_installer',
+            field=models.ForeignKey(related_name='+', null=True, blank=True, to='releases.Installer'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='arch',
+            unique_together=set([('os',)]),
         ),
     ]
