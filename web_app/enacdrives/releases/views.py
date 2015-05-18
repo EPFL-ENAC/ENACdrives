@@ -88,7 +88,7 @@ def do_upload(request):
         shutil.move(src_path, dest_path)
     except AttributeError:
         # Uploaded file is small -> InMemoryUploadedFile
-        destination = open(dest_path, 'wb')
+        destination = open(dest_path, "wb")
         for chunk in uploaded_file.chunks():
             destination.write(chunk)
         destination.close()
@@ -144,6 +144,27 @@ def do_enable(request):
     }
     return HttpResponse(json.dumps(response), content_type="application/json")
 
+
+def do_download(request):
+    if request.method != "GET":
+        raise Http404
+
+    try:
+        o_s = ut.validate_input(request.GET.get, "os", "os")
+        arch = mo.Arch.objects.get(os=o_s)
+        inst = arch.current_installer
+        answer = inst.release_number
+    except:
+        answer = "This OS has no release."
+        return HttpResponse(answer, content_type="text/plain; charset=utf-8")
+    
+    response = HttpResponse(content_type="application/force-download")
+    response["Content-Disposition"] = "attachment; filename={}".format(inst.file_name)
+    response["X-Sendfile"] = os.path.join(app_settings.APACHE_PRIVATE_DIR, inst.storage_name)
+    # It"s usually a good idea to set the "Content-Length" header too.
+    # You can also set any other required headers: Cache-Control, etc.
+    return response
+    
 
 def api_latest_release_number(request):
     if request.method != "GET":
