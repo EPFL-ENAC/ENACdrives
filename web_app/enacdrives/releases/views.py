@@ -151,8 +151,23 @@ def api_latest_release_number(request):
     
     try:
         o_s = ut.validate_input(request.GET.get, "os", "os")
-        inst = mo.Installer.objects.filter(os=o_s).order_by("-upload_date")[0]
+        arch = mo.Arch.objects.get(os=o_s)
+        inst = arch.current_installer
         answer = inst.release_number
+    except:
+        answer = "This OS has no release."
+    return HttpResponse(answer, content_type="text/plain; charset=utf-8")
+
+
+def api_latest_release_date(request):
+    if request.method != "GET":
+        raise Http404
+    
+    try:
+        o_s = ut.validate_input(request.GET.get, "os", "os")
+        arch = mo.Arch.objects.get(os=o_s)
+        inst = arch.current_installer
+        answer = inst.upload_date
     except:
         answer = "This OS has no release."
     return HttpResponse(answer, content_type="text/plain; charset=utf-8")
