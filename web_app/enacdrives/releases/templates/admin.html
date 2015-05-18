@@ -7,6 +7,8 @@
 <body>
     <h1>ENACdrives - Admin the packages and installers</h1>
     <h2>Current installers</h2>
+    {% for os in oss %}
+    <h3>{{ os }}</h3>
     <table>
         <tr>
             <th>Uploaded by</th>
@@ -16,7 +18,7 @@
             <th>Release number</th>
             <th>enabled</th>
         </tr>
-        {% for inst in installers %}
+        {% for inst in installers|get_item:os %}
         <tr>
             <td>{{inst.upload_username}}</td>
             <td>{{inst.upload_date}}</td>
@@ -27,21 +29,12 @@
         </tr>
         {% endfor %}
     </table>
+    {% endfor %}
 
     <h2>Upload a new installer</h2>
-    <form action="{{ upload_url }}" method="POST">{% csrf_token %}
-        <label for="username">Upload new version as :</label>
-        <input id="username" value={{ username }} readonly /> <br />
-        <label for="os">for :</label>
-        <select id="os">
-            {% for os in oss %}
-            <option value="{{ os }}" {% if forloop.first %}selected{% endif %}>{{ os }}</option>
-            {% endfor %}
-        </select> <br />
-        <label for="release_number">Release number :</label>
-        <input id="release_number" /> <br />
-        <label for="file">File :</label>
-        <input id="file" type=file /><br />
+    <form action="{{ upload_url }}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="file">File :</label><input id="file" type="file" name="file" />
         <input type="submit" value="Submit">
     </form>
 </body>

@@ -77,6 +77,12 @@ def mod_wsgi_express_setup():
 def apache_setup():
     sudo("mkdir -p /var/www/enacdrives.epfl.ch/public_html")
     sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/public_html")
+    sudo("mkdir -p /var/www/enacdrives.epfl.ch/private")
+    sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/private")
+    sudo("mkdir -p /var/www/enacdrives.epfl.ch/upload")
+    sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/upload")
+    sudo("mkdir -p /var/log/apache/django")
+    sudo("chown www-data\\: /var/log/apache/django")
     sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/enacdrives_app.conf /etc/apache2/sites-available/enacdrives_app.conf"))
     sudo(sub("cp {server_config_dir}/etc/apache2/tequila_admins_rules.conf /etc/apache2/tequila_admins_rules.conf"))
     sudo("a2ensite enacdrives_app")
@@ -111,7 +117,7 @@ def rsync():
 
 @task
 def migrate():
-    run(sub("{python} {code_dir}/manage.py migrate"))
+    sudo(sub("{python} {code_dir}/manage.py migrate"), user="www-data")
 
 
 @task

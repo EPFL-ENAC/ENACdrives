@@ -1,3 +1,5 @@
+import re
+
 from releases import models as mo
 
 
@@ -12,4 +14,56 @@ def validate_input(data_source, data_type):
             if data == os[1].lower():
                 return os[0]
         raise Exception("Invalid os '{0}'".format(data))
+
+    if data_type == "int":
+        data = data_source(data_type, "")
+        if type(data) == int:
+            return data
+        else:
+            try:
+                return int(data)
+            except:
+                raise Exception("Invalid integer '{0}'".format(data))
+
+    if data_type == "bool":
+        data = data_source(data_type, "")
+        if data == "False" or data == "false" or data == "0" or data == 0:
+            return False
+        elif data:
+            return True
+        else:
+            return False
+
     raise Exception("Unknown data_type '{0}'".format(data_type))
+
+
+def parse_uploaded_file(filename):
+    """
+    returns {
+        "release_number":"x.y.z",
+        "os":mo.Installer.OS_WIN|mo.Installer.OS_LIN|mo.Installer.OS_OSX
+    }
+    """
+    answer = {
+        "release_number": mo.Installer.OS_WIN,
+        "os": "Unknown",
+    }
+
+    # OS
+    if filename.endswith("exe"):
+        answer["os"] = mo.Installer.OS_WIN
+    elif filename.endswith("deb"):
+        answer["os"] = mo.Installer.OS_LIN
+    elif filename.endswith("dmg"):
+        answer["os"] = mo.Installer.OS_OSX
+    else:
+        raise Exception("Unrecognized OS in {}".format(filename))
+    
+    # Release Number
+    m = re.search(r"-([0-9.]+)[-.][^0-9]", filename)
+    if m:
+        answer["release_number"] = m.groups()[0]
+    else:
+        raise Exception("Unrecognized release number in {}".format(filename))
+    
+    return answer

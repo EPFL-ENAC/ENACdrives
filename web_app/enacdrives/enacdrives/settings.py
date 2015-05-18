@@ -13,22 +13,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+from enacdrives.app_settings import *
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-SERVICE_NAME = "ENACDRIVES"
-
-RELEASE_VERSION = "0.1.12"
-RELEASE_DATE = "2015-05-11"
-
-SERVER_HOSTNAME = os.uname()[1]
-
-if SERVER_HOSTNAME == "enacit1sbtest4":
-    CONTEXT = "dev"
-    from enacdrives.settings_enacit1sbtest4 import *
-if SERVER_HOSTNAME == "enacit1pc4":
-    CONTEXT = "dev"
-    from enacdrives.settings_enacit1pc4 import *
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/

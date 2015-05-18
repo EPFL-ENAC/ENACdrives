@@ -23,3 +23,27 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+APACHE_PUBLIC_DIR = "/var/www/enacdrives.epfl.ch/public_html"
+APACHE_PRIVATE_DIR = "/var/www/enacdrives.epfl.ch/private"
+
+FILE_UPLOAD_TEMP_DIR = "/var/www/enacdrives.epfl.ch/upload"
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': '/var/log/apache/django/debug.log',
+#         },
+#     },
+#     'loggers': {
+#         'django.request': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }

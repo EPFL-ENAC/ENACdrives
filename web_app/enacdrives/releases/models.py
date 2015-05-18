@@ -17,9 +17,9 @@ class Installer(models.Model):
     os = models.CharField(max_length=1, choices=OS_CHOICES, default=OS_WIN)
     
     file_name = models.CharField(max_length=256)
-    file_path = models.CharField(max_length=256)
+    storage_name = models.CharField(max_length=256)
     
     enabled = models.BooleanField(default=False)
 
     def __str__(self):
-        return "{} {} {}".format(self.os, self.file_name, self.file_path)
+        return "{} {} {}".format(self.os, self.file_name, self.storage_name)
