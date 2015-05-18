@@ -1,41 +1,55 @@
 
+Priorities :
+============
+
+* must work on 2015-05-22
++ must work any soon
+- will be fixed later
+
 Global :
 ========
 
 * host enacdrives.epfl.ch on PROD server
-* make Windows installer + doc
-* make Linux package + doc
-* make OSX installer + doc
++ doc Windows installer
++ doc OSX installer
++ FIX Linux package "The package is of bad quality"
+* Icon design
 
 
 web_app :
 =========
 
 * enac1files for main unit is not assigned to Y:
+* Upload new release
+* Select the release to enable
+* API for enacsoft.epfl.ch
+    * know latest release number / os
+    * know latest release date / os
+
 
 Monitoring :
 ------------
 
-* Config.category has to match with Config.users, Config.epfl_units and Config.ldap_groups
-* All {xyz} can be substitued in config
++ Config.category has to match with Config.users, Config.epfl_units and Config.ldap_groups
++ All {xyz} can be substitued in config
 
 
 client :
 ========
 
 * Check for update ++
-* add menus for
-  + Edit > Show/Hide entries
-  + Edit > Preferences
-    + Linux_CIFS_method
-    + Linux_gvfs_symlink
-    + Linux_mountcifs_dirmode
-    + Linux_mountcifs_filemode
-    + Linux_mountcifs_options
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
-* GUI message if no CIFS_mount is available
-* CLI
-* enacit1logs
+* "enacit1logs"
+- GUI message if no CIFS_mount is available
+- CLI
++ add menus for
+  + Edit > Show/Hide entries
+  - Edit > Preferences
+    - Linux_CIFS_method
+    - Linux_gvfs_symlink
+    - Linux_mountcifs_dirmode
+    - Linux_mountcifs_filemode
+    - Linux_mountcifs_options
 
 Windows
 -------

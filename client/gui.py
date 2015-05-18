@@ -37,6 +37,7 @@ class UI_Download_New_Release(QtGui.QWidget):
             label = QtGui.QLabel(
                 "You are not running the latest release.<br>Please download if from <a href='{}'>here</a>.".format(CONST.DOWNLOAD_NEW_RELEASE_URL),
                 openExternalLinks=True)
+        label.setStyleSheet("QLabel {color : red;}")
         hlayout.addStretch(1)
         hlayout.addWidget(label)
         self.setLayout(hlayout)
@@ -52,7 +53,7 @@ class UI_Username_Box(QtGui.QWidget):
         # Identified Layout
         identified_hlayout = QtGui.QHBoxLayout()
         self.identified_label = QtGui.QLabel()
-        self.bt_change_username = QtGui.QPushButton("Change user")
+        self.bt_change_username = QtGui.QPushButton("Define user")
         self.bt_change_username.clicked.connect(self._bt_change_username)
         identified_hlayout.addWidget(self.identified_label)
         identified_hlayout.addStretch(1)
@@ -68,6 +69,8 @@ class UI_Username_Box(QtGui.QWidget):
     def _set_username(self, username):
         if username is None:
             username = "..."
+        else:
+            self.bt_change_username.setText("Change user")
         self.identified_label.setText("Drives available for username <b>{}</b>".format(username))
 
     def _save_username(self, username):

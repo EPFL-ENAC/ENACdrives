@@ -60,8 +60,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-15"
-    VERSION = "0.1.21"
+    VERSION_DATE = "2015-05-18"
+    VERSION = "0.1.22"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -94,7 +94,7 @@ class CONST():
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
-        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -107,7 +107,7 @@ class CONST():
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
-        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         if getattr(sys, 'frozen', False):
             RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
     elif OS_SYS == "Windows":
@@ -122,7 +122,7 @@ class CONST():
         USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
         SYSTEM_CONF_FILE = "C:\\enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
-        DOWNLOAD_NEW_RELEASE_URL = "http://enacdrives.epfl.ch/"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
     else:
         OS_VERSION = "Error: OS not supported."
 
