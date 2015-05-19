@@ -9,7 +9,6 @@ Priorities :
 Global :
 ========
 
-* host enacdrives.epfl.ch on PROD server
 + doc Windows installer
 + doc OSX installer
 + FIX Linux package "The package is of bad quality"
@@ -47,7 +46,6 @@ client :
 Windows
 -------
 
-* .conf and .cache moved to %USERPROFILE%
 * If a mount is already done before launch enacdrives and the drive letter is not assigned -> user doesn't know where it's mounted
 * Windows XP is KO
 

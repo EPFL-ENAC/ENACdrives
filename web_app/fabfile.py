@@ -6,7 +6,7 @@
     usage :
     $ pww
     $ fab -H test --password=${PASS} deploy
-    $ fab -H prod --password=${PASS} deploy
+    $ fab -H enacit1vm1 --password=${PASS} full_deploy
 """
 
 
@@ -18,7 +18,7 @@ from fabric.operations import sudo
 
 HOSTS = {
     "test": "sbancal@enacit1sbtest4",
-    # "prod": "bancal@enacit1srv3",
+    "enacit1vm1": "enacit1@enacit1vm1",
 }
 
 try:
@@ -43,6 +43,25 @@ def sub(s):
             virtualenv_dir="/django_app/venv/py3",
             python="/django_app/venv/py3/bin/python",
             pip="/django_app/venv/py3/bin/pip",
+            installers_dir="/var/www/enacdrives.epfl.ch/installers",
+            uploads_dir="/var/www/enacdrives.epfl.ch/uploads",
+            logs_dir="/var/log/django-enacdrives",
+            apache_vhost="django-enacdrives",
+            apache_tequila_admins_conf="/etc/apache2/tequila_admins_rules.conf",
+        )
+    elif env.host == "enacit1vm1":
+        return s.format(
+            local_dir="/home/sbancal/Projects/enacdrives/web_app/enacdrives/",
+            code_dir="/data/web/django-enacdrives",
+            server_config_dir="/data/web/django-enacdrives/server_config/enacit1vm1",
+            virtualenv_dir="/data/local/enacdrives/py3",
+            python="/data/local/enacdrives/py3/bin/python",
+            pip="/data/local/enacdrives/py3/bin/pip",
+            installers_dir="/data/local/enacdrives/installers",
+            uploads_dir="/data/local/enacdrives/uploads",
+            logs_dir="/var/log/django-enacdrives",
+            apache_vhost="django-enacdrives",
+            apache_tequila_admins_conf="/etc/apache2/enacdrives_tequila_admins_rules.conf",
         )
 
 
@@ -75,17 +94,15 @@ def mod_wsgi_express_setup():
 
 @task
 def apache_setup():
-    sudo("mkdir -p /var/www/enacdrives.epfl.ch/public_html")
-    sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/public_html")
-    sudo("mkdir -p /var/www/enacdrives.epfl.ch/private")
-    sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/private")
-    sudo("mkdir -p /var/www/enacdrives.epfl.ch/upload")
-    sudo("chown www-data\\: /var/www/enacdrives.epfl.ch/upload")
-    sudo("mkdir -p /var/log/apache/django")
-    sudo("chown www-data\\: /var/log/apache/django")
-    sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/enacdrives_app.conf /etc/apache2/sites-available/enacdrives_app.conf"))
-    sudo(sub("cp {server_config_dir}/etc/apache2/tequila_admins_rules.conf /etc/apache2/tequila_admins_rules.conf"))
-    sudo("a2ensite enacdrives_app")
+    sudo(sub("mkdir -p {installers_dir}"))
+    sudo(sub("chown www-data\\: {installers_dir}"))
+    sudo(sub("mkdir -p {uploads_dir}"))
+    sudo(sub("chown www-data\\: {uploads_dir}"))
+    sudo(sub("mkdir -p {logs_dir}"))
+    sudo(sub("chown www-data\\: {logs_dir}"))
+    sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/{apache_vhost}.conf /etc/apache2/sites-available/{apache_vhost}.conf"))
+    sudo(sub("cp {server_config_dir}{apache_tequila_admins_conf} {apache_tequila_admins_conf}"))
+    sudo(sub("a2ensite {apache_vhost}"))
     apache_reload()
 
 
@@ -137,8 +154,8 @@ def full_deploy():
     rm_pyc()
     virtualenv_init()
     virtualenv_setup()
-    migrate()
-    admin_staff_setup()
     mod_wsgi_express_setup()
     apache_setup()
+    migrate()
+    admin_staff_setup()
     apache_restart()

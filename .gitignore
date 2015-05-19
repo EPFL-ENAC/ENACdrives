@@ -1,6 +1,4 @@
-old/v2011/web_app/mount_filers/db/mount_filers_db_dev.sqlite
-old/v2011/web_app/mount_filers/epfl_settings_test.py
-old/v2011/web_app/mount_filers/epfl_settings_prod.py
+*.sqlite
 *.pyc
 venv3/
 activate
@@ -8,8 +6,6 @@ dependencies/
 build/
 dist/
 WIP.md
-web_app/enacdrives/db.sqlite3
-settings_enacit1sbtest4.py
 ad_credentials.json
 enacdrives_linux
 deb_building/

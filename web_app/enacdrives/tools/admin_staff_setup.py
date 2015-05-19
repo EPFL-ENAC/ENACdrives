@@ -1,6 +1,5 @@
 import os
 import sys
-import datetime
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "enacdrives.settings"
 

@@ -18,7 +18,7 @@ from releases import utility as ut
 
 
 def http_home(request):
-    return redirect("../get", permanent=True)
+    return redirect(reverse("http_admin"), permanent=True)
 
 
 def http_admin(request):
