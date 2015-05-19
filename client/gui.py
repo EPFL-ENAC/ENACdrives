@@ -35,7 +35,7 @@ class UI_Download_New_Release(QtGui.QWidget):
             label = QtGui.QLabel("You are not running the latest release.<br>Please upgrade the package enacdrives.")
         else:
             label = QtGui.QLabel(
-                "You are not running the latest release.<br>Please download if from <a href='{}'>here</a>.".format(CONST.DOWNLOAD_NEW_RELEASE_URL),
+                "You are not running the latest release.<br>Please download it from <a href='{}'>here</a>.".format(CONST.DOWNLOAD_NEW_RELEASE_URL),
                 openExternalLinks=True)
         label.setStyleSheet("QLabel {color : red;}")
         hlayout.addStretch(1)

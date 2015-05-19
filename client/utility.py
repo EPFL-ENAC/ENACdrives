@@ -60,8 +60,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-18"
-    VERSION = "0.1.22"
+    VERSION_DATE = "2015-05-19"
+    VERSION = "0.1.23"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -118,8 +118,13 @@ class CONST():
         LOCAL_GID = -1
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
-        USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
-        USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
+        try:
+            LOCAL_APPDATA = os.environ["LOCALAPPDATA"]
+            USER_CACHE_DIR = LOCAL_APPDATA + "\\ENACdrives\\enacdrives.cache"
+            USER_CONF_FILE = LOCAL_APPDATA + "\\ENACdrives\\enacdrives.conf"
+        except KeyError:
+            USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
+            USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
         SYSTEM_CONF_FILE = "C:\\enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"

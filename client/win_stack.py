@@ -52,7 +52,7 @@ def cifs_mount(mount):
     remote = r"\\{server_name}\{server_path}".format(**mount.settings)
     local = mount.settings["Windows_letter"]
     Output.write("remote={0}\nlocal={1}".format(remote, local))
-    
+
     # 1st attempt without password
     try:
         Output.write("1st attempt without password")
@@ -87,7 +87,7 @@ def cifs_mount(mount):
         else:
             Output.write("failed : {0}".format(e))
             debug_send("mount without password:\n{0}".format(e))
-    
+
     # 2nd attempt with password
     wrong_password = False
     for _ in range(3):
@@ -186,26 +186,26 @@ class WindowsLettersManager():
 
     def add_mount_entry(self, entry):
         self.entries.append(entry)
-        
+
     def clear_entries(self):
         self.entries = []
-        
+
     def refresh_letters(self):
         # 1) read state
         letter_booking = {}
-        
+
         # 1.1) Windows letters
         letters_string = win32api.GetLogicalDriveStrings()  # 'C:\\\x00D:\\\x00'
         for letter in letters_string.split('\x00'):
             if letter != "":
                 letter_booking[letter[:2]] = None
-            
+
         # 1.2) ENACdrives letters
         for e in self.entries:
             letter = e.settings.get("Windows_letter", "")
             if letter != "":
                 letter_booking[letter] = e
-        
+
         # 2) notify entries
         for e in self.entries:
             disabled_letters = []
