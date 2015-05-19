@@ -197,6 +197,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             self.bt_open.setEnabled(True)
             if CONST.OS_SYS == "Windows":
                 self.win_letter.setEnabled(False)
+                self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
         else:
             self.bt_mount.setText("Connect")
             self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
