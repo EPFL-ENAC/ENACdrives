@@ -117,7 +117,7 @@ pip install py2app
 
 Instructions at http://applehelpwriter.com/2012/12/16/make-your-own-icns-icons-for-free/
 
-create Folder "iconbuilder.iconset" (accept the extension ".iconset")
+create Folder "enacdrives.iconset" (accept the extension ".iconset")
 With image preview, save 10 files in that folder :
 
 * icon_16x16.png (= 16 x 16)
@@ -133,9 +133,9 @@ With image preview, save 10 files in that folder :
 
 In Terminal, run :
 
-iconutil -c icns ~/Desktop/iconbuilder.iconset
+iconutil -c icns enacdrives.iconset
 
-It's done. Rename it "enacdrives.icns"!
+scp enacdrives.icns sbancal@salsa:Drop
 
 
 2015.03.24 - SB ● Create enacdrives.app
