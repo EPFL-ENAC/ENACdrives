@@ -17,7 +17,7 @@ from fabric.operations import sudo
 
 
 HOSTS = {
-    "test": "sbancal@enacit1sbtest4",
+    "enacit1sbtest4": "sbancal@enacit1sbtest4",
     "enacit1vm1": "enacit1@enacit1vm1",
 }
 
