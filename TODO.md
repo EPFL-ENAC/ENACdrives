@@ -10,7 +10,6 @@ Global :
 ========
 
 * host enacdrives.epfl.ch on PROD server
-* Icon design
 + doc Windows installer
 + doc OSX installer
 + FIX Linux package "The package is of bad quality"
@@ -20,11 +19,6 @@ web_app :
 =========
 
 * enac1files for main unit is not assigned to Y:
-* Upload new release
-* Select the release to enable
-* API for enacsoft.epfl.ch
-    * know latest release number / os
-    * know latest release date / os
 
 
 Monitoring :
@@ -37,7 +31,6 @@ Monitoring :
 client :
 ========
 
-* Check for update ++
 * check server is responding for each CIFS_mount (show msg related to VPN if not)
 * "enacit1logs"
 - GUI message if no CIFS_mount is available
