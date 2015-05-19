@@ -80,11 +80,11 @@ def cifs_mount(mount):
                     try:
                         os.rmdir(mount.settings["local_path"])
                     except OSError as e:
-                        Output.write("Warning, could not rmdir : {0}".format(e))
+                        Output.write("Warning, could not rmdir : {}".format(e))
                 return False
             else:
-                mount.ui.notify_user("Mount failure")
-                raise Exception("Error while mounting : %d %s" % (exit_status, output))
+                mount.ui.notify_user("Mount failure :<br>{}".format(output))
+                return False
     mount.ui.notify_user("Mount failure")
 
 
