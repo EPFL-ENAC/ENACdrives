@@ -94,7 +94,7 @@ def cifs_mount(mount):
         except pexpect.ExceptionPexpect as exc:
             mount.ui.notify_user("Error while mounting :<br>{}".format(exc.value))
             return False
-        if exit_status == 0:
+        if "error" not in output.lower() and exit_status == 0:
             mount.key_chain.ack_password(mount.settings["realm"])
         else:
             mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
