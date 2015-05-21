@@ -61,7 +61,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-21"
-    VERSION = "0.1.29"
+    VERSION = "0.2.0"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
