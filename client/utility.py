@@ -61,7 +61,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-21"
-    VERSION = "0.1.28"
+    VERSION = "0.1.29"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -137,6 +137,7 @@ class CONST():
     UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
     BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
     BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
+    WARNING_PNG = RESOURCES_DIR + "/warning.png"
 
 
 class Output():
@@ -309,6 +310,54 @@ class Live_Cache():
             cls.cache.pop(str_cmd)
         except (AttributeError, KeyError):
             pass
+
+
+class Networks_Check():
+    def __init__(self, cfg):
+        # Output.write("Networks_Check.__init__ {}".format(cfg))
+        self.networks = {}
+        for net in cfg.get("network", []):
+            self.networks[net] = {
+                "parent": cfg["network"][net].get("parent"),
+                "ping": cfg["network"][net]["ping"],
+                "error_msg": cfg["network"][net]["error_msg"],
+                "status": True,
+            }
+    
+    def scan(self):
+        """
+            Scan all networks to check which are available and which are not.
+        """
+        for net in self.networks:
+            for h in self.networks[net]["ping"]:
+                if CONST.OS_SYS == "Windows":
+                    cmd = ["ping", h, "-n", '1']
+                if CONST.OS_SYS == "Linux":
+                    cmd = ["ping", "-c1", "-w1", h]
+                if CONST.OS_SYS == "Darwin":
+                    cmd = ["ping", "-c1", "-W1", h]
+                ping_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                ping_proc.communicate()
+                if ping_proc.returncode == 0:
+                    self.networks[net]["status"] = True
+                    break
+            else:
+                self.networks[net]["status"] = False
+        # Output.write("Networks_Check.scan : {}".format(self.networks))
+
+    def get_status(self, net):
+        """
+            returns tuple status, error_msg
+            if parent(s) are also of bad status, then returns error_msg from parent
+        """
+        if self.networks.get(net, {}).get("status", True):
+            return (True, "")
+        while self.networks[net]["parent"] is not None:
+            parent = self.networks[net]["parent"]
+            if self.networks.get(parent, {}).get("status", True):
+                break
+            net = parent
+        return (False, self.networks[net]["error_msg"])
 
 
 def validate_username(username):

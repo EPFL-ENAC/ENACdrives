@@ -10,7 +10,7 @@ from cx_Freeze import setup, Executable
 buildOptions = dict(
     packages=[],
     excludes=[],
-    include_files=["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png", "bookmark_off.png"],
+    include_files=["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png", "bookmark_off.png", "warning.png"],
     include_msvcr=True  # skip error msvcr100.dll missing
 )
 

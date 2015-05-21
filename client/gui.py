@@ -9,7 +9,7 @@ import sys
 import pprint
 import webbrowser
 from PyQt4 import QtGui, QtCore
-from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number
+from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check
 from cifs_mount import CIFS_Mount
 import conf
 if CONST.OS_SYS == "Windows":
@@ -194,6 +194,8 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         if self.mount_instance.is_mounted():
             self.bt_mount.setText("Disconnect")
             self.label_status.setPixmap(QtGui.QPixmap(CONST.MOUNTED_PNG))
+            self.label_status.setToolTip("Connected")
+            self.label.setToolTip("Connected")
             self.bt_open.setEnabled(True)
             if CONST.OS_SYS == "Windows":
                 self.win_letter.setEnabled(False)
@@ -201,9 +203,19 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         else:
             self.bt_mount.setText("Connect")
             self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
+            self.label_status.setToolTip("not Connected")
+            self.label.setToolTip("not Connected")
             self.bt_open.setEnabled(False)
             if CONST.OS_SYS == "Windows":
                 self.win_letter.setEnabled(True)
+        
+        required_network = self.settings.get("require_network")
+        if required_network is not None:
+            status, msg = self.ui.networks_check.get_status(required_network)
+            if status is False:
+                self.label_status.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG))
+                self.label_status.setToolTip(msg)
+                self.label.setToolTip(msg)
 
     def destroy(self):
         """
@@ -229,6 +241,7 @@ class GUI(QtGui.QMainWindow):
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager = WindowsLettersManager()
 
+        self.networks_check = None  # set in load_config
         self.cfg = None  # set in load_config
         self.entries_layer = QtGui.QVBoxLayout()
         self.entries = []
@@ -307,6 +320,7 @@ class GUI(QtGui.QMainWindow):
             raise CancelOperationException("Button cancel pressed")
 
     def _refresh_entries(self):
+        self.networks_check.scan()
         for entry in self.entries:
             entry.update_status()
         if CONST.OS_SYS == "Windows":
@@ -323,6 +337,7 @@ class GUI(QtGui.QMainWindow):
 
     def load_config(self):
         self.cfg = conf.get_config()
+        self.networks_check = Networks_Check(self.cfg)
         Output.write(pprint.pformat(self.cfg))
 
         # Delete previous config

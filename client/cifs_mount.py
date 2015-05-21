@@ -70,6 +70,7 @@ class CIFS_Mount():
         self.settings = {
             "name": mount_name,
             "label": _cf("label"),
+            "require_network": _cf("require_network"),
             "realm": _cf("realm"),
             "realm_domain": _cf("realm_domain"),
             "realm_username": _cf("realm_username"),

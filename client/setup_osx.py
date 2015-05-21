@@ -9,7 +9,7 @@ import utility
 from setuptools import setup
 
 APP = ["enacdrives.py"]
-DATA_FILES = ["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png", "bookmark_off.png"]
+DATA_FILES = ["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png", "bookmark_off.png", "warning.png"]
 OPTIONS = {
     "argv_emulation": True,
     # "frameworks": ["libQtCore.4.dylib", "libQtGui.4.dylib"],
