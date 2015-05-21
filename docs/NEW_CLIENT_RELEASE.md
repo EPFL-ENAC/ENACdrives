@@ -147,8 +147,13 @@ Send package to enacrepo.epfl.ch
 cd ~/Projects/enacdrives/deb_building/
 sshfs enacit1@enacrepo:/data/web/enacrepo/ enacrepo.epfl.ch/
 
+reprepro -b enacrepo.epfl.ch/public/ list precise
 reprepro -b enacrepo.epfl.ch/public/ list trusty
+reprepro -b enacrepo.epfl.ch/public/ list utopic
+
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb trusty enacdrives.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb utopic enacdrives.deb
 ~~~
 
 
