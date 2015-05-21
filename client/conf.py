@@ -647,7 +647,8 @@ def validate_config(cfg):
     invalid_realm = []
     invalid_network = []
     expected_realms = {}
-    expected_networks = {}
+    expected_networks_by_CIFS_m = {}
+    expected_networks_by_network = {}
     for m_name in cfg.get("CIFS_mount", {}):
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
@@ -662,8 +663,8 @@ def validate_config(cfg):
             expected_realms[realm].append(m_name)
             net = cfg["CIFS_mount"][m_name].get("network")
             if net is not None:
-                expected_networks.setdefault(net, [])
-                expected_networks[net].append(m_name)
+                expected_networks_by_CIFS_m.setdefault(net, [])
+                expected_networks_by_CIFS_m[net].append(m_name)
         else:
             Output.write("Removing incomplete CIFS_mount '{}'.".format(m_name))
             invalid_cifs_m.append(m_name)
@@ -687,10 +688,10 @@ def validate_config(cfg):
                 Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
     
-    for net in expected_networks:
+    for net in expected_networks_by_CIFS_m:
         if net not in cfg.get("network", []):
             Output.write("Missing network '{}'.".format(net))
-            for m_name in expected_networks[net]:
+            for m_name in expected_networks_by_CIFS_m[net]:
                 Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
                 del(cfg["CIFS_mount"][m_name]["require_network"])
                 
@@ -702,9 +703,21 @@ def validate_config(cfg):
         if not is_ok:
             Output.write("Removing incomplete network '{}'.".format(net))
             invalid_network.append(net)
-            for m_name in expected_networks.get(net, []):
-                Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
-                del(cfg["CIFS_mount"][m_name]["require_network"])
+    
+    had_change = True
+    while had_change:
+        had_change = False
+        for net in cfg.get("network", []):
+            if net in invalid_network:
+                continue
+            parent_network = cfg["network"][net].get("parent")
+            if parent_network is None:
+                continue
+            if (
+             parent_network in invalid_network or 
+             parent_network not in cfg["network"]):
+                invalid_network.append(net)
+                had_change = True
 
     for m_name in invalid_cifs_m:
         del(cfg["CIFS_mount"][m_name])
@@ -714,6 +727,9 @@ def validate_config(cfg):
 
     for net in invalid_network:
         del(cfg["network"][net])
+        for m_name in expected_networks_by_CIFS_m.get(net, []):
+            Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
+            del(cfg["CIFS_mount"][m_name]["require_network"])
 
     return cfg
 

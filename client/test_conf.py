@@ -358,7 +358,7 @@ class TestValidateConfig(unittest.TestCase):
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), ["Error: expected 'ping' option in network section.\n", "Removing incomplete network 'Epfl'.\n"])
 
-    def test_complete_network(self):
+    def test_incomplete_dependency_network(self):
         cfg = {'network': {
                 'Epfl': {
                  'error_msg': 'Error, you are not connected to the '
@@ -370,6 +370,30 @@ class TestValidateConfig(unittest.TestCase):
                   'files1.epfl.ch',
                   'files8.epfl.ch',
                   'files9.epfl.ch']}}}
+        cfg_expected = {'network': {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
+    def test_complete_network(self):
+        cfg = {'network': {
+                'Epfl': {
+                 'error_msg': 'Error, you are not connected to the '
+                              'intranet of EPFL. Run a VPN client to '
+                              'be able to mount this resource.',
+                 'parent': 'Internet',
+                 'ping': [
+                  'files0.epfl.ch',
+                  'files1.epfl.ch',
+                  'files8.epfl.ch',
+                  'files9.epfl.ch']},
+                'Internet': {
+                 'error_msg': 'Error, you are not connected to the Internet',
+                 'ping': [
+                  'www.epfl.ch',
+                  'enacit.epfl.ch']}}}
         cfg_expected = copy.deepcopy(cfg)
         s_out = io.StringIO("")
         with Output(dest=s_out):
