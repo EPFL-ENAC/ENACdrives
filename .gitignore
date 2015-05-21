@@ -9,3 +9,6 @@ WIP.md
 ad_credentials.json
 enacdrives_linux
 deb_building/
+*.exe
+*.dmg
+*.deb

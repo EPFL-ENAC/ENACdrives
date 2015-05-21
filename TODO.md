@@ -30,7 +30,6 @@ Monitoring :
 client :
 ========
 
-* check server is responding for each CIFS_mount (show msg related to VPN if not)
 * "enacit1logs"
 - GUI message if no CIFS_mount is available
 - CLI
