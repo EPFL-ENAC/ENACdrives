@@ -163,6 +163,7 @@ cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on
 
 ~~~
 cd Y:\commun1\ENACdrives\src\client
+Y:
 python setup.py build
 ~~~
 
@@ -197,5 +198,6 @@ cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/enacdrives.app/Contents/Reso
 Test ... and give it to IT3 for Packaging
 
 ~~~ bash
+rm -rf /Users/bancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/MacOSX/enacdrives.app
 cp -r /Users/bancal/enacdrives_client/dist/enacdrives.app /Users/bancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/MacOSX/
 ~~~

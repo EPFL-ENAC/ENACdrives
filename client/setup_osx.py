@@ -13,7 +13,7 @@ DATA_FILES = ["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png"
 OPTIONS = {
     "argv_emulation": True,
     # "frameworks": ["libQtCore.4.dylib", "libQtGui.4.dylib"],
-    "iconfile": "/Users/bancal/enacdrives_client/enacdrives.icns",
+    "iconfile": "enacdrives.icns",
     "includes": ["sip", "PyQt4", "PyQt4.QtCore", "PyQt4.QtGui"],
     "qt_plugins": ["QtGui", "QtCore"]
 }

@@ -31,16 +31,9 @@ client :
 ========
 
 * "enacit1logs"
-- GUI message if no CIFS_mount is available
 - CLI
 + add menus for
   + Edit > Show/Hide entries
-  - Edit > Preferences
-    - Linux_CIFS_method
-    - Linux_gvfs_symlink
-    - Linux_mountcifs_dirmode
-    - Linux_mountcifs_filemode
-    - Linux_mountcifs_options
 
 Windows
 -------
