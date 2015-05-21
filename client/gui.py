@@ -394,7 +394,7 @@ Authors : ENAC-IT
 <li>Stefano Nepa</li>
 </ul>
 
-License : <b>To be defined!</b>
+License : <b>Pending ...</b>
 """.format(CONST.VERSION, CONST.VERSION_DATE)
         about_box = QtGui.QMessageBox()
         about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))

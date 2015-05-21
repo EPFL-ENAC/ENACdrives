@@ -61,7 +61,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-21"
-    VERSION = "0.2.0"
+    VERSION = "0.2.1"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -332,11 +332,18 @@ class Networks_Check():
             for h in self.networks[net]["ping"]:
                 if CONST.OS_SYS == "Windows":
                     cmd = ["ping", h, "-n", '1']
+                    # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
+                    # http://stackoverflow.com/a/24171096/446302
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    startupinfo.wShowWindow = subprocess.SW_HIDE
                 if CONST.OS_SYS == "Linux":
                     cmd = ["ping", "-c1", "-w1", h]
+                    startupinfo = None
                 if CONST.OS_SYS == "Darwin":
                     cmd = ["ping", "-c1", "-W1", h]
-                ping_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    startupinfo = None
+                ping_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, startupinfo=startupinfo)
                 ping_proc.communicate()
                 if ping_proc.returncode == 0:
                     self.networks[net]["status"] = True
