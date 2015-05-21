@@ -9,7 +9,7 @@ import io
 import copy
 import unittest
 from utility import Output
-from conf import read_config_source, validate_config, merge_configs
+from conf import read_config_source, validate_config, merge_configs, ConfigException
 
 
 class TestReadConfigSource(unittest.TestCase):
@@ -44,10 +44,11 @@ Linux_CIFS_method = gvfs
 """)
         s_out = io.StringIO("")
         with Output(dest=s_out):
-            self.assertEqual(
-                read_config_source(s_in),
-                {}
-            )
+            with self.assertRaises(ConfigException):
+                self.assertEqual(
+                    read_config_source(s_in),
+                    {}
+                )
             s_out.seek(0)
             self.assertIn("Unexpected section", s_out.readlines()[0])
 
@@ -175,6 +176,21 @@ Linux_mountcifs_dirmode = 0770
 Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 Linux_gvfs_symlink = true
 
+[network]
+name = Internet
+ping = www.epfl.ch
+ping = www.enacit.epfl.ch
+error_msg = Error, you are not connected to the network. You won't be able to mount this resource.
+
+[network]
+name = Epfl
+parent = Internet
+ping = files0.epfl.ch
+ping = files1.epfl.ch
+ping = files8.epfl.ch
+ping = files9.epfl.ch
+error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to mount this resource.
+
 [realm]
 name = EPFL
 domain = INTRANET
@@ -183,6 +199,7 @@ username = bancal
 [CIFS_mount]
 name = private
 label = bancal@files9
+require_network = Epfl
 realm = EPFL
 server_name = files9.epfl.ch
 server_path = data/bancal
@@ -207,11 +224,13 @@ Windows_letter = Z:
 #    Drive letter to use for the mount
 """)
         s_out = io.StringIO("")
+        self.maxDiff = None
         with Output(dest=s_out):
             self.assertEqual(
                 read_config_source(s_in),
                 {'CIFS_mount': {
                   'private': {
+                   'require_network': 'Epfl',
                    'Linux_CIFS_method': 'gvfs',
                    'Linux_gvfs_symlink': True,
                    'Linux_mountcifs_dirmode': '0770',
@@ -231,6 +250,24 @@ Windows_letter = Z:
                   'Linux_mountcifs_dirmode': '0770',
                   'Linux_mountcifs_filemode': '0770',
                   'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+                 'network': {
+                  'Epfl': {
+                   'error_msg': 'Error, you are not connected to the '
+                                'intranet of EPFL. Run a VPN client to '
+                                'be able to mount this resource.',
+                   'parent': 'Internet',
+                   'ping': [
+                    'files0.epfl.ch',
+                    'files1.epfl.ch',
+                    'files8.epfl.ch',
+                    'files9.epfl.ch']},
+                  'Internet': {
+                   'error_msg': 'Error, you are not connected to '
+                                "the network. You won't be able to "
+                                'mount this resource.',
+                   'ping': [
+                    'www.epfl.ch',
+                    'www.enacit.epfl.ch']}},
                  'realm': {
                   'EPFL': {
                    'domain': 'INTRANET',
@@ -306,12 +343,46 @@ class TestValidateConfig(unittest.TestCase):
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), ["Missing realm 'r_name'.\n", "Removing CIFS_mount 'name' depending on realm 'r_name'.\n"])
 
+    def test_incomplete_network(self):
+        self.maxDiff = None
+        cfg = {'network': {
+                'Epfl': {
+                 'error_msg': 'Error, you are not connected to the '
+                              'intranet of EPFL. Run a VPN client to '
+                              'be able to mount this resource.',
+                 'parent': 'Internet'}}}
+        cfg_expected = {"network": {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), ["Error: expected 'ping' option in network section.\n", "Removing incomplete network 'Epfl'.\n"])
+
+    def test_complete_network(self):
+        cfg = {'network': {
+                'Epfl': {
+                 'error_msg': 'Error, you are not connected to the '
+                              'intranet of EPFL. Run a VPN client to '
+                              'be able to mount this resource.',
+                 'parent': 'Internet',
+                 'ping': [
+                  'files0.epfl.ch',
+                  'files1.epfl.ch',
+                  'files8.epfl.ch',
+                  'files9.epfl.ch']}}}
+        cfg_expected = copy.deepcopy(cfg)
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
 
 class TestMergeConfigs(unittest.TestCase):
     def test_empty(self):
         cfg = {}
         cfg_to_merge = {}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': []}, 'realm': {}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': []}, 'realm': {}, 'network': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -321,7 +392,7 @@ class TestMergeConfigs(unittest.TestCase):
     def test_yes_no(self):
         cfg = {'global': {'entries_order': ["a", "b"]}}
         cfg_to_merge = {}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}, 'network': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -331,7 +402,7 @@ class TestMergeConfigs(unittest.TestCase):
     def test_no_yes(self):
         cfg = {}
         cfg_to_merge = {'global': {'entries_order': ["a", "b"]}}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}, 'network': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -341,7 +412,7 @@ class TestMergeConfigs(unittest.TestCase):
     def test_yes_yes(self):
         cfg = {'global': {'entries_order': ["a", "b", "c", "d"]}}
         cfg_to_merge = {'global': {'entries_order': ["c", "a"]}}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["c", "a", "b", "d"]}, 'realm': {}}
+        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["c", "a", "b", "d"]}, 'realm': {}, 'network': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)

@@ -361,6 +361,12 @@ def merge_configs(cfg, cfg_to_merge):
         cfg["realm"].setdefault(realm, {})
         cfg["realm"][realm].update(cfg_to_merge["realm"][realm])
 
+    # merge ["network"]
+    cfg.setdefault("network", {})
+    for net in cfg_to_merge.get("network", {}):
+        cfg["network"].setdefault(net, {})
+        cfg["network"][net].update(cfg_to_merge["network"][net])
+
     return cfg
 
 
@@ -401,6 +407,21 @@ def read_config_source(src):
             Linux_mountcifs_dirmode = 0770
             Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
             Linux_gvfs_symlink = true
+            
+            [network]
+            name = Internet
+            ping = www.epfl.ch
+            ping = www.enacit.epfl.ch
+            error_msg = Error, you are not connected to the network. You won't be able to mount this resource.
+            
+            [network]
+            name = Epfl
+            parent = Internet
+            ping = files0.epfl.ch
+            ping = files1.epfl.ch
+            ping = files8.epfl.ch
+            ping = files9.epfl.ch
+            error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to mount this resource.
 
             [realm]
             name = EPFL
@@ -410,6 +431,7 @@ def read_config_source(src):
             [CIFS_mount]
             name = private
             label = bancal@files9
+            require_network = Epfl
             realm = EPFL
             server_name = files9.epfl.ch
             server_path = data/bancal
@@ -447,7 +469,19 @@ def read_config_source(src):
                'realm': 'EPFL',
                'server_name': 'files9.epfl.ch',
                'server_path': 'data/bancal',
-               'bookmark': False}},
+               'bookmark': False,
+               'require_network': 'Epfl'}},
+             'network': {
+              'Internet': {
+               'ping': ['www.epfl.ch', 'enacit.epfl.ch'],
+               'error_msg': 'Error, you are not connected to the network. You won't be able to mount this resource.'
+              },
+              'Epfl': {
+               'ping': ['files0.epfl.ch', 'files1.epfl.ch', 'files8.epfl.ch', 'files9.epfl.ch'],
+               'parent': 'Internet',
+               'error_msg': 'Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to mount this resource.'
+              }
+             }
              'global': {
               'username': 'bancal',
               'Linux_CIFS_method': 'gvfs',
@@ -471,9 +505,9 @@ def read_config_source(src):
             cfg[current_section_name].setdefault(name, {})
             cfg[current_section_name][name].update(current_section_values)
         except KeyError:
-            Output.write("Error : Expected name option not found in at line {}. Skipping that section.".format(section_line_nb))
+            Output.write("Error : Expected name option not found at line {}. Skipping that section.".format(section_line_nb))
 
-    multi_entries_sections = ("CIFS_mount", "realm")
+    multi_entries_sections = ("CIFS_mount", "realm", "network")
     allowed_options = {
         "global": (
             "username",
@@ -487,6 +521,7 @@ def read_config_source(src):
         "CIFS_mount": (
             "name",
             "label",
+            "require_network",
             "realm",
             "server_name",
             "server_path",
@@ -504,6 +539,12 @@ def read_config_source(src):
             "domain",
             "username",
         ),
+        "network": (
+            "name",
+            "parent",
+            "ping",
+            "error_msg",
+        )
     }
 
     cfg = {}
@@ -564,7 +605,13 @@ def read_config_source(src):
         try:
             if current_section_name in multi_entries_sections:
                 # This is a multi entries section type
-                current_section_values[k] = validate_value(k, v)
+                if current_section_name == "network" and k == "ping":
+                    # network.ping is a list
+                    current_section_values.setdefault(k, [])
+                    current_section_values[k].append(validate_value(k, v))
+                else:
+                    # other are literals
+                    current_section_values[k] = validate_value(k, v)
             else:
                 # This is a single entry section type
                 cfg.setdefault(current_section_name, {})[k] = validate_value(k, v)
@@ -598,7 +645,9 @@ def validate_config(cfg):
 
     invalid_cifs_m = []
     invalid_realm = []
+    invalid_network = []
     expected_realms = {}
+    expected_networks = {}
     for m_name in cfg.get("CIFS_mount", {}):
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
@@ -611,6 +660,10 @@ def validate_config(cfg):
             realm = cfg["CIFS_mount"][m_name]["realm"]
             expected_realms.setdefault(realm, [])
             expected_realms[realm].append(m_name)
+            net = cfg["CIFS_mount"][m_name].get("network")
+            if net is not None:
+                expected_networks.setdefault(net, [])
+                expected_networks[net].append(m_name)
         else:
             Output.write("Removing incomplete CIFS_mount '{}'.".format(m_name))
             invalid_cifs_m.append(m_name)
@@ -633,12 +686,34 @@ def validate_config(cfg):
             for m_name in expected_realms.get(realm, []):
                 Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
+    
+    for net in expected_networks:
+        if net not in cfg.get("network", []):
+            Output.write("Missing network '{}'.".format(net))
+            for m_name in expected_networks[net]:
+                Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
+                del(cfg["CIFS_mount"][m_name]["require_network"])
+                
+    for net in cfg.get("network", []):
+        is_ok = (
+            expect_option(cfg["network"][net], "network", "ping") and
+            expect_option(cfg["network"][net], "network", "error_msg")
+        )
+        if not is_ok:
+            Output.write("Removing incomplete network '{}'.".format(net))
+            invalid_network.append(net)
+            for m_name in expected_networks.get(net, []):
+                Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
+                del(cfg["CIFS_mount"][m_name]["require_network"])
 
     for m_name in invalid_cifs_m:
         del(cfg["CIFS_mount"][m_name])
 
     for realm in invalid_realm:
         del(cfg["realm"][realm])
+
+    for net in invalid_network:
+        del(cfg["network"][net])
 
     return cfg
 
