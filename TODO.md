@@ -31,9 +31,15 @@ client :
 ========
 
 * "enacit1logs"
+* refresh dynamic
+  * has focus : refresh every 3 second
+  * hasn't focus : refresh every 30 second
++ subprocess & pexpect -> QtCore.QProcess
+  + fixes latency problem when launching app with no network
+  + fixes latency problem when refreshing entries
 - CLI
-+ add menus for
-  + Edit > Show/Hide entries
+- add menus for
+  - Edit > Show/Hide entries
 
 Windows
 -------

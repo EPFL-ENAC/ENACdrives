@@ -203,8 +203,8 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         else:
             self.bt_mount.setText("Connect")
             self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
-            self.label_status.setToolTip("not Connected")
-            self.label.setToolTip("not Connected")
+            self.label_status.setToolTip("Not connected")
+            self.label.setToolTip("Not connected")
             self.bt_open.setEnabled(False)
             if CONST.OS_SYS == "Windows":
                 self.win_letter.setEnabled(True)
@@ -267,7 +267,7 @@ class GUI(QtGui.QMainWindow):
         about_action.setStatusTip("About ENACdrives")
         about_action.triggered.connect(self.show_about)
         # Help > Documentation
-        doc_action = QtGui.QAction("web &Documentation", self)
+        doc_action = QtGui.QAction("Web &documentation", self)
         # doc_action.setShortcut("Ctrl+?")
         doc_action.setStatusTip("ENACdrives web documentation")
         doc_action.triggered.connect(self.show_web_documentation)
@@ -385,7 +385,7 @@ class GUI(QtGui.QMainWindow):
         msg = """\
 ENACdrives version : <b>{}</b> ({})
 <br><br>
-Authors : ENAC-IT
+Project team : ENAC-IT
 <ul>
 <li>Samuel Bancal</li>
 <li>Jean-Daniel Bonjour</li>
@@ -394,7 +394,13 @@ Authors : ENAC-IT
 <li>Stefano Nepa</li>
 </ul>
 
-License : <b>Pending ...</b>
+Technologies used :
+<ul>
+<li>client side: Python3, PyQt4, pexpect</li>
+<li>server side: Python3, Django</li>
+</ul>
+
+License : pending ...
 """.format(CONST.VERSION, CONST.VERSION_DATE)
         about_box = QtGui.QMessageBox()
         about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))
