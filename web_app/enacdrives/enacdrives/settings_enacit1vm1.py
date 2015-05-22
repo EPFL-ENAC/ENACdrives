@@ -24,7 +24,7 @@ DATABASES = {
 }
 
 APACHE_PRIVATE_DIR = "/data/local/enacdrives/installers"
-FILE_UPLOAD_TEMP_DIR = "/data/local/enacdrives/upload"
+FILE_UPLOAD_TEMP_DIR = "/data/local/enacdrives/uploads"
 
 LOGGING = {
     'version': 1,
