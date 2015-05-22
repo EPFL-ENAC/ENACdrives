@@ -51,6 +51,7 @@ def cifs_is_mounted(mount):
                 return True
         return False
     else:  # "mount.cifs"
+        Output.write("TODO WARNING. os.path.ismount in lin_stack.cifs_is_mounted")
         return os.path.ismount(mount.settings["local_path"])
 
 
@@ -223,6 +224,7 @@ def cifs_umount(mount):
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
         Output.write(" ".join(cmd))
         try:
+            Output.write("TODO WARNING. subprocess.check_output in lin_stack.cifs_mount")
             output = subprocess.check_output(
                 cmd,
                 env=dict(os.environ, LANG="C", LC_ALL="C"),
@@ -315,6 +317,7 @@ def open_file_manager(mount):
         path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
+    Output.write("TODO WARNING. subprocess.call in lin_stack.open_file_manager")
     subprocess.call(cmd)
 
 

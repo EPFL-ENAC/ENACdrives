@@ -25,6 +25,9 @@ class OSX_CONST():
 
 
 def cifs_is_mounted(mount):
+    # This may hang if no network or VPN is missing
+    # Problem is fixed by not checking is_mounted if not network present
+    Output.write("TODO WARNING. os.path.ismount in osx_stack.cifs_is_mounted")
     return os.path.ismount(mount.settings["local_path"])
 
 
@@ -99,6 +102,7 @@ def cifs_post_mount(mount):
 def cifs_umount(mount):
     cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
     Output.write("cmd : %s" % cmd)
+    Output.write("TODO WARNING. subprocess.Popen in osx_stack.cifs_umount")
     subproc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = subproc.communicate()
 
@@ -123,6 +127,7 @@ def open_file_manager(mount):
     path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in OSX_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
+    Output.write("TODO WARNING. subprocess.call in osx_stack.open_file_manager")
     subprocess.call(cmd)
 
 

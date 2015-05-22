@@ -17,6 +17,7 @@ import platform
 import subprocess
 import urllib.error
 import urllib.request
+import qt_utility
 
 try:
     import grp
@@ -61,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-22"
-    VERSION = "0.2.2"
+    VERSION = "0.2.3"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -275,6 +276,7 @@ class Live_Cache():
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = subprocess.SW_HIDE
             stdout_file = tempfile.NamedTemporaryFile(mode="r+", delete=False, encoding="UTF-16")
+            Output.write("TODO WARNING. subprocess.Popen in utility.Live_Cache.subprocess_check_output")
             process = subprocess.Popen(
                 cmd,
                 stdin=subprocess.PIPE,
@@ -292,6 +294,7 @@ class Live_Cache():
             output = stdout_file.read()
             stdout_file.close()
         else:
+            Output.write("TODO WARNING. subprocess.check_output in utility.Live_Cache.subprocess_check_output")
             output = subprocess.check_output(
                 cmd,
                 env=env
@@ -314,57 +317,73 @@ class Live_Cache():
 
 class Networks_Check():
     def __init__(self, cfg):
+        now = datetime.datetime.now()
+        
         # Output.write("Networks_Check.__init__ {}".format(cfg))
         self.networks = {}
+        self.hosts_status = {}
+        
         for net in cfg.get("network", []):
             self.networks[net] = {
                 "parent": cfg["network"][net].get("parent"),
                 "ping": cfg["network"][net]["ping"],
                 "error_msg": cfg["network"][net]["error_msg"],
-                "status": True,
             }
+            for h in cfg["network"][net]["ping"]:
+                self.hosts_status[h] = {
+                        # "proc": proc,
+                        "dt": now,
+                        "status": True,
+                    }
     
     def scan(self):
         """
             Scan all networks to check which are available and which are not.
         """
-        for net in self.networks:
-            for h in self.networks[net]["ping"]:
-                if CONST.OS_SYS == "Windows":
-                    cmd = ["ping", h, "-n", '1']
-                    # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
-                    # http://stackoverflow.com/a/24171096/446302
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    startupinfo.wShowWindow = subprocess.SW_HIDE
-                if CONST.OS_SYS == "Linux":
-                    cmd = ["ping", "-c1", "-w1", h]
-                    startupinfo = None
-                if CONST.OS_SYS == "Darwin":
-                    cmd = ["ping", "-c1", "-W1", h]
-                    startupinfo = None
-                ping_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, startupinfo=startupinfo)
-                ping_proc.communicate()
-                if ping_proc.returncode == 0:
-                    self.networks[net]["status"] = True
-                    break
-            else:
-                self.networks[net]["status"] = False
-        # Output.write("Networks_Check.scan : {}".format(self.networks))
+        for h in self.hosts_status:
+            if CONST.OS_SYS == "Windows":
+                cmd = ["ping", h, "-n", '1']
+            if CONST.OS_SYS == "Linux":
+                cmd = ["ping", "-c1", "-w1", h]
+            if CONST.OS_SYS == "Darwin":
+                cmd = ["ping", "-c1", "-W1", h]
+            
+            try:
+                proc = qt_utility.MyProcess(h, self._scan_finished)
+            except qt_utility.MyProcessException:
+                Output.write("Warning, skipping ping of {}, a process is already running.".format(h))
+                continue
+            self.hosts_status[h]["proc"] = proc
+            proc.run(cmd)
+
+    def _scan_finished(self, h, status):
+        self.hosts_status[h]["dt"] = datetime.datetime.now()
+        self.hosts_status[h]["status"] = status
+        del(self.hosts_status[h]["proc"])
 
     def get_status(self, net):
         """
             returns tuple status, error_msg
             if parent(s) are also of bad status, then returns error_msg from parent
         """
-        if self.networks.get(net, {}).get("status", True):
+        dt_limit = datetime.datetime.now() - datetime.timedelta(seconds=45)
+        try:
+            for h in self.networks[net]["ping"]:
+                if (self.hosts_status[h]["status"] and
+                   self.hosts_status[h]["dt"] > dt_limit):
+                    return (True, "")
+        except KeyError:
             return (True, "")
-        while self.networks[net]["parent"] is not None:
-            parent = self.networks[net]["parent"]
-            if self.networks.get(parent, {}).get("status", True):
-                break
-            net = parent
-        return (False, self.networks[net]["error_msg"])
+        
+        # this network is unreachable -> check parent
+        if self.networks[net]["parent"] is not None:
+            parent_status = self.get_status(self.networks[net]["parent"])
+            if parent_status[0]:
+                return (False, self.networks[net]["error_msg"])
+            else:
+                return parent_status
+        else:
+            return (False, self.networks[net]["error_msg"])
 
 
 def validate_username(username):

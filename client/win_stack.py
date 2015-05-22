@@ -172,6 +172,7 @@ def open_file_manager(mount):
     path = mount.settings["Windows_letter"]
     cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
+    Output.write("TODO WARNING. subprocess.call in win_stack.open_file_manager")
     subprocess.call(cmd)
 
 

@@ -4,7 +4,6 @@
 
 # Offers main GUI
 
-import os
 import sys
 import pprint
 import webbrowser
@@ -191,24 +190,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.update_status()
 
     def update_status(self):
-        if self.mount_instance.is_mounted():
-            self.bt_mount.setText("Disconnect")
-            self.label_status.setPixmap(QtGui.QPixmap(CONST.MOUNTED_PNG))
-            self.label_status.setToolTip("Connected")
-            self.label.setToolTip("Connected")
-            self.bt_open.setEnabled(True)
-            if CONST.OS_SYS == "Windows":
-                self.win_letter.setEnabled(False)
-                self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
-        else:
-            self.bt_mount.setText("Connect")
-            self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
-            self.label_status.setToolTip("Not connected")
-            self.label.setToolTip("Not connected")
-            self.bt_open.setEnabled(False)
-            if CONST.OS_SYS == "Windows":
-                self.win_letter.setEnabled(True)
-        
+        network_present = True
         required_network = self.settings.get("require_network")
         if required_network is not None:
             status, msg = self.ui.networks_check.get_status(required_network)
@@ -216,6 +198,26 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
                 self.label_status.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG))
                 self.label_status.setToolTip(msg)
                 self.label.setToolTip(msg)
+                network_present = False
+        
+        if network_present:
+            if self.mount_instance.is_mounted():
+                self.bt_mount.setText("Disconnect")
+                self.label_status.setPixmap(QtGui.QPixmap(CONST.MOUNTED_PNG))
+                self.label_status.setToolTip("Connected")
+                self.label.setToolTip("Connected")
+                self.bt_open.setEnabled(True)
+                if CONST.OS_SYS == "Windows":
+                    self.win_letter.setEnabled(False)
+                    self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
+            else:
+                self.bt_mount.setText("Connect")
+                self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
+                self.label_status.setToolTip("Not connected")
+                self.label.setToolTip("Not connected")
+                self.bt_open.setEnabled(False)
+                if CONST.OS_SYS == "Windows":
+                    self.win_letter.setEnabled(True)
 
     def destroy(self):
         """
