@@ -188,7 +188,7 @@ def api_latest_release_date(request):
         o_s = ut.validate_input(request.GET.get, "os", "os")
         arch = mo.Arch.objects.get(os=o_s)
         inst = arch.current_installer
-        answer = inst.upload_date
+        answer = "{:02}-{:02}-{:04}".format(inst.upload_date.day, inst.upload_date.month, inst.upload_date.year)
     except:
         answer = "This OS has no release."
     return HttpResponse(answer, content_type="text/plain; charset=utf-8")
