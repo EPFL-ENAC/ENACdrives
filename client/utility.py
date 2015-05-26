@@ -61,7 +61,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-26"
-    VERSION = "0.2.5"
+    VERSION = "0.2.6"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -257,26 +257,26 @@ class Live_Cache():
 
     @classmethod
     def subprocess_check_output(cls, cmd, cb, env=None):
-        def _cb(name, success, output):
+        def _cb(name, success, output, exit_code):
             # Output.write("utility._cb")
             if not success:
                 Output.write("Error while running {}.\nOutput : {}".format(cmd, output))
-                return
             cls.cache[str_cmd]["expire_dt"] = datetime.datetime.now() + Live_Cache.CACHE_DURATION
             cls.cache[str_cmd]["value"] = output
+            cls.cache[str_cmd]["exit_code"] = exit_code
             # Output.write("C cls.cache: {}".format(cls.cache))
             all_cb = cls.cache[str_cmd]["cb"]
             del(cls.cache[str_cmd]["proc"])
             del(cls.cache[str_cmd]["cb"])
             for cb_i in all_cb:
-                cb_i(output)
+                cb_i(output, exit_code)
 
         # Output.write("utility.subprocess_check_output")
         str_cmd = " ".join(cmd)
         try:
             cached_entry = cls.cache[str_cmd]
             if cached_entry["expire_dt"] > datetime.datetime.now():
-                cb(cached_entry["value"])
+                cb(cached_entry["value"], cached_entry["exit_code"])
                 return
         except AttributeError:
             cls.cache = {}
@@ -352,7 +352,7 @@ class Networks_Check():
             self.hosts_status[h]["proc"] = proc
             proc.run(cmd)
 
-    def _scan_finished(self, h, status, output):
+    def _scan_finished(self, h, status, output, exit_code):
         # print("ping {} : {}".format(h, output))
         self.hosts_status[h]["dt"] = datetime.datetime.now()
         self.hosts_status[h]["status"] = status
@@ -424,7 +424,7 @@ class NonBlockingProcess(QtCore.QProcess):
         NonBlockingProcess.unregister_process_name(self.name)
         success = (exit_status == 0 and exit_code == 0)
         output = bytes(self.readAll()).decode()
-        self.cb(self.name, success, output)
+        self.cb(self.name, success, output, exit_code)
             
     @classmethod
     def register_process_name(cls, name):
