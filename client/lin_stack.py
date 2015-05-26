@@ -304,6 +304,9 @@ def cifs_post_umount(mount):
 
 
 def open_file_manager(mount):
+    def _cb(output, exit_code):
+        pass
+        
     if (mount.settings["Linux_CIFS_method"] == "gvfs" and
        not mount.settings["Linux_gvfs_symlink"]):
         path = None
@@ -324,8 +327,10 @@ def open_file_manager(mount):
         path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
-    Output.write("TODO WARNING. subprocess.call in lin_stack.open_file_manager")
-    subprocess.call(cmd)
+    Live_Cache.subprocess_check_output(
+        cmd,
+        _cb,
+    )
 
 
 def pexpect_ask_password(values):
