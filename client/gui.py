@@ -183,25 +183,20 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
             self.bt_bookmark.setIcon(QtGui.QIcon(CONST.BOOKMARK_OFF_PNG))
 
     def toggle_mount(self):
-        if self.mount_instance.is_mounted():
-            self.mount_instance.umount()
-        else:
-            self.mount_instance.mount()
-        self.update_status()
+        def _cb(is_mounted):
+            # Output.write("gui._cb")
+            if is_mounted:
+                self.mount_instance.umount()
+            else:
+                self.mount_instance.mount()
+            self.update_status()
 
-    def update_status(self):
-        network_present = True
-        required_network = self.settings.get("require_network")
-        if required_network is not None:
-            status, msg = self.ui.networks_check.get_status(required_network)
-            if status is False:
-                self.label_status.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG))
-                self.label_status.setToolTip(msg)
-                self.label.setToolTip(msg)
-                network_present = False
+        # Output.write("gui.toggle_mount")
+        self.mount_instance.is_mounted(_cb)
         
-        if network_present:
-            if self.mount_instance.is_mounted():
+    def update_status(self):
+        def _cb(is_mounted):
+            if is_mounted:
                 self.bt_mount.setText("Disconnect")
                 self.label_status.setPixmap(QtGui.QPixmap(CONST.MOUNTED_PNG))
                 self.label_status.setToolTip("Connected")
@@ -219,6 +214,19 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
                 if CONST.OS_SYS == "Windows":
                     self.win_letter.setEnabled(True)
 
+        network_present = True
+        required_network = self.settings.get("require_network")
+        if required_network is not None:
+            status, msg = self.ui.networks_check.get_status(required_network)
+            if status is False:
+                self.label_status.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG))
+                self.label_status.setToolTip(msg)
+                self.label.setToolTip(msg)
+                network_present = False
+        
+        if network_present:
+            self.mount_instance.is_mounted(_cb)
+        
     def destroy(self):
         """
             This Mount_Entry has to be deleted.

@@ -61,7 +61,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-26"
-    VERSION = "0.2.4"
+    VERSION = "0.2.5"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -256,60 +256,57 @@ class Live_Cache():
     CACHE_DURATION = datetime.timedelta(seconds=1)
 
     @classmethod
-    def subprocess_check_output(cls, cmd, env=None):
+    def subprocess_check_output(cls, cmd, cb, env=None):
+        def _cb(name, success, output):
+            # Output.write("utility._cb")
+            if not success:
+                Output.write("Error while running {}.\nOutput : {}".format(cmd, output))
+                return
+            cls.cache[str_cmd]["expire_dt"] = datetime.datetime.now() + Live_Cache.CACHE_DURATION
+            cls.cache[str_cmd]["value"] = output
+            # Output.write("C cls.cache: {}".format(cls.cache))
+            all_cb = cls.cache[str_cmd]["cb"]
+            del(cls.cache[str_cmd]["proc"])
+            del(cls.cache[str_cmd]["cb"])
+            for cb_i in all_cb:
+                cb_i(output)
+
+        # Output.write("utility.subprocess_check_output")
         str_cmd = " ".join(cmd)
         try:
             cached_entry = cls.cache[str_cmd]
             if cached_entry["expire_dt"] > datetime.datetime.now():
-                return cached_entry["value"]
+                cb(cached_entry["value"])
+                return
         except AttributeError:
             cls.cache = {}
         except KeyError:
             pass
         # No valid cache entry found, creating one.
 
-        if CONST.OS_SYS == "Windows":
-            # STARTUPINFO : Prevents cmd to be opened when subprocess.Popen is called.
-            # http://stackoverflow.com/a/24171096/446302
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            startupinfo.wShowWindow = subprocess.SW_HIDE
-            stdout_file = tempfile.NamedTemporaryFile(mode="r+", delete=False, encoding="UTF-16")
-            Output.write("TODO WARNING. subprocess.Popen in utility.Live_Cache.subprocess_check_output")
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=stdout_file,
-                stderr=subprocess.PIPE,
-                shell=False,
-                env=env,
-                startupinfo=startupinfo
-            )
-            return_code = process.wait()
-            if return_code != 0:
-                raise Exception("Error while running %s. Returncode : %d" % (cmd, return_code))
-            stdout_file.flush()
-            stdout_file.seek(0)
-            output = stdout_file.read()
-            stdout_file.close()
-        else:
-            Output.write("TODO WARNING. subprocess.check_output in utility.Live_Cache.subprocess_check_output")
-            output = subprocess.check_output(
-                cmd,
-                env=env
-            ).decode()
-
-        cls.cache[str_cmd] = {
-            "expire_dt": datetime.datetime.now() + Live_Cache.CACHE_DURATION,
-            "value": output,
-        }
-        return output
-
+        cls.cache.setdefault(str_cmd, {})
+        try:
+            proc = NonBlockingProcess(".".join(cmd), _cb)
+            cls.cache[str_cmd]["proc"] = proc
+            cls.cache[str_cmd]["cb"] = [cb, ]
+            # Output.write("A cls.cache: {}".format(cls.cache))
+        except NonBlockingProcessException:
+            # Output.write("Warning, skipping '{}', a process is already running.".format(" ".join(cmd)))
+            cls.cache[str_cmd]["cb"].append(cb)
+            # Output.write("B cls.cache: {}".format(cls.cache))
+            return
+        if env is not None:
+            proc_env = QtCore.QProcessEnvironment()
+            for k, v in env.items():
+                proc_env.insert(k, v)
+            proc.setProcessEnvironment(proc_env)
+        proc.run(cmd)
+        
     @classmethod
     def invalidate_cmd_cache(cls, cmd):
         str_cmd = " ".join(cmd)
         try:
-            cls.cache.pop(str_cmd)
+            cls.cache[str_cmd]["expire_dt"] = datetime.datetime.now()
         except (AttributeError, KeyError):
             pass
 
@@ -355,7 +352,8 @@ class Networks_Check():
             self.hosts_status[h]["proc"] = proc
             proc.run(cmd)
 
-    def _scan_finished(self, h, status):
+    def _scan_finished(self, h, status, output):
+        # print("ping {} : {}".format(h, output))
         self.hosts_status[h]["dt"] = datetime.datetime.now()
         self.hosts_status[h]["status"] = status
         del(self.hosts_status[h]["proc"])
@@ -411,22 +409,22 @@ class NonBlockingProcessException(Exception):
 
 
 class NonBlockingProcess(QtCore.QProcess):
-    def __init__(self, name, finish_callback):
+    def __init__(self, name, cb):
         super(NonBlockingProcess, self).__init__()
         NonBlockingProcess.register_process_name(name)
         self.name = name
-        self.finish_callback = finish_callback
+        self.cb = cb
         
     def run(self, cmd):
+        self.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.finished.connect(self._proc_finished)
         self.start(" ".join(cmd), QtCore.QIODevice.ReadOnly)
 
     def _proc_finished(self, exit_code, exit_status):
         NonBlockingProcess.unregister_process_name(self.name)
-        if exit_status != 0 or exit_code != 0:
-            self.finish_callback(self.name, False)
-        else:
-            self.finish_callback(self.name, True)
+        success = (exit_status == 0 and exit_code == 0)
+        output = bytes(self.readAll()).decode()
+        self.cb(self.name, success, output)
             
     @classmethod
     def register_process_name(cls, name):

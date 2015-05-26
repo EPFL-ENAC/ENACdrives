@@ -35,21 +35,27 @@ class LIN_CONST():
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
 
 
-def cifs_is_mounted(mount):
+def cifs_is_mounted(mount, cb):
+    def _cb_gvfs(output):
+        # Output.write("lin_stack._cb_gvfs")
+        # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(output))
+        i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
+        for l in output.split("\n"):
+            if re.search(i_search, l):
+                # Output.write(l)
+                cb(True)
+                return
+        cb(False)
+        
+    # Output.write("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.write(" ".join(cmd))
-        lines = Live_Cache.subprocess_check_output(
+        Live_Cache.subprocess_check_output(
             cmd,
+            _cb_gvfs,
             env=dict(os.environ, LANG="C", LC_ALL="C"),
         )
-        # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(lines))
-        i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
-        for l in lines.split("\n"):
-            if re.search(i_search, l):
-                # Output.write(l)
-                return True
-        return False
     else:  # "mount.cifs"
         Output.write("TODO WARNING. os.path.ismount in lin_stack.cifs_is_mounted")
         return os.path.ismount(mount.settings["local_path"])
@@ -227,7 +233,7 @@ def cifs_umount(mount):
             Output.write("TODO WARNING. subprocess.check_output in lin_stack.cifs_mount")
             output = subprocess.check_output(
                 cmd,
-                env=dict(os.environ, LANG="C", LC_ALL="C"),
+                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
             )
         except subprocess.CalledProcessError as e:
             mount.ui.notify_user("Umount failure :<br>{}".format(e.output.decode()))
