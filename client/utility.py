@@ -61,8 +61,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-22"
-    VERSION = "0.2.3"
+    VERSION_DATE = "2015-05-26"
+    VERSION = "0.2.4"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -349,8 +349,8 @@ class Networks_Check():
                 cmd = ["ping", "-c1", "-W1", h]
             
             try:
-                proc = qt_utility.MyProcess(h, self._scan_finished)
-            except qt_utility.MyProcessException:
+                proc = qt_utility.NonBlockingProcess(h, self._scan_finished)
+            except qt_utility.NonBlockingProcessException:
                 Output.write("Warning, skipping ping of {}, a process is already running.".format(h))
                 continue
             self.hosts_status[h]["proc"] = proc
