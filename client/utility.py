@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-27"
-    VERSION = "0.3.0"
+    VERSION = "0.3.1"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -256,13 +256,14 @@ class Networks_Check():
                 "parent": cfg["network"][net].get("parent"),
                 "ping": cfg["network"][net]["ping"],
                 "error_msg": cfg["network"][net]["error_msg"],
+                "last_state": None,
             }
             for h in cfg["network"][net]["ping"]:
                 self.hosts_status[h] = {
                         "dt": now,
                         "status": True,
                     }
-    
+
     def scan(self):
         """
             Scan all networks to check which are available and which are not.
@@ -297,10 +298,17 @@ class Networks_Check():
             for h in self.networks[net]["ping"]:
                 if (self.hosts_status[h]["status"] and
                    self.hosts_status[h]["dt"] > dt_limit):
+                    if self.networks[net]["last_state"] is not True:
+                        Output.write("network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        self.networks[net]["last_state"] = True
                     return (True, "")
         except KeyError:
             return (True, "")
-        
+
+        if self.networks[net]["last_state"] is not False:
+            Output.write("network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
+            self.networks[net]["last_state"] = False
+
         # this network is unreachable -> check parent
         if self.networks[net]["parent"] is not None:
             parent_status = self.get_status(self.networks[net]["parent"])
