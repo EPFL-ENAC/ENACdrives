@@ -57,6 +57,7 @@ def cifs_is_mounted(mount, cb):
             cmd,
             _cb_gvfs,
             env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+            cache=True,
         )
     else:  # "mount.cifs"
         NonBlockingThread(

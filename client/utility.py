@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-27"
-    VERSION = "0.2.9"
+    VERSION = "0.2.10"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -275,7 +275,12 @@ class Networks_Check():
             if CONST.OS_SYS == "Darwin":
                 cmd = ["ping", "-c1", "-W1", h]
             
-            NonBlockingProcess(cmd, self._scan_finished, cb_extra_args={"host": h})
+            NonBlockingProcess(
+                cmd,
+                self._scan_finished,
+                cb_extra_args={"host": h},
+                cache=True,
+            )
 
     def _scan_finished(self, status, output, exit_code, host):
         # print("ping {} : {}".format(host, output))
@@ -331,7 +336,7 @@ def validate_release_number():
 class NonBlockingProcess(QtCore.QProcess):
     CACHE_DURATION = datetime.timedelta(seconds=1)
     
-    def __init__(self, cmd, cb, env=None, cb_extra_args=None, cache=True):
+    def __init__(self, cmd, cb, env=None, cb_extra_args=None, cache=False):
         super(NonBlockingProcess, self).__init__()
         name = ".".join(cmd)
         self.name = name
