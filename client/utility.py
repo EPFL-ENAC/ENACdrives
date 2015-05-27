@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-27"
-    VERSION = "0.3.1"
+    VERSION = "0.3.2"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -120,9 +120,9 @@ class CONST():
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
         try:
-            LOCAL_APPDATA = os.environ["LOCALAPPDATA"]
-            USER_CACHE_DIR = LOCAL_APPDATA + "\\ENACdrives\\enacdrives.cache"
-            USER_CONF_FILE = LOCAL_APPDATA + "\\ENACdrives\\enacdrives.conf"
+            APPDATA = os.environ["APPDATA"]  # Goes to AppData\Roaming like : C:\Users\<username>\AppData\Roaming
+            USER_CACHE_DIR = APPDATA + "\\ENACdrives\\enacdrives.cache"
+            USER_CONF_FILE = APPDATA + "\\ENACdrives\\enacdrives.conf"
         except KeyError:
             USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
             USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
