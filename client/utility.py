@@ -13,6 +13,7 @@ import getpass
 import tempfile
 import datetime
 import platform
+import threading
 import subprocess
 import urllib.error
 import urllib.request
@@ -60,8 +61,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-26"
-    VERSION = "0.2.7"
+    VERSION_DATE = "2015-05-27"
+    VERSION = "0.2.8"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -445,3 +446,79 @@ class NonBlockingProcess(QtCore.QProcess):
             cls.process_names = set()
         except KeyError:
             pass
+
+
+class NonBlockingThread(QtCore.QThread):
+    def __init__(self, name, target, cb):
+        super(NonBlockingThread, self).__init__()
+        self.name = name
+        self.target = target
+        NonBlockingThread.register_thread(name, self, cb)
+        self.finished.connect(self._finished)
+        self.start()
+    
+    def run(self):
+        answer = self.target()
+        NonBlockingThread.close_thread(self.name, answer)
+    
+    def _finished(self):
+        NonBlockingThread.notify_cb(self.name)
+    
+    @classmethod
+    def register_thread(cls, name, instance, cb):
+        # print("entering register_thread")
+        try:
+            cls.thread_names
+        except AttributeError:
+            cls.thread_names = {}
+            cls.lock = threading.Lock()
+
+        with cls.lock:
+            if name in cls.thread_names:
+                cls.thread_names[name]["cb"].append(cb)
+            cls.thread_names[name] = {
+                "instance": instance,
+                "cb": [cb, ],
+            }
+
+    @classmethod
+    def close_thread(cls, name, answer):
+        # print("entering close_thread")
+        try:
+            cls.thread_names
+        except AttributeError:
+            cls.thread_names = {}
+            cls.lock = threading.Lock()
+
+        with cls.lock:
+            try:
+                cls.thread_names[name]["answer"] = answer
+            except KeyError:
+                pass
+        # print("leaving close_thread")
+
+    @classmethod
+    def notify_cb(cls, name):
+        # print("entering notify_cb")
+        try:
+            cls.thread_names
+        except AttributeError:
+            cls.thread_names = {}
+            cls.lock = threading.Lock()
+
+        # print("notify_AA")
+        with cls.lock:
+            # print("notify_AB")
+            try:
+                answer = cls.thread_names[name]["answer"]
+                all_cb = cls.thread_names[name]["cb"]
+                del(cls.thread_names[name])
+                # print("notify_AC")
+            except KeyError:
+                all_cb = ()
+            # print("notify_AD")
+        for cb in all_cb:
+            # print("close thread {}: {}".format(name, answer))
+            cb(answer)
+
+        

@@ -13,8 +13,7 @@
 import os
 import re
 import pexpect
-import subprocess
-from utility import CONST, Live_Cache, Output, which, CancelOperationException
+from utility import CONST, Live_Cache, Output, which, CancelOperationException, NonBlockingThread
 
 
 class LIN_CONST():
@@ -46,6 +45,10 @@ def cifs_is_mounted(mount, cb):
                 cb(True)
                 return
         cb(False)
+    
+    def _target_mountcifs():
+        # time.sleep(6)  # Make intensive test with this.
+        return os.path.ismount(mount.settings["local_path"])
         
     # Output.write("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
@@ -57,8 +60,7 @@ def cifs_is_mounted(mount, cb):
             env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
         )
     else:  # "mount.cifs"
-        Output.write("TODO WARNING. os.path.ismount in lin_stack.cifs_is_mounted")
-        return os.path.ismount(mount.settings["local_path"])
+        NonBlockingThread("os.path.ismounted.{}".format(mount.settings["local_path"]), _target_mountcifs, cb)
 
 
 def cifs_mount(mount):
