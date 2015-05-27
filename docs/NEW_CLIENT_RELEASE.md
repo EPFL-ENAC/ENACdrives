@@ -19,6 +19,7 @@ to_pp
 ~~~
 
 ~~~ bash
+ssh -p 2220 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null bancal@localhost
 # On precise-vm
 cd ~/enacdrives_client/
 . ./activate 
@@ -37,7 +38,8 @@ Build a package - Definition
 
 ~~~ bash
 cd ~/Projects/enacdrives/client
-. ../activate 
+. ../activate
+export PYTHONPATH=/usr/lib/python3/dist-packages
 export PACKAGE=enacdrives
 export SOFT="ENACdrives"
 export SHORT_SOFT_VER=$(python tell_version.py)
