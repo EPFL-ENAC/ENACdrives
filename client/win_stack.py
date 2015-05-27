@@ -16,36 +16,39 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import Output, CancelOperationException, debug_send, Live_Cache
+from utility import Output, CancelOperationException, debug_send, NonBlockingProcess
 
 
 class WIN_CONST():
     CMD_OPEN = "explorer {path}"
 
 
-def cifs_is_mounted(mount):
-    cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
-    lines = Live_Cache.subprocess_check_output(cmd)  # TODO
-    lines = lines.split("\n")
-    caption_index = lines[0].index("Caption")
-    providername_index = lines[0].index("ProviderName")
-    i_search = r"^\\{server_name}\{server_path}$".format(**mount.settings)
-    i_search = i_search.replace("\\", "\\\\")
-    # Output.write("i_search='{0}'".format(i_search))
-    for l in lines[1:]:
-        try:
-            drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
+def cifs_is_mounted(mount, cb):
+    def _cb(success, output, exit_code):
+        lines = output.split("\n")
+        caption_index = lines[0].index("Caption")
+        providername_index = lines[0].index("ProviderName")
+        i_search = r"^\\{server_name}\{server_path}$".format(**mount.settings)
+        i_search = i_search.replace("\\", "\\\\")
+        # Output.write("i_search='{0}'".format(i_search))
+        for l in lines[1:]:
             try:
-                provider = re.findall(r"^(\S+)", l[providername_index:])[0]
-                if re.search(i_search, provider):
-                    mount.settings["Windows_letter"] = drive_letter
-                    return True
+                drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
+                try:
+                    provider = re.findall(r"^(\S+)", l[providername_index:])[0]
+                    if re.search(i_search, provider):
+                        mount.settings["Windows_letter"] = drive_letter
+                        cb(True)
+                        return
+                except IndexError:
+                    provider = ""
+                # Output.write("{0} : '{1}'".format(drive_letter, provider))
             except IndexError:
-                provider = ""
-            # Output.write("{0} : '{1}'".format(drive_letter, provider))
-        except IndexError:
-            pass
-    return False
+                pass
+        cb(False)
+        
+    cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
+    NonBlockingProcess(cmd, _cb, cache=True)
 
 
 def cifs_mount(mount):
@@ -62,7 +65,7 @@ def cifs_mount(mount):
             remote,
         )
         Output.write("succeeded")
-        Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
         return True
     except pywintypes.error as e:
         if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -106,7 +109,7 @@ def cifs_mount(mount):
             )
             mount.key_chain.ack_password(mount.settings["realm"])
             Output.write("succeeded")
-            Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+            NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
             return True
         except pywintypes.error as e:
             if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -151,7 +154,7 @@ def cifs_umount(mount):
     try:
         Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
-        Live_Cache.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
     except pywintypes.error as e:
         if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)
@@ -169,11 +172,16 @@ def cifs_post_umount(mount):
 
 
 def open_file_manager(mount):
+    def _cb(success, output, exit_code):
+        pass
+
     path = mount.settings["Windows_letter"]
     cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
-    Output.write("TODO WARNING. subprocess.call in win_stack.open_file_manager")
-    subprocess.call(cmd)
+    NonBlockingProcess(
+        cmd,
+        _cb
+    )
 
 
 class WindowsLettersManager():
