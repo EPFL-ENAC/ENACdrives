@@ -232,8 +232,8 @@ def cifs_post_mount(mount):
 
 def cifs_umount(mount):
     def _cb_gvfs(success, output, exit_code):
-        if exit_code != 0:
-            mount.ui.notify_user("Umount failure :<br>{}".format(output.decode()))
+        if not success:
+            mount.ui.notify_user("Umount failure :<br>{}".format(output))
         NonBlockingProcess.invalidate_cmd_cache(
             [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         )

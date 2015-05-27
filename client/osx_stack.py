@@ -14,7 +14,7 @@ import os
 import re
 import pexpect
 import subprocess
-from utility import Output, which, CancelOperationException
+from utility import Output, which, CancelOperationException, NonBlockingThread, NonBlockingProcess
 
 
 class OSX_CONST():
@@ -24,11 +24,15 @@ class OSX_CONST():
     CMD_UMOUNT = which("umount")
 
 
-def cifs_is_mounted(mount):
-    # This may hang if no network or VPN is missing
-    # Problem is fixed by not checking is_mounted if not network present
-    Output.write("TODO WARNING. os.path.ismount in osx_stack.cifs_is_mounted")
-    return os.path.ismount(mount.settings["local_path"])
+def cifs_is_mounted(mount, cb):
+    def _target_mountcifs():
+        return os.path.ismount(mount.settings["local_path"])
+
+    NonBlockingThread(
+        "os.path.ismounted.{}".format(mount.settings["local_path"]),
+        _target_mountcifs,
+        cb
+    )
 
 
 def cifs_mount(mount):
@@ -100,14 +104,16 @@ def cifs_post_mount(mount):
 
 
 def cifs_umount(mount):
+    def _cb(success, output, exit_code):
+        if not success:
+            mount.ui.notify_user("Umount failure :<br>{}".format(output))
+
     cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
     Output.write("cmd : %s" % cmd)
-    Output.write("TODO WARNING. subprocess.Popen in osx_stack.cifs_umount")
-    subproc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = subproc.communicate()
-
-    if subproc.returncode != 0:
-        raise Exception("Error while umounting : %s\n%s" % (stdout, stderr))
+    NonBlockingProcess(
+        cmd,
+        _cb,
+    )
 
 
 def cifs_post_umount(mount):
@@ -124,11 +130,16 @@ def cifs_post_umount(mount):
 
 
 def open_file_manager(mount):
+    def _cb(success, output, exit_code):
+        pass
+
     path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in OSX_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
-    Output.write("TODO WARNING. subprocess.call in osx_stack.open_file_manager")
-    subprocess.call(cmd)
+    NonBlockingProcess(
+        cmd,
+        _cb,
+    )
 
 
 def pexpect_ask_password(values):
