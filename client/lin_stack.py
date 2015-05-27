@@ -13,7 +13,7 @@
 import os
 import re
 import pexpect
-from utility import CONST, Live_Cache, Output, which, CancelOperationException, NonBlockingThread
+from utility import CONST, Output, which, CancelOperationException, NonBlockingProcess, NonBlockingThread
 
 
 class LIN_CONST():
@@ -35,7 +35,7 @@ class LIN_CONST():
 
 
 def cifs_is_mounted(mount, cb):
-    def _cb_gvfs(output, exit_code):
+    def _cb_gvfs(success, output, exit_code):
         # Output.write("lin_stack._cb_gvfs")
         # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(output))
         i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
@@ -47,20 +47,23 @@ def cifs_is_mounted(mount, cb):
         cb(False)
     
     def _target_mountcifs():
-        # time.sleep(6)  # Make intensive test with this.
         return os.path.ismount(mount.settings["local_path"])
         
     # Output.write("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.write(" ".join(cmd))
-        Live_Cache.subprocess_check_output(
+        NonBlockingProcess(
             cmd,
             _cb_gvfs,
             env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
         )
     else:  # "mount.cifs"
-        NonBlockingThread("os.path.ismounted.{}".format(mount.settings["local_path"]), _target_mountcifs, cb)
+        NonBlockingThread(
+            "os.path.ismounted.{}".format(mount.settings["local_path"]),
+            _target_mountcifs,
+            cb
+        )
 
 
 def cifs_mount(mount):
@@ -112,7 +115,9 @@ def cifs_mount(mount):
             else:
                 mount.ui.notify_user("Mount failure :<br>{}".format(output))
                 return False
-        Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
+        NonBlockingProcess.invalidate_cmd_cache(
+            [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+        )
 
     else:  # "mount.cifs"
         if LIN_CONST.CMD_MOUNT_CIFS is None:
@@ -225,10 +230,12 @@ def cifs_post_mount(mount):
 
 
 def cifs_umount(mount):
-    def _cb_gvfs(output, exit_code):
+    def _cb_gvfs(success, output, exit_code):
         if exit_code != 0:
             mount.ui.notify_user("Umount failure :<br>{}".format(output.decode()))
-        Live_Cache.invalidate_cmd_cache([LIN_CONST.CMD_GVFS_MOUNT, "-l"])
+        NonBlockingProcess.invalidate_cmd_cache(
+            [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+        )
     
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # gvfs umount apparently never locks on open files.
@@ -237,7 +244,7 @@ def cifs_umount(mount):
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
         Output.write(" ".join(cmd))
         
-        Live_Cache.subprocess_check_output(
+        NonBlockingProcess(
             cmd,
             _cb_gvfs,
             env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
@@ -306,7 +313,7 @@ def cifs_post_umount(mount):
 
 
 def open_file_manager(mount):
-    def _cb(output, exit_code):
+    def _cb(success, output, exit_code):
         pass
         
     if (mount.settings["Linux_CIFS_method"] == "gvfs" and
@@ -329,7 +336,7 @@ def open_file_manager(mount):
         path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.write("cmd : %s" % cmd)
-    Live_Cache.subprocess_check_output(
+    NonBlockingProcess(
         cmd,
         _cb,
     )

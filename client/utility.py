@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-27"
-    VERSION = "0.2.8"
+    VERSION = "0.2.9"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -241,78 +241,9 @@ class Key_Chain():
         gc.collect()
 
 
-class Live_Cache():
-
-    """
-        Used to cache low latency commands (mostly for "gvfs-mount -l" which takes 0.5 sec!)
-
-        cls.cache{
-            "command line being cached":{
-                "expire_dt":request_datetime_now + deltatime,
-                "value":"output",
-            }
-        }
-    """
-
-    CACHE_DURATION = datetime.timedelta(seconds=1)
-
-    @classmethod
-    def subprocess_check_output(cls, cmd, cb, env=None):
-        def _cb(name, success, output, exit_code):
-            # Output.write("utility._cb")
-            if not success:
-                Output.write("Error while running {}.\nOutput : {}".format(cmd, output))
-            cls.cache[str_cmd]["expire_dt"] = datetime.datetime.now() + Live_Cache.CACHE_DURATION
-            cls.cache[str_cmd]["value"] = output
-            cls.cache[str_cmd]["exit_code"] = exit_code
-            # Output.write("C cls.cache: {}".format(cls.cache))
-            all_cb = cls.cache[str_cmd]["cb"]
-            del(cls.cache[str_cmd]["proc"])
-            del(cls.cache[str_cmd]["cb"])
-            for cb_i in all_cb:
-                cb_i(output, exit_code)
-
-        # Output.write("utility.subprocess_check_output")
-        str_cmd = " ".join(cmd)
-        try:
-            cached_entry = cls.cache[str_cmd]
-            if cached_entry["expire_dt"] > datetime.datetime.now():
-                cb(cached_entry["value"], cached_entry["exit_code"])
-                return
-        except AttributeError:
-            cls.cache = {}
-        except KeyError:
-            pass
-        # No valid cache entry found, creating one.
-
-        cls.cache.setdefault(str_cmd, {})
-        try:
-            proc = NonBlockingProcess(".".join(cmd), _cb)
-            cls.cache[str_cmd]["proc"] = proc
-            cls.cache[str_cmd]["cb"] = [cb, ]
-            # Output.write("A cls.cache: {}".format(cls.cache))
-        except NonBlockingProcessException:
-            # Output.write("Warning, skipping '{}', a process is already running.".format(" ".join(cmd)))
-            cls.cache[str_cmd]["cb"].append(cb)
-            # Output.write("B cls.cache: {}".format(cls.cache))
-            return
-        if env is not None:
-            proc_env = QtCore.QProcessEnvironment()
-            for k, v in env.items():
-                proc_env.insert(k, v)
-            proc.setProcessEnvironment(proc_env)
-        proc.run(cmd)
-        
-    @classmethod
-    def invalidate_cmd_cache(cls, cmd):
-        str_cmd = " ".join(cmd)
-        try:
-            cls.cache[str_cmd]["expire_dt"] = datetime.datetime.now()
-        except (AttributeError, KeyError):
-            pass
-
-
 class Networks_Check():
+    MAX_NO_PING_SECONDS = datetime.timedelta(seconds=45)
+    
     def __init__(self, cfg):
         now = datetime.datetime.now()
         
@@ -328,7 +259,6 @@ class Networks_Check():
             }
             for h in cfg["network"][net]["ping"]:
                 self.hosts_status[h] = {
-                        # "proc": proc,
                         "dt": now,
                         "status": True,
                     }
@@ -345,26 +275,19 @@ class Networks_Check():
             if CONST.OS_SYS == "Darwin":
                 cmd = ["ping", "-c1", "-W1", h]
             
-            try:
-                proc = NonBlockingProcess(h, self._scan_finished)
-            except NonBlockingProcessException:
-                Output.write("Warning, skipping ping of {}, a process is already running.".format(h))
-                continue
-            self.hosts_status[h]["proc"] = proc
-            proc.run(cmd)
+            NonBlockingProcess(cmd, self._scan_finished, cb_extra_args={"host": h})
 
-    def _scan_finished(self, h, status, output, exit_code):
-        # print("ping {} : {}".format(h, output))
-        self.hosts_status[h]["dt"] = datetime.datetime.now()
-        self.hosts_status[h]["status"] = status
-        del(self.hosts_status[h]["proc"])
+    def _scan_finished(self, status, output, exit_code, host):
+        # print("ping {} : {}".format(host, output))
+        self.hosts_status[host]["dt"] = datetime.datetime.now()
+        self.hosts_status[host]["status"] = status
 
     def get_status(self, net):
         """
             returns tuple status, error_msg
             if parent(s) are also of bad status, then returns error_msg from parent
         """
-        dt_limit = datetime.datetime.now() - datetime.timedelta(seconds=45)
+        dt_limit = datetime.datetime.now() - Networks_Check.MAX_NO_PING_SECONDS
         try:
             for h in self.networks[net]["ping"]:
                 if (self.hosts_status[h]["status"] and
@@ -405,47 +328,126 @@ def validate_release_number():
         return True
 
 
-class NonBlockingProcessException(Exception):
-    pass
-
-
 class NonBlockingProcess(QtCore.QProcess):
-    def __init__(self, name, cb):
+    CACHE_DURATION = datetime.timedelta(seconds=1)
+    
+    def __init__(self, cmd, cb, env=None, cb_extra_args=None, cache=True):
         super(NonBlockingProcess, self).__init__()
-        NonBlockingProcess.register_process_name(name)
+        name = ".".join(cmd)
         self.name = name
-        self.cb = cb
+        self.cmd = cmd
+        self.cb_extra_args = cb_extra_args
+        self.cache = cache
         
-    def run(self, cmd):
+        if cache:
+            if NonBlockingProcess.answer_if_in_cache(name, self, cb):
+                return
+        
+        if not NonBlockingProcess.register_process(name, self, cb):
+            return  # A process is already running. cb will be called
+        self.finished.connect(self._finished)
+        
+        if env is not None:
+            proc_env = QtCore.QProcessEnvironment()
+            for k, v in env.items():
+                proc_env.insert(k, v)
+            self.setProcessEnvironment(proc_env)
+        
         self.setProcessChannelMode(QtCore.QProcess.MergedChannels)
-        self.finished.connect(self._proc_finished)
-        self.start(" ".join(cmd), QtCore.QIODevice.ReadOnly)
+        self.start(" ".join(self.cmd), QtCore.QIODevice.ReadOnly)
 
-    def _proc_finished(self, exit_code, exit_status):
-        NonBlockingProcess.unregister_process_name(self.name)
+    def _finished(self, exit_code, exit_status):
         success = (exit_status == 0 and exit_code == 0)
         output = bytes(self.readAll()).decode()
-        self.cb(self.name, success, output, exit_code)
-            
-    @classmethod
-    def register_process_name(cls, name):
-        while True:
-            try:
-                if name in cls.process_names:
-                    raise NonBlockingProcessException("Process named '{}' is already running.".format(name))
-                cls.process_names.add(name)
-                return
-            except AttributeError:
-                cls.process_names = set()
+        NonBlockingProcess.notify_answer(self.name, success, output, exit_code)
 
     @classmethod
-    def unregister_process_name(cls, name):
+    def register_process(cls, name, instance, cb):
         try:
-            cls.process_names.remove(name)
+            cls.process_names
         except AttributeError:
-            cls.process_names = set()
+            cls.process_names = {}
+            cls.lock = threading.Lock()
+            cls.cache = {}
+            
+        with cls.lock:
+            if name in cls.process_names:
+                cls.process_names[name]["cb"].append(cb)
+                return False
+            else:
+                cls.process_names[name] = {
+                    "instance": instance,
+                    "cb": [cb, ],
+                }
+                return True
+
+    @classmethod
+    def notify_answer(cls, name, success, output, exit_code):
+        try:
+            cls.process_names
+        except AttributeError:
+            cls.process_names = {}
+            cls.lock = threading.Lock()
+            cls.cache = {}
+            
+        with cls.lock:
+            try:
+                all_cb = cls.process_names[name]["cb"]
+                cb_extra_args = cls.process_names[name]["instance"].cb_extra_args
+                if cls.process_names[name]["instance"].cache:
+                    cls.cache[name] = {
+                        "expire_dt": datetime.datetime.now() + NonBlockingProcess.CACHE_DURATION,
+                        "success": success,
+                        "output": output,
+                        "exit_code": exit_code,
+                    }
+                del(cls.process_names[name])
+            except KeyError:
+                all_cb = ()
+        for cb in all_cb:
+            if cb_extra_args is None:
+                cb(success, output, exit_code)
+            else:
+                cb(success, output, exit_code, **cb_extra_args)
+    
+    @classmethod
+    def answer_if_in_cache(cls, name, instance, cb):
+        try:
+            cls.process_names
+        except AttributeError:
+            cls.process_names = {}
+            cls.lock = threading.Lock()
+            cls.cache = {}
+
+        try:
+            found = False
+            with cls.lock:
+                cached = cls.cache[name]
+                if cached["expire_dt"] >= datetime.datetime.now():
+                    found = True
+                    success = cached["success"]
+                    output = cached["output"]
+                    exit_code = cached["exit_code"]
+            if found:
+                # print("answer_if_in_cache {} : found valid cache".format(name))
+                if instance.cb_extra_args is None:
+                    cb(success, output, exit_code)
+                else:
+                    cb(success, output, exit_code, **instance.cb_extra_args)
+                return True
         except KeyError:
             pass
+        # print("answer_if_in_cache {} : not found".format(name))
+        return False
+    
+    @classmethod
+    def invalidate_cmd_cache(cls, cmd):
+        name = ".".join(cmd)
+        with cls.lock:
+            try:
+                del(cls.cache[name])
+            except (KeyError, AttributeError):
+                pass
 
 
 class NonBlockingThread(QtCore.QThread):
@@ -453,20 +455,21 @@ class NonBlockingThread(QtCore.QThread):
         super(NonBlockingThread, self).__init__()
         self.name = name
         self.target = target
-        NonBlockingThread.register_thread(name, self, cb)
+        if not NonBlockingThread.register_thread(name, self, cb):
+            return  # A thread is already running. cb will be called
         self.finished.connect(self._finished)
         self.start()
     
     def run(self):
+        # time.sleep(6)  # Make heavy delay tests
         answer = self.target()
-        NonBlockingThread.close_thread(self.name, answer)
+        NonBlockingThread.save_answer(self.name, answer)
     
     def _finished(self):
         NonBlockingThread.notify_cb(self.name)
     
     @classmethod
     def register_thread(cls, name, instance, cb):
-        # print("entering register_thread")
         try:
             cls.thread_names
         except AttributeError:
@@ -476,14 +479,16 @@ class NonBlockingThread(QtCore.QThread):
         with cls.lock:
             if name in cls.thread_names:
                 cls.thread_names[name]["cb"].append(cb)
-            cls.thread_names[name] = {
-                "instance": instance,
-                "cb": [cb, ],
-            }
+                return False
+            else:
+                cls.thread_names[name] = {
+                    "instance": instance,
+                    "cb": [cb, ],
+                }
+                return True
 
     @classmethod
-    def close_thread(cls, name, answer):
-        # print("entering close_thread")
+    def save_answer(cls, name, answer):
         try:
             cls.thread_names
         except AttributeError:
@@ -495,30 +500,23 @@ class NonBlockingThread(QtCore.QThread):
                 cls.thread_names[name]["answer"] = answer
             except KeyError:
                 pass
-        # print("leaving close_thread")
 
     @classmethod
     def notify_cb(cls, name):
-        # print("entering notify_cb")
         try:
             cls.thread_names
         except AttributeError:
             cls.thread_names = {}
             cls.lock = threading.Lock()
 
-        # print("notify_AA")
         with cls.lock:
-            # print("notify_AB")
             try:
                 answer = cls.thread_names[name]["answer"]
                 all_cb = cls.thread_names[name]["cb"]
                 del(cls.thread_names[name])
-                # print("notify_AC")
             except KeyError:
                 all_cb = ()
-            # print("notify_AD")
         for cb in all_cb:
-            # print("close thread {}: {}".format(name, answer))
             cb(answer)
 
         
