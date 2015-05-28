@@ -39,6 +39,7 @@ Windows
 -------
 
 * Windows XP is KO
+  0.3.2 launches ... but Nonblocking task never complete... ! :(
 
 
 client test :

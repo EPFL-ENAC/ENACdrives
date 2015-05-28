@@ -88,7 +88,7 @@ Homepage: http://enacit.epfl.ch/enacdrives
 Maintainer: Samuel BANCAL <Samuel.Bancal@epfl.ch>
 Section: main
 Priority: extra
-Description: Tool to access every user storage with centralized configuration.
+Description: Application to automate access to EPFL, ENAC and units NAS
 %%%EOF%%%
 
 
@@ -116,7 +116,8 @@ cat > ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop << %%%EOF%%%
 [Desktop Entry]
 Version=${SOFT_VER}
 Name=${SOFT}
-Comment=Mount any of your EPFL NAS filers
+Comment=Application to automate access to EPFL, ENAC and units NAS
+Keywords=EPFL;ENAC;NAS;filers;Drives;mount;CIFS;SMB
 Exec=/opt/enacdrives/enacdrives
 Icon=/usr/share/pixmaps/enacdrives.svg
 Terminal=false
@@ -152,10 +153,12 @@ sshfs enacit1@enacrepo:/data/web/enacrepo/ enacrepo.epfl.ch/
 reprepro -b enacrepo.epfl.ch/public/ list precise
 reprepro -b enacrepo.epfl.ch/public/ list trusty
 reprepro -b enacrepo.epfl.ch/public/ list utopic
+reprepro -b enacrepo.epfl.ch/public/ list vivid
 
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb trusty enacdrives.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb utopic enacdrives.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb vivid enacdrives.deb
 ~~~
 
 
@@ -204,9 +207,5 @@ cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/enacdrives.app/Contents/Res
 cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/enacdrives.app/Contents/Resources/lib/
 ~~~
 
-Test ... and give it to IT3 for Packaging
-
-~~~ bash
-rm -rf /Users/bancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/MacOSX/enacdrives.app
-cp -r /Users/bancal/enacdrives_client/dist/enacdrives.app /Users/bancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/MacOSX/
-~~~
+Test ... and give it to IT3 for Packaging via http://enacshare.epfl.ch (with Safari ... so that app is sent without preparing a zip)
+Sending it through CIFS share kills UNIX permissions :(
