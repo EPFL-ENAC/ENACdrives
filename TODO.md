@@ -17,7 +17,6 @@ Global :
 web_app :
 =========
 
-* enac1files for main unit is not assigned to Y:
 + FIX API call errors
 
 

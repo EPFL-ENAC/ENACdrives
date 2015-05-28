@@ -5,7 +5,7 @@
     Fabric file to deploy web_app enacdrives
     usage :
     $ pww
-    $ fab -H test --password=${PASS} deploy
+    $ fab -H enacit1sbtest4 --password=${PASS} deploy
     $ fab -H enacit1vm1 --password=${PASS} full_deploy
 """
 

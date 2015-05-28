@@ -79,7 +79,9 @@ def http_get(request):
             ranked_mount_names.extend(mount_names)
 
         # Config for his/her EPFL Units
+        unit_num = -1
         for unit in user_settings["epfl_units"]:
+            unit_num += 1
             for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_EPFL_UNIT, epfl_units__name=unit).order_by("rank"):
                 data = conf.data.format(
                     username=username,
@@ -94,13 +96,15 @@ def http_get(request):
                     LOCAL_USERNAME="{LOCAL_USERNAME}",
                     LOCAL_GROUPNAME="{LOCAL_GROUPNAME}",
                 )
-                config_given += data + "\n\n"
+                config_given += ut.conf_filter(data, unit_num) + "\n\n"
                 
                 mount_names = ut.grep_mount_names(data)
                 ranked_mount_names.extend(mount_names)
 
         # Config for his/her Ldap groups
+        group_num = -1
         for group in user_settings["ldap_groups"]:
+            group_num += 1
             for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_LDAP_GROUP, ldap_groups__name=group).order_by("rank"):
                 data = conf.data.format(
                     username=username,
@@ -115,7 +119,7 @@ def http_get(request):
                     LOCAL_USERNAME="{LOCAL_USERNAME}",
                     LOCAL_GROUPNAME="{LOCAL_GROUPNAME}",
                 )
-                config_given += data + "\n\n"
+                config_given += ut.conf_filter(data, group_num) + "\n\n"
                 
                 mount_names = ut.grep_mount_names(data)
                 ranked_mount_names.extend(mount_names)
