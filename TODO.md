@@ -18,6 +18,7 @@ web_app :
 =========
 
 * enac1files for main unit is not assigned to Y:
++ FIX API call errors
 
 
 Monitoring :
@@ -31,9 +32,6 @@ client :
 ========
 
 * "enacit1logs"
-* refresh dynamic
-  * has focus : refresh every 3 second
-  * hasn't focus : refresh every 30 second
 - CLI
 - add menus for
   - Edit > Show/Hide entries

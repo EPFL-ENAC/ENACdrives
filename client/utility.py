@@ -61,8 +61,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-27"
-    VERSION = "0.3.3"
+    VERSION_DATE = "2015-05-28"
+    VERSION = "0.3.4"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -72,6 +72,10 @@ class CONST():
     URL_TIMEOUT = 2
     CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
     VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
+    
+    GUI_FOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=3)
+    GUI_FOCUS_LOST_STILL_FULL_REFRESH = datetime.timedelta(seconds=30)
+    GUI_NOFOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=30)
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):

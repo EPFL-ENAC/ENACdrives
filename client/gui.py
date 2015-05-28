@@ -6,6 +6,7 @@
 
 import sys
 import pprint
+import datetime
 import webbrowser
 from PyQt4 import QtGui, QtCore
 from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check
@@ -247,6 +248,8 @@ class GUI(QtGui.QMainWindow):
     def __init__(self):
         super(GUI, self).__init__()
 
+        now = datetime.datetime.now()
+        
         self.key_chain = Key_Chain(self)
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager = WindowsLettersManager()
@@ -296,7 +299,9 @@ class GUI(QtGui.QMainWindow):
 
         self.refresh_timer = QtCore.QTimer()
         self.refresh_timer.timeout.connect(self._refresh_entries)
-        self.refresh_timer.start(5000)  # every 5s.
+        self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
+        self.last_refresh_dt = now
+        self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
 
         if CONST.OS_SYS == "Darwin":
             self.setContentsMargins(2, 2, 2, 2)
@@ -330,6 +335,13 @@ class GUI(QtGui.QMainWindow):
             raise CancelOperationException("Button cancel pressed")
 
     def _refresh_entries(self):
+        now = datetime.datetime.now()
+        if self.isActiveWindow():
+            self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
+        elif (self.regular_refresh_upto < now and
+              self.last_refresh_dt + CONST.GUI_NOFOCUS_REFRESH_INTERVAL > now):
+            return
+        self.last_refresh_dt = now
         self.networks_check.scan()
         for entry in self.entries:
             entry.update_status()
