@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-29"
-    VERSION = "0.3.5"
+    VERSION = "0.3.6"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -143,6 +143,7 @@ class CONST():
     BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
     BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
     WARNING_PNG = RESOURCES_DIR + "/warning.png"
+    RELEASE_WARNING_PNG = RESOURCES_DIR + "/warning_48.png"
 
 
 class Output():
