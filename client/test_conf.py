@@ -185,10 +185,11 @@ error_msg = Error, you are not connected to the network. You won't be able to mo
 [network]
 name = Epfl
 parent = Internet
-ping = files0.epfl.ch
-ping = files1.epfl.ch
-ping = files8.epfl.ch
-ping = files9.epfl.ch
+cifs = files0.epfl.ch
+cifs = files1.epfl.ch
+cifs = files8.epfl.ch
+cifs = files9.epfl.ch
+cifs = enac1files.epfl.ch
 error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to mount this resource.
 
 [realm]
@@ -256,11 +257,12 @@ Windows_letter = Z:
                                 'intranet of EPFL. Run a VPN client to '
                                 'be able to mount this resource.',
                    'parent': 'Internet',
-                   'ping': [
+                   'cifs': [
                     'files0.epfl.ch',
                     'files1.epfl.ch',
                     'files8.epfl.ch',
-                    'files9.epfl.ch']},
+                    'files9.epfl.ch',
+                    'enac1files.epfl.ch']},
                   'Internet': {
                    'error_msg': 'Error, you are not connected to '
                                 "the network. You won't be able to "
@@ -356,7 +358,10 @@ class TestValidateConfig(unittest.TestCase):
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
-            self.assertEqual(s_out.readlines(), ["Error: expected 'ping' option in network section.\n", "Removing incomplete network 'Epfl'.\n"])
+            self.assertEqual(s_out.readlines(), [
+                "Error: expected 'ping' option in network section.\n",
+                "Error: expected 'cifs' option in network section.\n",
+                "Removing incomplete network 'Epfl'.\n"])
 
     def test_incomplete_dependency_network(self):
         cfg = {'network': {

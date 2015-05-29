@@ -417,10 +417,11 @@ def read_config_source(src):
             [network]
             name = Epfl
             parent = Internet
-            ping = files0.epfl.ch
-            ping = files1.epfl.ch
-            ping = files8.epfl.ch
-            ping = files9.epfl.ch
+            cifs = files0.epfl.ch
+            cifs = files1.epfl.ch
+            cifs = files8.epfl.ch
+            cifs = files9.epfl.ch
+            cifs = enac1files.epfl.ch
             error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to mount this resource.
 
             [realm]
@@ -543,6 +544,7 @@ def read_config_source(src):
             "name",
             "parent",
             "ping",
+            "cifs",
             "error_msg",
         )
     }
@@ -607,6 +609,10 @@ def read_config_source(src):
                 # This is a multi entries section type
                 if current_section_name == "network" and k == "ping":
                     # network.ping is a list
+                    current_section_values.setdefault(k, [])
+                    current_section_values[k].append(validate_value(k, v))
+                elif current_section_name == "network" and k == "cifs":
+                    # network.cifs is a list
                     current_section_values.setdefault(k, [])
                     current_section_values[k].append(validate_value(k, v))
                 else:
@@ -697,7 +703,8 @@ def validate_config(cfg):
                 
     for net in cfg.get("network", []):
         is_ok = (
-            expect_option(cfg["network"][net], "network", "ping") and
+            (expect_option(cfg["network"][net], "network", "ping") or
+             expect_option(cfg["network"][net], "network", "cifs")) and
             expect_option(cfg["network"][net], "network", "error_msg")
         )
         if not is_ok:

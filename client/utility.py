@@ -61,8 +61,8 @@ def which(program):
 
 class CONST():
 
-    VERSION_DATE = "2015-05-28"
-    VERSION = "0.3.4"
+    VERSION_DATE = "2015-05-29"
+    VERSION = "0.3.5"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -247,23 +247,33 @@ class Key_Chain():
 
 class Networks_Check():
     MAX_NO_PING_SECONDS = datetime.timedelta(seconds=45)
+    CIFS_TIMEOUT = 1.0
     
     def __init__(self, cfg):
         now = datetime.datetime.now()
         
         # Output.write("Networks_Check.__init__ {}".format(cfg))
         self.networks = {}
-        self.hosts_status = {}
+        self.hosts_status = {
+            "ping": {},
+            "cifs": {},
+        }
         
         for net in cfg.get("network", []):
             self.networks[net] = {
                 "parent": cfg["network"][net].get("parent"),
-                "ping": cfg["network"][net]["ping"],
+                "ping": cfg["network"][net].get("ping", []),
+                "cifs": cfg["network"][net].get("cifs", []),
                 "error_msg": cfg["network"][net]["error_msg"],
                 "last_state": None,
             }
-            for h in cfg["network"][net]["ping"]:
-                self.hosts_status[h] = {
+            for h in cfg["network"][net].get("ping", []):
+                self.hosts_status["ping"][h] = {
+                        "dt": now,
+                        "status": True,
+                    }
+            for h in cfg["network"][net].get("cifs", []):
+                self.hosts_status["cifs"][h] = {
                         "dt": now,
                         "status": True,
                     }
@@ -272,25 +282,46 @@ class Networks_Check():
         """
             Scan all networks to check which are available and which are not.
         """
-        for h in self.hosts_status:
+        def _ping_finished(status, output, exit_code, host):
+            # print("ping {} : {}".format(host, output))
+            self.hosts_status["ping"][host]["dt"] = datetime.datetime.now()
+            self.hosts_status["ping"][host]["status"] = status
+
+        def _ping_cifs_target(host):
+            port = 139
+            try:
+                sock = socket.create_connection((host, port), Networks_Check.CIFS_TIMEOUT)
+                sock.close()
+            except:
+                return False
+            return True
+
+        def _ping_cifs_finished(answer, host):
+            self.hosts_status["cifs"][host]["dt"] = datetime.datetime.now()
+            self.hosts_status["cifs"][host]["status"] = answer
+
+        for h in self.hosts_status["ping"]:
             if CONST.OS_SYS == "Windows":
                 cmd = ["ping", h, "-n", '1']
             if CONST.OS_SYS == "Linux":
                 cmd = ["ping", "-c1", "-w1", h]
             if CONST.OS_SYS == "Darwin":
                 cmd = ["ping", "-c1", "-W1", h]
-            
+
             NonBlockingProcess(
                 cmd,
-                self._scan_finished,
+                _ping_finished,
                 cb_extra_args={"host": h},
                 cache=True,
             )
-
-    def _scan_finished(self, status, output, exit_code, host):
-        # print("ping {} : {}".format(host, output))
-        self.hosts_status[host]["dt"] = datetime.datetime.now()
-        self.hosts_status[host]["status"] = status
+        for h in self.hosts_status["cifs"]:
+            NonBlockingThread(
+                "ping.cifs.{}".format(h),
+                _ping_cifs_target,
+                _ping_cifs_finished,
+                target_extra_args={"host": h},
+                cb_extra_args={"host": h},
+            )
 
     def get_status(self, net):
         """
@@ -299,9 +330,16 @@ class Networks_Check():
         """
         dt_limit = datetime.datetime.now() - Networks_Check.MAX_NO_PING_SECONDS
         try:
+            for h in self.networks[net]["cifs"]:
+                if (self.hosts_status["cifs"][h]["status"] and
+                   self.hosts_status["cifs"][h]["dt"] > dt_limit):
+                    if self.networks[net]["last_state"] is not True:
+                        Output.write("network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        self.networks[net]["last_state"] = True
+                    return (True, "")
             for h in self.networks[net]["ping"]:
-                if (self.hosts_status[h]["status"] and
-                   self.hosts_status[h]["dt"] > dt_limit):
+                if (self.hosts_status["ping"][h]["status"] and
+                   self.hosts_status["ping"][h]["dt"] > dt_limit):
                     if self.networks[net]["last_state"] is not True:
                         Output.write("network {} : {} -> True".format(net, self.networks[net]["last_state"]))
                         self.networks[net]["last_state"] = True
@@ -468,25 +506,29 @@ class NonBlockingProcess(QtCore.QProcess):
 
 
 class NonBlockingThread(QtCore.QThread):
-    def __init__(self, name, target, cb):
+    def __init__(self, name, target, cb, target_extra_args=None, cb_extra_args=None):
         super(NonBlockingThread, self).__init__()
         self.name = name
         self.target = target
-        if not NonBlockingThread.register_thread(name, self, cb):
+        self.target_extra_args = target_extra_args
+        if not NonBlockingThread.register_thread(name, self, cb, cb_extra_args):
             return  # A thread is already running. cb will be called
         self.finished.connect(self._finished)
         self.start()
     
     def run(self):
         # time.sleep(6)  # Make heavy delay tests
-        answer = self.target()
+        if self.target_extra_args is None:
+            answer = self.target()
+        else:
+            answer = self.target(**self.target_extra_args)
         NonBlockingThread.save_answer(self.name, answer)
     
     def _finished(self):
         NonBlockingThread.notify_cb(self.name)
     
     @classmethod
-    def register_thread(cls, name, instance, cb):
+    def register_thread(cls, name, instance, cb, cb_extra_args):
         try:
             cls.thread_names
         except AttributeError:
@@ -495,12 +537,12 @@ class NonBlockingThread(QtCore.QThread):
 
         with cls.lock:
             if name in cls.thread_names:
-                cls.thread_names[name]["cb"].append(cb)
+                cls.thread_names[name]["cb"].append((cb, cb_extra_args))
                 return False
             else:
                 cls.thread_names[name] = {
                     "instance": instance,
-                    "cb": [cb, ],
+                    "cb": [(cb, cb_extra_args), ],
                 }
                 return True
 
@@ -533,7 +575,11 @@ class NonBlockingThread(QtCore.QThread):
                 del(cls.thread_names[name])
             except KeyError:
                 all_cb = ()
-        for cb in all_cb:
-            cb(answer)
+        for cb, cb_extra_args in all_cb:
+            if cb_extra_args is None:
+                cb(answer)
+            else:
+                cb(answer, **cb_extra_args)
+                
 
         
