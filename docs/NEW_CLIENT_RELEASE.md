@@ -169,7 +169,7 @@ WINDOWS
 
 ~~~ bash
 cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/
-rm -rf mv /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/exe.win32-3.4
+rm -rf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/exe.win32-3.4
 ~~~
 
 ~~~

@@ -62,7 +62,7 @@ def which(program):
 class CONST():
 
     VERSION_DATE = "2015-05-29"
-    VERSION = "0.3.6"
+    VERSION = "0.3.7"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -394,6 +394,7 @@ class NonBlockingProcess(QtCore.QProcess):
         self.cmd = cmd
         self.cb_extra_args = cb_extra_args
         self.cache = cache
+        self.output = ""
         
         if cache:
             if NonBlockingProcess.answer_if_in_cache(name, self, cb):
@@ -402,6 +403,7 @@ class NonBlockingProcess(QtCore.QProcess):
         if not NonBlockingProcess.register_process(name, self, cb):
             return  # A process is already running. cb will be called
         self.finished.connect(self._finished)
+        self.readyReadStandardOutput.connect(self._readyReadStandardOutput)
         
         if env is not None:
             proc_env = QtCore.QProcessEnvironment()
@@ -412,10 +414,17 @@ class NonBlockingProcess(QtCore.QProcess):
         self.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.start(" ".join(self.cmd), QtCore.QIODevice.ReadOnly)
 
+    def _readyReadStandardOutput(self):
+        out = self.readAll()
+        out = bytes(out).decode("utf-8", "replace")
+        self.output += out
+        
     def _finished(self, exit_code, exit_status):
         success = (exit_status == 0 and exit_code == 0)
-        output = bytes(self.readAll()).decode()
-        NonBlockingProcess.notify_answer(self.name, success, output, exit_code)
+        out = self.readAll()
+        out = bytes(out).decode("utf-8", "replace")
+        self.output += out
+        NonBlockingProcess.notify_answer(self.name, success, self.output, exit_code)
 
     @classmethod
     def register_process(cls, name, instance, cb):
@@ -425,7 +434,7 @@ class NonBlockingProcess(QtCore.QProcess):
             cls.process_names = {}
             cls.lock = threading.Lock()
             cls.cache = {}
-            
+
         with cls.lock:
             if name in cls.process_names:
                 cls.process_names[name]["cb"].append(cb)
@@ -434,6 +443,7 @@ class NonBlockingProcess(QtCore.QProcess):
                 cls.process_names[name] = {
                     "instance": instance,
                     "cb": [cb, ],
+                    "launch_dt": datetime.datetime.now(),
                 }
                 return True
 
@@ -445,8 +455,9 @@ class NonBlockingProcess(QtCore.QProcess):
             cls.process_names = {}
             cls.lock = threading.Lock()
             cls.cache = {}
-            
+
         with cls.lock:
+            # Output.write("NonBlockingProcess.notify_answer '{}' took: {}.".format(name, datetime.datetime.now()-cls.process_names[name]["launch_dt"]))
             try:
                 all_cb = cls.process_names[name]["cb"]
                 cb_extra_args = cls.process_names[name]["instance"].cb_extra_args
@@ -581,6 +592,3 @@ class NonBlockingThread(QtCore.QThread):
                 cb(answer)
             else:
                 cb(answer, **cb_extra_args)
-                
-
-        
