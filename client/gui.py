@@ -16,12 +16,18 @@ if CONST.OS_SYS == "Windows":
     from win_stack import WindowsLettersManager
 
 
-class UI_Label_Entry(QtGui.QHBoxLayout):
+class Unsupported_OS(QtGui.QHBoxLayout):
 
-    def __init__(self, label):
-        super(UI_Label_Entry, self).__init__()
-        self.label = QtGui.QLabel(label)
-        self.addWidget(self.label)
+    def __init__(self, os):
+        super(Unsupported_OS, self).__init__()
+        error_png = QtGui.QLabel()
+        error_png.setGeometry(0, 0, 48, 48)
+        error_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
+        label = QtGui.QLabel(
+            "We're sorry but ENACdrives doesn't support {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
+            openExternalLinks=True)
+        self.addWidget(error_png)
+        self.addWidget(label)
         self.addStretch(1)
 
 
@@ -31,9 +37,9 @@ class UI_Download_New_Release(QtGui.QWidget):
         super(UI_Download_New_Release, self).__init__()
 
         hlayout = QtGui.QHBoxLayout()
-        warning_label = QtGui.QLabel()
-        warning_label.setGeometry(0, 0, 48, 48)
-        warning_label.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
+        warning_png = QtGui.QLabel()
+        warning_png.setGeometry(0, 0, 48, 48)
+        warning_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
         if CONST.OS_SYS == "Linux":
             label = QtGui.QLabel("You are not running the latest release.<br>Please upgrade the package enacdrives.")
         else:
@@ -42,7 +48,7 @@ class UI_Download_New_Release(QtGui.QWidget):
                 openExternalLinks=True)
         # label.setStyleSheet("QLabel {color : red;}")
         hlayout.addStretch(1)
-        hlayout.addWidget(warning_label)
+        hlayout.addWidget(warning_png)
         hlayout.addWidget(label)
         self.setLayout(hlayout)
 
@@ -254,63 +260,71 @@ class GUI(QtGui.QMainWindow):
 
         now = datetime.datetime.now()
         
-        self.key_chain = Key_Chain(self)
-        if CONST.OS_SYS == "Windows":
-            self.windows_letter_manager = WindowsLettersManager()
+        if (CONST.OS_DISTRIB == "Microsoft" and
+           CONST.OS_SYS == "Windows" and
+           CONST.OS_VERSION == "XP"):
+            error_label = Unsupported_OS("Windows XP")
+            central_widget = QtGui.QWidget()
+            central_widget.setLayout(error_label)
+            self.setCentralWidget(central_widget)
+        else:
+            self.key_chain = Key_Chain(self)
+            if CONST.OS_SYS == "Windows":
+                self.windows_letter_manager = WindowsLettersManager()
 
-        self.networks_check = None  # set in load_config
-        self.cfg = None  # set in load_config
-        self.entries_layer = QtGui.QVBoxLayout()
-        self.entries = []
-        self.load_config()
+            self.networks_check = None  # set in load_config
+            self.cfg = None  # set in load_config
+            self.entries_layer = QtGui.QVBoxLayout()
+            self.entries = []
+            self.load_config()
 
-        self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
+            self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
 
-        self.vbox_layout = QtGui.QVBoxLayout()
-        if not validate_release_number():
-            self.vbox_layout.addWidget(UI_Download_New_Release())
-        self.vbox_layout.addWidget(self.username_box)
-        self.vbox_layout.addWidget(HLine())
-        self.vbox_layout.addLayout(self.entries_layer)
+            self.vbox_layout = QtGui.QVBoxLayout()
+            if not validate_release_number():
+                self.vbox_layout.addWidget(UI_Download_New_Release())
+            self.vbox_layout.addWidget(self.username_box)
+            self.vbox_layout.addWidget(HLine())
+            self.vbox_layout.addLayout(self.entries_layer)
 
-        # File > Quit
-        quit_action = QtGui.QAction("&Quit", self)
-        quit_action.setShortcut("Ctrl+Q")
-        quit_action.setStatusTip("Quit ENACdrives")
-        quit_action.triggered.connect(QtGui.qApp.quit)
-        # Help > About
-        about_action = QtGui.QAction("&About", self)
-        about_action.setShortcut("Ctrl+?")
-        about_action.setStatusTip("About ENACdrives")
-        about_action.triggered.connect(self.show_about)
-        # Help > Documentation
-        doc_action = QtGui.QAction("Web &documentation", self)
-        # doc_action.setShortcut("Ctrl+?")
-        doc_action.setStatusTip("ENACdrives web documentation")
-        doc_action.triggered.connect(self.show_web_documentation)
+            # File > Quit
+            quit_action = QtGui.QAction("&Quit", self)
+            quit_action.setShortcut("Ctrl+Q")
+            quit_action.setStatusTip("Quit ENACdrives")
+            quit_action.triggered.connect(QtGui.qApp.quit)
+            # Help > About
+            about_action = QtGui.QAction("&About", self)
+            about_action.setShortcut("Ctrl+?")
+            about_action.setStatusTip("About ENACdrives")
+            about_action.triggered.connect(self.show_about)
+            # Help > Documentation
+            doc_action = QtGui.QAction("Web &documentation", self)
+            # doc_action.setShortcut("Ctrl+?")
+            doc_action.setStatusTip("ENACdrives web documentation")
+            doc_action.triggered.connect(self.show_web_documentation)
 
-        menubar = self.menuBar()
-        file_menu = menubar.addMenu("&File")
-        file_menu.addAction(quit_action)
-        help_menu = menubar.addMenu("&Help")
-        help_menu.addAction(about_action)
-        help_menu.addAction(doc_action)
+            menubar = self.menuBar()
+            file_menu = menubar.addMenu("&File")
+            file_menu.addAction(quit_action)
+            help_menu = menubar.addMenu("&Help")
+            help_menu.addAction(about_action)
+            help_menu.addAction(doc_action)
 
-        central_widget = QtGui.QWidget()
-        central_widget.setLayout(self.vbox_layout)
-        self.setCentralWidget(central_widget)
-        self.set_tab_order()
+            central_widget = QtGui.QWidget()
+            central_widget.setLayout(self.vbox_layout)
+            self.setCentralWidget(central_widget)
+            self.set_tab_order()
 
-        self.refresh_timer = QtCore.QTimer()
-        self.refresh_timer.timeout.connect(self._refresh_entries)
-        self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
-        self.last_refresh_dt = now
-        self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
+            self.refresh_timer = QtCore.QTimer()
+            self.refresh_timer.timeout.connect(self._refresh_entries)
+            self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
+            self.last_refresh_dt = now
+            self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
 
-        if CONST.OS_SYS == "Darwin":
-            self.setContentsMargins(2, 2, 2, 2)
-            self.vbox_layout.setSpacing(0)
-            self.vbox_layout.setContentsMargins(0, 0, 0, 0)
+            if CONST.OS_SYS == "Darwin":
+                self.setContentsMargins(2, 2, 2, 2)
+                self.vbox_layout.setSpacing(0)
+                self.vbox_layout.setContentsMargins(0, 0, 0, 0)
         self.setGeometry(300, 300, 200, 100)
         self.setWindowTitle("ENACdrives")
         self.setWindowIcon(QtGui.QIcon(CONST.ENACDRIVES_PNG))
@@ -435,7 +449,7 @@ License : pending ...
         about_box.exec_()
 
     def show_web_documentation(self):
-        webbrowser.open('http://enacit.epfl.ch/enacdrives')
+        webbrowser.open(CONST.DOC_URL)
 
 
 def main_GUI():

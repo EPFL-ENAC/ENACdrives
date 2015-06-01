@@ -71,9 +71,11 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-01"
-    VERSION = "0.3.10"
+    VERSION = "0.3.11"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
+    DOC_URL = "http://enacit.epfl.ch/enacdrives"
+    
     OS_SYS = platform.system()
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
