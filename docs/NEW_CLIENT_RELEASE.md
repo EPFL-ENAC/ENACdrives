@@ -178,8 +178,20 @@ Y:
 python setup.py build
 ~~~
 
-Test ... and give it to IT2 for Packaging
+Test ...
 
+Make a zip (-> PortableApps)
+~~~ bash
+export PYTHONPATH=/usr/lib/python3/dist-packages
+export VERSION=$(python ~/Projects/enacdrives/client/tell_version.py)
+
+pushd ~/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/
+cp exe.win32-3.4 ENACdrives-${VERSION}
+zip -r ENACdrives-${VERSION}.zip ENACdrives-${VERSION}/
+popd
+~~~
+
+Give it to IT2 for Packaging
 ~~~ bash
 rm -rf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built
 mv /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built
