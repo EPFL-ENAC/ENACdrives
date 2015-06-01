@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-01"
-    VERSION = "0.3.8"
+    VERSION = "0.3.9"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -193,6 +193,24 @@ class Output():
 
 
 # ENACIT1LOGS
+# used to know what version are used
+def enacit1logs_notify():
+    def _target():
+        enacit1logs.send(
+            message="run ENACdrives",
+            tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION)]
+        )
+    
+    def _finished(answer):
+        pass
+        
+    NonBlockingThread(
+        "enacit1logs_notify",
+        _target,
+        _finished,
+    )
+
+
 # used to repatriate test cases
 # + NET USE stdout and stderr (might encounter different one from different OS/Languages :( )
 def debug_send(msg, additional_tags=None):

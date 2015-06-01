@@ -41,14 +41,17 @@ Monitoring :
 client :
 ========
 
-* "enacit1logs"
 - CLI
 - add menus for
   - Edit > Show/Hide entries
+* http://.../config/get?username=...&version=...&os=...
++ enacit1logs of all kind of errors with "notify_bancal"
+
 
 Windows
 -------
 
++ Portable apps
 * Windows XP is KO
   0.3.2 launches ... but Nonblocking task never complete... ! :(
   0.3.7 launches ... but Nonblocking task never complete... ! :(

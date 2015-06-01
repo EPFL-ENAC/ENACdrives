@@ -9,7 +9,7 @@ import pprint
 import datetime
 import webbrowser
 from PyQt4 import QtGui, QtCore
-from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check
+from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
 from cifs_mount import CIFS_Mount
 import conf
 if CONST.OS_SYS == "Windows":
@@ -315,6 +315,7 @@ class GUI(QtGui.QMainWindow):
         self.setWindowTitle("ENACdrives")
         self.setWindowIcon(QtGui.QIcon(CONST.ENACDRIVES_PNG))
         self.show()
+        enacit1logs_notify()
 
     def notify_user(self, msg):
         msgBox = QtGui.QMessageBox()
