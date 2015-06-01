@@ -18,6 +18,17 @@ web_app :
 =========
 
 + FIX API call errors
++ if keyword with indentation
+  if iteration == 0:
+    Windows_letter = Y:
+  elif iteration == 1:
+    Windows_letter = X:
+  if version < 0.3.6:
+    ping = files0.epfl.ch
+    ping = files1.epfl.ch
+  else:
+    cifs = files0.epfl.ch
+    cifs = files1.epfl.ch
 
 
 Monitoring :
@@ -40,6 +51,7 @@ Windows
 
 * Windows XP is KO
   0.3.2 launches ... but Nonblocking task never complete... ! :(
+  0.3.7 launches ... but Nonblocking task never complete... ! :(
 
 
 client test :

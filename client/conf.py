@@ -19,7 +19,7 @@ import socket
 import hashlib
 import urllib.error
 import urllib.request
-from utility import Output, CONST
+from utility import Output, CONST, bytes_decode
 
 
 FileNotFoundException = getattr(__builtins__, 'FileNotFoundError', IOError)
@@ -65,7 +65,7 @@ def get_config():
         cache_filename = os.path.join(CONST.USER_CACHE_DIR, hashlib.md5(config_url.encode()).hexdigest())
         try:
             with urllib.request.urlopen(config_url, timeout=CONST.URL_TIMEOUT) as response:
-                lines = [l.decode() for l in response.readlines()]
+                lines = [bytes_decode(l) for l in response.readlines()]
                 s_io = io.StringIO("".join(lines))
                 enacdrives_config = read_config_source(s_io)
                 merge_configs(cfg, enacdrives_config)
@@ -557,7 +557,7 @@ def read_config_source(src):
     nb_unexpected_lines = 0
     for line in src.readlines():
         if type(line) == bytes:
-            line = line.decode()
+            line = bytes_decode(line)
         line_nb += 1
         l = line
         l = re.sub(r"#.*", "", l)  # remove comments

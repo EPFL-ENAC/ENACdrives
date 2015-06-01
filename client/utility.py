@@ -59,10 +59,19 @@ def which(program):
     return None
 
 
+def bytes_decode(b):
+    for encoding in ("utf-8", "iso8859_15"):
+        try:
+            return b.decode(encoding)
+        except UnicodeDecodeError:
+            pass
+    return b.decode("utf-8", "replace")
+
+
 class CONST():
 
-    VERSION_DATE = "2015-05-29"
-    VERSION = "0.3.7"
+    VERSION_DATE = "2015-06-01"
+    VERSION = "0.3.8"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     OS_SYS = platform.system()
@@ -91,7 +100,7 @@ class CONST():
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         try:
-            DESKTOP_DIR = subprocess.check_output(["xdg-user-dir", "DESKTOP"]).decode().strip()
+            DESKTOP_DIR = bytes_decode(subprocess.check_output(["xdg-user-dir", "DESKTOP"])).strip()
         except FileNotFoundException:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
@@ -367,7 +376,7 @@ def validate_username(username):
     validate_url = CONST.VALIDATE_USERNAME_URL.format(username=username)
     try:
         with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) as response:
-            lines = [l.decode() for l in response.readlines()]
+            lines = [bytes_decode(l) for l in response.readlines()]
         return lines[0]
     except (socket.timeout, urllib.error.URLError):
         Output.write("Warning, could not load validate url. ({0})".format(validate_url))
@@ -377,7 +386,7 @@ def validate_username(username):
 def validate_release_number():
     try:
         with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) as response:
-            latest_release = response.readline().decode()
+            latest_release = bytes_decode(response.readline())
             return latest_release == CONST.VERSION
     except (socket.timeout, urllib.error.URLError):
         Output.write("Warning, could not validate release number.")
@@ -416,13 +425,13 @@ class NonBlockingProcess(QtCore.QProcess):
 
     def _readyReadStandardOutput(self):
         out = self.readAll()
-        out = bytes(out).decode("utf-8", "replace")
+        out = bytes_decode(bytes(out))
         self.output += out
         
     def _finished(self, exit_code, exit_status):
         success = (exit_status == 0 and exit_code == 0)
         out = self.readAll()
-        out = bytes(out).decode("utf-8", "replace")
+        out = bytes_decode(bytes(out))
         self.output += out
         NonBlockingProcess.notify_answer(self.name, success, self.output, exit_code)
 
