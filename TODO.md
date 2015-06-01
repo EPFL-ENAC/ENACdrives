@@ -44,7 +44,6 @@ client :
 - CLI
 - add menus for
   - Edit > Show/Hide entries
-* http://.../config/get?username=...&version=...&os=...
 + enacit1logs of all kind of errors with "notify_bancal"
 
 

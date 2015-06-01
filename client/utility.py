@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-01"
-    VERSION = "0.3.11"
+    VERSION = "0.3.12"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -81,8 +81,6 @@ class CONST():
     HOME_DIR = os.path.expanduser("~")
 
     URL_TIMEOUT = 2
-    CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version=" + VERSION
-    VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
     
     GUI_FOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=3)
     GUI_FOCUS_LOST_STILL_FULL_REFRESH = datetime.timedelta(seconds=30)
@@ -146,6 +144,14 @@ class CONST():
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
     else:
         OS_VERSION = "Error: OS not supported."
+
+    CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version={version}&os={os}&os_version={os_version}".format(
+        username="{username}",
+        version=VERSION,
+        os=OS_DISTRIB + "-" + OS_SYS,
+        os_version=OS_VERSION,
+    )
+    VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
     # use full ABSOLUTE path to the image, not relative
     ENACDRIVES_PNG = RESOURCES_DIR + "/enacdrives.png"
