@@ -26,8 +26,11 @@ class WIN_CONST():
 def cifs_is_mounted(mount, cb):
     def _cb(success, output, exit_code):
         lines = output.split("\n")
+        Output.write("cifs_is_mounted._cb :\n{}".format(lines))
         caption_index = lines[0].index("Caption")
+        Output.write("cifs_is_mounted.caption_index : {}".format(caption_index))
         providername_index = lines[0].index("ProviderName")
+        Output.write("cifs_is_mounted.providername_index : {}".format(providername_index))
         i_search = r"^\\{server_name}\{server_path}$".format(**mount.settings)
         i_search = i_search.replace("\\", "\\\\")
         # Output.write("i_search='{0}'".format(i_search))
@@ -38,6 +41,7 @@ def cifs_is_mounted(mount, cb):
                     provider = re.findall(r"^(\S+)", l[providername_index:])[0]
                     if re.search(i_search, provider):
                         mount.settings["Windows_letter"] = drive_letter
+                        Output.write("cifs_is_mounted._cb cb(True)")
                         cb(True)
                         return
                 except IndexError:
@@ -45,6 +49,7 @@ def cifs_is_mounted(mount, cb):
                 # Output.write("{0} : '{1}'".format(drive_letter, provider))
             except IndexError:
                 pass
+        Output.write("cifs_is_mounted._cb cb(False)")
         cb(False)
         
     cmd = ["wmic", "logicaldisk"]  # List all Logical Disks

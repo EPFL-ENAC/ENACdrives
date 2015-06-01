@@ -643,9 +643,12 @@ def validate_config(cfg):
     Will output error message otherwise
     """
 
-    def expect_option(entry, section, option):
+    def expect_option(entry, section, option, alert=True, ored_options=None):
         if option not in entry:
-            Output.write("Error: expected '{}' option in {} section.".format(option, section))
+            if alert:
+                if ored_options is not None:
+                    option = "' or '".join(ored_options)
+                Output.write("Error: expected '{}' option in {} section.".format(option, section))
             return False
         return True
 
@@ -703,8 +706,8 @@ def validate_config(cfg):
                 
     for net in cfg.get("network", []):
         is_ok = (
-            (expect_option(cfg["network"][net], "network", "ping") or
-             expect_option(cfg["network"][net], "network", "cifs")) and
+            (expect_option(cfg["network"][net], "network", "ping", alert=False) or
+             expect_option(cfg["network"][net], "network", "cifs", ored_options=("ping", "cifs"))) and
             expect_option(cfg["network"][net], "network", "error_msg")
         )
         if not is_ok:
