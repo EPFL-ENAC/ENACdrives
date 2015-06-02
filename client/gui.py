@@ -234,8 +234,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
                 self.label_status.setToolTip(msg)
                 self.label.setToolTip(msg)
                 network_present = False
+                self.bt_mount.setEnabled(False)
+                self.bt_open.setEnabled(False)
         
         if network_present:
+            if CONST.OS_SYS != "Windows" or self.win_letter.currentText() != "":
+                self.bt_mount.setEnabled(True)
             self.mount_instance.is_mounted(_cb)
         
     def destroy(self):
