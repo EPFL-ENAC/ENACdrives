@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-02"
-    VERSION = "0.3.14"
+    VERSION = "0.3.15"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -117,8 +117,12 @@ class CONST():
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
-        AD_DOMAIN = None
-        AD_USERNAME = None
+        if "LDAPv3" in bytes_decode(subprocess.check_output(["dscl"], input=b"ls\n")).strip():
+            AD_DOMAIN = "Found LDAPv3"
+            AD_USERNAME = os.environ.get("USER")
+        else:
+            AD_DOMAIN = None
+            AD_USERNAME = None
         DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
