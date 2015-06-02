@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-02"
-    VERSION = "0.3.15"
+    VERSION = "0.3.16"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -152,7 +152,7 @@ class CONST():
         except KeyError:
             USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
             USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
-        SYSTEM_CONF_FILE = "C:\\enacdrives.conf"
+        SYSTEM_CONF_FILE = "C:\\ProgramData\\ENACdrives\\enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
     else:
