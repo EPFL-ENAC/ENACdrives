@@ -24,7 +24,7 @@ class Unsupported_OS(QtGui.QHBoxLayout):
         error_png.setGeometry(0, 0, 48, 48)
         error_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
         label = QtGui.QLabel(
-            "We're sorry but ENACdrives doesn't support {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
+            "We're sorry but ENACdrives is not supported on {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
             openExternalLinks=True)
         self.addWidget(error_png)
         self.addWidget(label)
