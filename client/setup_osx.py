@@ -8,7 +8,7 @@ Usage:
 import utility
 from setuptools import setup
 
-APP = ["enacdrives.py"]
+APP = ["ENACdrives.py"]
 DATA_FILES = ["enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png", "bookmark_off.png", "warning.png", "warning_48.png"]
 OPTIONS = {
     "argv_emulation": True,

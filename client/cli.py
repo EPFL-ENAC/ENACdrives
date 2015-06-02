@@ -12,7 +12,6 @@ def main_CLI():
     Output.write()
     Output.write("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
 
-    Output.write("Test app")
     Output.write("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
     Output.write("Local username:" + CONST.LOCAL_USERNAME)
     Output.write("Local groupname:" + CONST.LOCAL_GROUPNAME)

@@ -213,9 +213,10 @@ to_macp
 ~~~ bash
 ssh -p 2210 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null bancal@localhost
 cd ~/enacdrives_client/
+rm -rf dist/*
 python setup_osx.py py2app
-cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/enacdrives.app/Contents/Resources/lib/
-cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/enacdrives.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
 ~~~
 
 Test ... and give it to IT3 for Packaging via http://enacshare.epfl.ch (with Safari ... so that app is sent without preparing a zip)

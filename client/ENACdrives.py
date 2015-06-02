@@ -3,7 +3,7 @@
 # Bancal Samuel
 
 # ENACdrives : Main Python File
-# used for Windows & Linux
+# used for MacOSX
 
 from gui import main_GUI
 from utility import Output
