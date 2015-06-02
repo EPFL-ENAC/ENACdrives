@@ -58,6 +58,17 @@ def get_config():
             Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     except FileNotFoundException:
         Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+    
+    if username is None:
+        if CONST.AD_USERNAME is not None:
+            username = CONST.AD_USERNAME
+            Output.write("Loaded username '{}' from environment variables (user in domain '{}').".format(username, CONST.AD_DOMAIN))
+            # Save to config file and reload it for after
+            save_username(username)
+            with open(CONST.USER_CONF_FILE, "r") as f:
+                user_config = read_config_source(f)
+        else:
+            Output.write("Username not found in environment variables (user not in a domain).")
 
     # ENACDRIVE SERVER CONFIG (included cache function)
     if username is not None:

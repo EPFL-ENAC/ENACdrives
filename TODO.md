@@ -41,6 +41,7 @@ Monitoring :
 client :
 ========
 
+* Auto-feed username if computer in domain (WIN & MacOSX)
 - CLI
 - add menus for
   - Edit > Show/Hide entries

@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-02"
-    VERSION = "0.3.13"
+    VERSION = "0.3.14"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -99,6 +99,8 @@ class CONST():
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
+        AD_DOMAIN = None
+        AD_USERNAME = None
         try:
             DESKTOP_DIR = bytes_decode(subprocess.check_output(["xdg-user-dir", "DESKTOP"])).strip()
         except FileNotFoundException:
@@ -115,6 +117,8 @@ class CONST():
         LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
+        AD_DOMAIN = None
+        AD_USERNAME = None
         DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = DESKTOP_DIR
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
@@ -130,6 +134,11 @@ class CONST():
         LOCAL_GROUPNAME = "Undefined"
         LOCAL_UID = -1
         LOCAL_GID = -1
+        AD_DOMAIN = os.environ.get("USERDNSDOMAIN")
+        if AD_DOMAIN is None:
+            AD_USERNAME = None
+        else:
+            AD_USERNAME = os.environ.get("USERNAME")
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
         try:
