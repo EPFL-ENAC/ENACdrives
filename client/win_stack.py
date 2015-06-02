@@ -158,6 +158,8 @@ def cifs_umount(mount):
     except pywintypes.error as e:
         if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)
+        elif e.winerror == 2250:  # (2250, 'WNetCancelConnection2', 'This network connection does not exist.')
+            mount.ui.notify_user(e.strerror)
         else:
             Output.write("failed : {0}".format(e))
             debug_send("umount:\n{0}".format(e))
