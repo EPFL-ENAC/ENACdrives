@@ -457,6 +457,18 @@ License : pending ...
 
 
 def main_GUI():
+    Output.write("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.write("ENACdrives " + CONST.FULL_VERSION)
+    Output.write("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    Output.write("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
+    Output.write("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
+    Output.write("LOCAL_UID:" + str(CONST.LOCAL_UID))
+    Output.write("LOCAL_GID:" + str(CONST.LOCAL_GID))
+    Output.write("HOME_DIR:" + CONST.HOME_DIR)
+    Output.write("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
+    Output.write("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
+    Output.write()
+
     app = QtGui.QApplication(sys.argv)
     ui = GUI()
     sys.exit(app.exec_())
