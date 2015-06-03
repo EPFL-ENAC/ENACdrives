@@ -168,7 +168,7 @@ WINDOWS
 <SB>
 
 ~~~ bash
-cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/; rm -rf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/exe.win32-3.4
+cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/; rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/exe.win32-3.4
 ~~~
 
 ~~~
@@ -184,7 +184,7 @@ Make a zip (-> PortableApps)
 export PYTHONPATH=/usr/lib/python3/dist-packages
 export VERSION=$(python ~/Projects/enacdrives/client/tell_version.py)
 
-pushd ~/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/
+pushd ~/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/
 cp exe.win32-3.4 ENACdrives-${VERSION}
 zip -r ENACdrives-${VERSION}.zip ENACdrives-${VERSION}/
 popd
@@ -192,9 +192,9 @@ popd
 
 Give it to IT2 for Packaging
 ~~~ bash
-rm -rf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built
-mv /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built
-rm -rf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built/enacdrives.conf /home/sbancal/Desktop/enac-it_on_enacfiles1/commun1/ENACdrives/Windows/built/enacdrives.cache
+rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built
+mv /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built
+rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built/enacdrives.conf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built/enacdrives.cache
 ~~~
 
 <ND>
