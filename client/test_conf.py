@@ -498,7 +498,6 @@ class TestValidateConfig(unittest.TestCase):
         cfg = {'CIFS_mount': {
                 'private': {
                  'label': 'bancal@files9',
-                 'local_path': '{MNT_DIR}/bancal_on_files9',
                  'server_name': 'files9.epfl.ch',
                  'server_path': 'data/bancal', }},
                'global': {
@@ -535,10 +534,10 @@ class TestValidateConfig(unittest.TestCase):
                  'username': 'bancal'}}}
 
         cfg_expected = copy.deepcopy(cfg)
+        cfg_expected["CIFS_mount"]["private"]["local_path"] = "{MNT_DIR}/private"
         s_out = io.StringIO("")
         with Output(dest=s_out):
-            validate_config(cfg)
-            # self.assertEqual(validate_config(cfg), cfg_expected)
+            self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
 

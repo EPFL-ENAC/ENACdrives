@@ -670,8 +670,11 @@ def validate_config(cfg):
     invalid_network = []
     expected_realms = {}
     expected_networks_by_CIFS_m = {}
-    expected_networks_by_network = {}
     for m_name in cfg.get("CIFS_mount", {}):
+        # If not defined, deduct local_path from m_name
+        if "local_path" not in cfg["CIFS_mount"][m_name]:
+            cfg["CIFS_mount"][m_name]["local_path"] = "{MNT_DIR}/" + m_name
+        
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_name") and
