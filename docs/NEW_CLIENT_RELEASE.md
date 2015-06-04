@@ -46,7 +46,7 @@ export SHORT_SOFT_VER=$(python tell_version.py)
 export SOFT_VER=$(python tell_version.py)
 export PACKAGE_VER=1
 export DIR_DEB_CREATION=~/Projects/enacdrives/deb_building/${PACKAGE}
-echo "${SOFT} ${SOFT_VER} -> ${DIR_DEB_CREATION}"
+echo "${SOFT} ${SOFT_VER}-${PACKAGE_VER} -> ${DIR_DEB_CREATION}"
 ~~~
 
 Build a package - Cleanup
@@ -168,11 +168,11 @@ WINDOWS
 <SB>
 
 ~~~ bash
-cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/; rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/exe.win32-3.4
+cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/; rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4
 ~~~
 
 ~~~
-cd Y:\commun1\ENACdrives\src\client
+cd Y:\common\ENACdrives\src\client
 Y:
 python setup.py build
 ~~~
@@ -184,7 +184,7 @@ Make a zip (-> PortableApps)
 export PYTHONPATH=/usr/lib/python3/dist-packages
 export VERSION=$(python ~/Projects/enacdrives/client/tell_version.py)
 
-pushd ~/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/
+pushd ~/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/
 cp exe.win32-3.4 ENACdrives-${VERSION}
 zip -r ENACdrives-${VERSION}.zip ENACdrives-${VERSION}/
 popd
@@ -192,9 +192,9 @@ popd
 
 Give it to IT2 for Packaging
 ~~~ bash
-rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built
-mv /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built
-rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built/enacdrives.conf /home/sbancal/Desktop/enac-it_on_enac1files/commun1/ENACdrives/Windows/built/enacdrives.cache
+rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built
+mv /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built
+rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/enacdrives.conf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/enacdrives.cache /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/execution_output.txt
 ~~~
 
 <ND>
