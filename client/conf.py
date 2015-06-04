@@ -387,7 +387,7 @@ def validate_value(option, value):
             raise ConfigException("Error, Linux_CIFS_method has to be 'gvfs' or 'mount.cifs'.")
     elif option == "entries_order":
         value = [e.strip() for e in value.split(",")]
-    elif option in ("server_path", "local_path"):
+    elif option in ("unc", "server_path", "local_path"):
         value = re.sub(r"\\", "/", value)
     elif option == "domain":
         value = value.upper()
@@ -537,6 +537,7 @@ def read_config_source(src):
             "label",
             "require_network",
             "realm",
+            "unc",
             "server_name",
             "server_path",
             "local_path",
@@ -674,6 +675,14 @@ def validate_config(cfg):
         # If not defined, deduct local_path from m_name
         if "local_path" not in cfg["CIFS_mount"][m_name]:
             cfg["CIFS_mount"][m_name]["local_path"] = "{MNT_DIR}/" + m_name
+        
+        if "unc" in cfg["CIFS_mount"][m_name]:
+            m = re.match(r"[\\/]{2}([^\\/]+)[\\/](.*)$", cfg["CIFS_mount"][m_name]["unc"])
+            if m:
+                cfg["CIFS_mount"][m_name]["server_name"] = m.group(1)
+                cfg["CIFS_mount"][m_name]["server_path"] = m.group(2)
+            else:
+                Output.write("Error: unrecognized 'unc' option in CIFS_mount section ({}).".format(cfg["CIFS_mount"][m_name]["unc"]))
         
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
