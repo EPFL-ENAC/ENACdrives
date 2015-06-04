@@ -136,6 +136,8 @@ Build a package - The .deb
 find ${DIR_DEB_CREATION} -name '*~'
 find ${DIR_DEB_CREATION} -name '*~' -exec rm {} \;
 
+tree -a ${DIR_DEB_CREATION} 
+
 cd ~/Projects/enacdrives/deb_building/
 fakeroot dpkg -b ${PACKAGE}
 
