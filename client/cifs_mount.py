@@ -52,12 +52,15 @@ class CIFS_Mount():
         def _cf(option, default=None):
             try:
                 if option == "realm_domain":
-                    realm = cfg["CIFS_mount"][mount_name]["realm"]
+                    realm = _cf("realm")
                     return cfg["realm"][realm]["domain"]
                 elif option == "realm_username":
-                    realm = cfg["CIFS_mount"][mount_name]["realm"]
+                    realm = _cf("realm")
                     return cfg["realm"][realm]["username"]
-                elif option in ("Linux_CIFS_method", "Linux_mountcifs_filemode", "Linux_mountcifs_dirmode", "Linux_mountcifs_options", "Linux_gvfs_symlink"):
+                elif option in ("Linux_CIFS_method", "Linux_mountcifs_filemode",
+                                "Linux_mountcifs_dirmode",
+                                "Linux_mountcifs_options", "Linux_gvfs_symlink",
+                                "realm", "require_network"):
                     if option in cfg["CIFS_mount"][mount_name]:
                         return cfg["CIFS_mount"][mount_name][option]
                     else:

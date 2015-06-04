@@ -278,6 +278,94 @@ Windows_letter = Z:
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
 
+    def test_complete_config2(self):
+        s_in = io.StringIO(r"""
+[global]
+username = bancal
+Linux_CIFS_method = gvfs
+Linux_mountcifs_filemode = 0770
+Linux_mountcifs_dirmode = 0770
+Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
+Linux_gvfs_symlink = true
+require_network = EPFL-Intranet
+realm = EPFL-AD
+
+[realm]
+name = EPFL-AD
+domain = INTRANET
+username = bancal
+
+[network]
+name = Internet
+ping = www.epfl.ch
+ping = enacit.epfl.ch
+ping = enclair.epfl.ch
+error_msg = Error, you are not connected to the network. You won't be able to connect to this resource.
+
+[network]
+name = EPFL-Intranet
+parent = Internet
+cifs = files0.epfl.ch
+cifs = files1.epfl.ch
+cifs = files8.epfl.ch
+cifs = files9.epfl.ch
+cifs = enac1files.epfl.ch
+error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to connect to this resource.
+
+[CIFS_mount]
+name = private
+label = bancal@files9
+server_name = files9.epfl.ch
+server_path = data/bancal
+local_path = {MNT_DIR}/bancal_on_files9
+""")
+        s_out = io.StringIO("")
+        self.maxDiff = None
+        with Output(dest=s_out):
+            self.assertEqual(
+                read_config_source(s_in),
+                {'CIFS_mount': {
+                  'private': {
+                   'label': 'bancal@files9',
+                   'local_path': '{MNT_DIR}/bancal_on_files9',
+                   'server_name': 'files9.epfl.ch',
+                   'server_path': 'data/bancal', }},
+                 'global': {
+                  'username': 'bancal',
+                  'realm': 'EPFL-AD',
+                  'require_network': 'EPFL-Intranet',
+                  'Linux_CIFS_method': 'gvfs',
+                  'Linux_gvfs_symlink': True,
+                  'Linux_mountcifs_dirmode': '0770',
+                  'Linux_mountcifs_filemode': '0770',
+                  'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+                 'network': {
+                  'EPFL-Intranet': {
+                   'error_msg': 'Error, you are not connected to the intranet '
+                                'of EPFL. Run a VPN client to be able to '
+                                'connect to this resource.',
+                   'parent': 'Internet',
+                   'cifs': [
+                    'files0.epfl.ch',
+                    'files1.epfl.ch',
+                    'files8.epfl.ch',
+                    'files9.epfl.ch',
+                    'enac1files.epfl.ch']},
+                  'Internet': {
+                   'error_msg': 'Error, you are not connected to the network. '
+                                "You won't be able to connect to this resource.",
+                   'ping': [
+                    'www.epfl.ch',
+                    'enacit.epfl.ch',
+                    'enclair.epfl.ch']}},
+                 'realm': {
+                  'EPFL-AD': {
+                   'domain': 'INTRANET',
+                   'username': 'bancal'}}}
+            )
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
 
 class TestValidateConfig(unittest.TestCase):
     def test_empty(self):
@@ -359,8 +447,7 @@ class TestValidateConfig(unittest.TestCase):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [
-                "Error: expected 'ping' option in network section.\n",
-                "Error: expected 'cifs' option in network section.\n",
+                "Error: expected 'ping' or 'cifs' option in network section.\n",
                 "Removing incomplete network 'Epfl'.\n"])
 
     def test_incomplete_dependency_network(self):
@@ -403,6 +490,55 @@ class TestValidateConfig(unittest.TestCase):
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
+    def test_complete_config(self):
+        self.maxDiff = None
+        cfg = {'CIFS_mount': {
+                'private': {
+                 'label': 'bancal@files9',
+                 'local_path': '{MNT_DIR}/bancal_on_files9',
+                 'server_name': 'files9.epfl.ch',
+                 'server_path': 'data/bancal', }},
+               'global': {
+                'username': 'bancal',
+                'realm': 'EPFL-AD',
+                'require_network': 'EPFL-Intranet',
+                'Linux_CIFS_method': 'gvfs',
+                'Linux_gvfs_symlink': True,
+                'Linux_mountcifs_dirmode': '0770',
+                'Linux_mountcifs_filemode': '0770',
+                'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
+               'network': {
+                'EPFL-Intranet': {
+                 'error_msg': 'Error, you are not connected to the intranet '
+                              'of EPFL. Run a VPN client to be able to '
+                              'connect to this resource.',
+                 'parent': 'Internet',
+                 'cifs': [
+                  'files0.epfl.ch',
+                  'files1.epfl.ch',
+                  'files8.epfl.ch',
+                  'files9.epfl.ch',
+                  'enac1files.epfl.ch']},
+                'Internet': {
+                 'error_msg': 'Error, you are not connected to the network. '
+                              "You won't be able to connect to this resource.",
+                 'ping': [
+                  'www.epfl.ch',
+                  'enacit.epfl.ch',
+                  'enclair.epfl.ch']}},
+               'realm': {
+                'EPFL-AD': {
+                 'domain': 'INTRANET',
+                 'username': 'bancal'}}}
+
+        cfg_expected = copy.deepcopy(cfg)
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            validate_config(cfg)
+            # self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
 

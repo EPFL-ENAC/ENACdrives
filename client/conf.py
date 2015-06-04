@@ -524,6 +524,8 @@ def read_config_source(src):
         "global": (
             "username",
             "entries_order",
+            "require_network",
+            "realm",
             "Linux_CIFS_method",
             "Linux_mountcifs_filemode",
             "Linux_mountcifs_dirmode",
@@ -672,13 +674,17 @@ def validate_config(cfg):
     for m_name in cfg.get("CIFS_mount", {}):
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
-            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "realm") and
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_name") and
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_path") and
-            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "local_path")
+            expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "local_path") and
+            (expect_option(cfg.get("global", {}), "CIFS_mount", "realm", alert=False) or
+             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "realm"))
         )
         if is_ok:
-            realm = cfg["CIFS_mount"][m_name]["realm"]
+            if "realm" in cfg["CIFS_mount"][m_name]:
+                realm = cfg["CIFS_mount"][m_name]["realm"]
+            else:
+                realm = cfg["global"]["realm"]
             expected_realms.setdefault(realm, [])
             expected_realms[realm].append(m_name)
             net = cfg["CIFS_mount"][m_name].get("network")

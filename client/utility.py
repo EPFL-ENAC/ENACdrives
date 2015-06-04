@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-02"
-    VERSION = "1.0.2"
+    VERSION_DATE = "2015-06-04"
+    VERSION = "1.0.3"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
