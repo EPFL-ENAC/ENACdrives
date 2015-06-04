@@ -396,9 +396,9 @@ class TestValidateConfig(unittest.TestCase):
     def test_incomplete_cifs_mount(self):
         cfg = {"CIFS_mount": {
                 "name": {
-                 # "label": "label",
+                 "label": "label",
                  "realm": "realm",
-                 "server_name": "server_name",
+                 # "server_name": "server_name",
                  "server_path": "server_path",
                  "local_path": "local_path", }},
                 "realm": {
@@ -414,7 +414,7 @@ class TestValidateConfig(unittest.TestCase):
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
-            self.assertIn("expected 'label' option in CIFS_mount section.", s_out.readlines()[0])
+            self.assertIn("expected 'server_name' option in CIFS_mount section.", s_out.readlines()[0])
 
     def test_missing_realm(self):
         cfg = {"CIFS_mount": {
@@ -580,24 +580,22 @@ error_msg = Error, you are not connected to the intranet of EPFL. Run a VPN clie
 
 [CIFS_mount]
 name = private
-label = bancal@files9
 unc = //files9.epfl.ch/data/bancal
 
 [CIFS_mount]
 name = private2
-label = bancal-bis@files9
 unc = \\files9.epfl.ch\data\bancal
 """)
 
         cfg_expected = {'CIFS_mount': {
                 'private': {
-                 'label': 'bancal@files9',
+                 'label': 'private',
                  'unc': '//files9.epfl.ch/data/bancal',
                  "server_name": "files9.epfl.ch",
                  "server_path": "data/bancal",
                  "local_path": "{MNT_DIR}/private"},
                 'private2': {
-                 'label': 'bancal-bis@files9',
+                 'label': 'private2',
                  'unc': '//files9.epfl.ch/data/bancal',
                  "server_name": "files9.epfl.ch",
                  "server_path": "data/bancal",

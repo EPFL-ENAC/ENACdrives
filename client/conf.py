@@ -676,6 +676,11 @@ def validate_config(cfg):
         if "local_path" not in cfg["CIFS_mount"][m_name]:
             cfg["CIFS_mount"][m_name]["local_path"] = "{MNT_DIR}/" + m_name
         
+        # If not defined, deduct label from m_name
+        if "label" not in cfg["CIFS_mount"][m_name]:
+            cfg["CIFS_mount"][m_name]["label"] = m_name
+        
+        # If specified, extract server_name and server_path from unc
         if "unc" in cfg["CIFS_mount"][m_name]:
             m = re.match(r"[\\/]{2}([^\\/]+)[\\/](.*)$", cfg["CIFS_mount"][m_name]["unc"])
             if m:
