@@ -46,9 +46,10 @@ def cifs_mount(mount):
         raise Exception("Error while creating dir : %s" % mount.settings["local_path"])
 
     # 2) Mount
+    s_path = re.sub(r" ", r"%20", mount.settings["server_path"])
     cmd = [
         OSX_CONST.CMD_MOUNT_SMBFS,
-        r"//{realm_domain}\;{realm_username}@{server_name}/{server_path} {local_path}".format(**mount.settings)
+        r"//{realm_domain}\;{realm_username}@{server_name}/{s_path} {local_path}".format(s_path=s_path, **mount.settings)
     ]
     Output.write("cmd : %s" % cmd)
     for _ in range(3):  # 3 attempts (for passwords mistyped)
