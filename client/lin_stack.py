@@ -38,9 +38,13 @@ def cifs_is_mounted(mount, cb):
     def _cb_gvfs(success, output, exit_code):
         # Output.write("lin_stack._cb_gvfs")
         # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(output))
-        i_search = r"{server_share} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)
+        share_format1 = re.sub(r"\$", r"\\$", mount.settings["server_share"])
+        share_format2 = re.sub(r" ", r"%20", mount.settings["server_share"])
+        share_format2 = re.sub(r"\$", r"\\$", share_format2)
+        i_search = r"{share_format1} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{share_format2}".format(
+            share_format1=share_format1, share_format2=share_format2, **mount.settings)
         for l in output.split("\n"):
-            if re.search(i_search, l):
+            if re.search(i_search, l, flags=re.IGNORECASE):
                 # Output.write(l)
                 cb(True)
                 return
@@ -82,7 +86,9 @@ def cifs_mount(mount):
                 return False
 
         # 2) Mount
-        cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
+        # share = re.sub(" ", "\\ ", mount.settings["server_share"])
+        share = re.sub(r" ", r"%20", mount.settings["server_share"])
+        cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.write(" ".join(cmd))
         process_meta = {
             "was_cancelled": False,
@@ -199,19 +205,21 @@ def cifs_post_mount(mount):
     May happen some seconds after cifs_mount is completed (OS)
     """
     if mount.settings["Linux_CIFS_method"] == "gvfs":
+        share = re.sub(r" ", r"%20", mount.settings["server_share"])
+        share = re.sub(r"\$", r"\\$", share)
         # 3) Symlink
         if mount.settings["Linux_gvfs_symlink"]:
             if not os.path.lexists(mount.settings["local_path"]):
                 mount_point = None
                 for f in os.listdir(LIN_CONST.GVFS_DIR):
                     if LIN_CONST.GVFS_GENERATION == 1:
-                        if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
+                        if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f, flags=re.IGNORECASE):
                             mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
                     else:
                         if (re.match(r"^smb-share:", f) and
                            re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
                            re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
-                           re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
+                           re.search(r"share={share}(,|$)".format(share=share, **mount.settings), f, flags=re.IGNORECASE) and
                            re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
                             mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
 
@@ -242,7 +250,8 @@ def cifs_umount(mount):
         # gvfs umount apparently never locks on open files.
         
         # 1) Umount
-        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{server_share}".format(**mount.settings)]
+        share = re.sub(r" ", r"%20", mount.settings["server_share"])
+        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.write(" ".join(cmd))
         
         NonBlockingProcess(
