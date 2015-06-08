@@ -86,7 +86,6 @@ def cifs_mount(mount):
                 return False
 
         # 2) Mount
-        # share = re.sub(" ", "\\ ", mount.settings["server_share"])
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.write(" ".join(cmd))
@@ -146,9 +145,10 @@ def cifs_mount(mount):
             return False
 
         # 2) Mount
+        s_path = re.sub(" ", "\\ ", mount.settings["server_path"])
         cmd = [
             "sudo", LIN_CONST.CMD_MOUNT_CIFS,
-            "//{server_name}/{server_path}",
+            "//{server_name}/{s_path}",
             "{local_path}",
             "-o",
             "user={realm_username},domain={realm_domain},"
@@ -157,7 +157,7 @@ def cifs_mount(mount):
             "dir_mode={Linux_mountcifs_filemode},"
             "{Linux_mountcifs_options}"
         ]
-        cmd = [s.format(**mount.settings) for s in cmd]
+        cmd = [s.format(s_path=s_path, **mount.settings) for s in cmd]
         Output.write(" ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
         process_meta = {
