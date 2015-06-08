@@ -26,23 +26,31 @@ class WIN_CONST():
 def cifs_is_mounted(mount, cb):
     def _cb(success, output, exit_code):
         lines = output.split("\n")
-        caption_index = lines[0].index("Caption")
-        providername_index = lines[0].index("ProviderName")
-        i_search = r"^\\{server_name}\{server_path}$".format(**mount.settings)
+        items = re.findall(r"(\S+)", lines[0])
+        caption = "Caption"
+        after_caption = items[items.index("Caption")+1]
+        providername = "ProviderName"
+        after_providername = items[items.index("ProviderName")+1]
+        caption_start = lines[0].index(caption)
+        caption_end = lines[0].index(after_caption)
+        providername_start = lines[0].index(providername)
+        providername_end = lines[0].index(after_providername)
+        
+        i_search = r"^\\{server_name}\{server_path}".format(**mount.settings)
         i_search = i_search.replace("\\", "\\\\")
+        i_search = i_search.replace("$", r"\$")
+        i_search += "$"
         # Output.write("i_search='{0}'".format(i_search))
         for l in lines[1:]:
             try:
-                drive_letter = re.findall(r"^(\S+)", l[caption_index:])[0]
-                try:
-                    provider = re.findall(r"^(\S+)", l[providername_index:])[0]
-                    if re.search(i_search, provider):
-                        mount.settings["Windows_letter"] = drive_letter
-                        cb(True)
-                        return
-                except IndexError:
-                    provider = ""
-                # Output.write("{0} : '{1}'".format(drive_letter, provider))
+                drive_letter = l[caption_start:caption_end].strip()
+                provider = l[providername_start:providername_end].strip()
+                # Output.write("{} <- {}".format(drive_letter, provider))
+                if re.search(i_search, provider, flags=re.IGNORECASE):
+                    mount.settings["Windows_letter"] = drive_letter
+                    # Output.write("MATCH!")
+                    cb(True)
+                    return
             except IndexError:
                 pass
         cb(False)
