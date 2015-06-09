@@ -12,3 +12,4 @@ deb_building/
 *.exe
 *.dmg
 *.deb
+*.credentials

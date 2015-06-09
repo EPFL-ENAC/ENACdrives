@@ -2,9 +2,9 @@
 Priorities :
 ============
 
-* must work on 2015-05-29
 + must work any soon
 - will be fixed later
+
 
 Global :
 ========
@@ -17,7 +17,7 @@ Global :
 web_app :
 =========
 
-+ FIX API call errors
++ FIX API 1st call error
 + if keyword with indentation
   if iteration == 0:
     Windows_letter = Y:
@@ -42,6 +42,8 @@ client :
 ========
 
 - CLI
++ non verbose by default
+  + -v|--verbose to be back verbose
 - add menus for
   - Edit > Show/Hide entries
 + enacit1logs of all kind of errors with "notify_bancal"
@@ -51,13 +53,17 @@ Windows
 -------
 
 + Portable apps
++ Drive letter already mapped but unc=\\files7\data\username (missing domain information)
 
 
 client test :
 -------------
 
-* OSX in OpenDirectory
-* on public-epfl
-* on Eduroam
-* no network
 * low bandwidth (timeout)
+
+
+Users to notify
+===============
+
+* LSMS when sshfs
+* DISAL when NFS

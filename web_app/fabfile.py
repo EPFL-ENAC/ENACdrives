@@ -133,6 +133,17 @@ def rsync():
 
 
 @task
+def rsync_n():
+    rsync_project(
+        local_dir=sub("{local_dir}"),
+        remote_dir=sub("{code_dir}"),
+        exclude=("*.sqlite", "/static/*", "*.pyc"),
+        delete=True,
+        extra_opts="-n"
+    )
+
+
+@task
 def migrate():
     sudo(sub("{python} {code_dir}/manage.py migrate"), user="www-data")
 
