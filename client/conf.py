@@ -53,22 +53,22 @@ def get_config():
             user_config = read_config_source(f)
         username = user_config.get("global", {}).get("username", None)
         if username is not None:
-            Output.write("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
+            Output.info2("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
         else:
-            Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+            Output.info1("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     except FileNotFoundException:
-        Output.write("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.info1("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     
     if username is None:
         if CONST.AD_USERNAME is not None:
             username = CONST.AD_USERNAME
-            Output.write("Loaded username '{}' from environment variables (user in domain '{}').".format(username, CONST.AD_DOMAIN))
+            Output.info2("Loaded username '{}' from environment variables (user in domain '{}').".format(username, CONST.AD_DOMAIN))
             # Save to config file and reload it for after
             save_username(username)
             with open(CONST.USER_CONF_FILE, "r") as f:
                 user_config = read_config_source(f)
         else:
-            Output.write("Username not found in environment variables (user not in a domain).")
+            Output.info1("Username not found in environment variables (user not in a domain).")
 
     # ENACDRIVE SERVER CONFIG (included cache function)
     if username is not None:
@@ -83,34 +83,34 @@ def get_config():
                 s_io.seek(0)
                 with open(cache_filename, "w") as f:
                     f.writelines(s_io.readlines())
-            Output.write("Loaded config from ENACdrives server ({})".format(config_url))
+            Output.info2("Loaded config from ENACdrives server ({})".format(config_url))
         except (socket.timeout, urllib.error.URLError, ConfigException):
-            Output.write("Warning, could not load config ENACdrives server. ({})".format(config_url))
+            Output.info1("Warning, could not load config ENACdrives server. ({})".format(config_url))
             try:
                 with open(cache_filename, "r") as f:
                     cached_config = read_config_source(f)
                     merge_configs(cfg, cached_config)
-                Output.write("Loaded config from cache file. ({})".format(cache_filename))
+                Output.info2("Loaded config from cache file. ({})".format(cache_filename))
             except FileNotFoundException:
-                Output.write("!!! Error, could not load config from cache file. ({})".format(cache_filename))
+                Output.info1("!!! Error, could not load config from cache file. ({})".format(cache_filename))
     else:
-        Output.write("Skipping config from ENACdrives server (no username).")
+        Output.info1("Skipping config from ENACdrives server (no username).")
 
     # SYSTEM CONFIG
     try:
         with open(CONST.SYSTEM_CONF_FILE, "r") as f:
             system_config = read_config_source(f)
             merge_configs(cfg, system_config)
-        Output.write("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
+        Output.info2("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
     except FileNotFoundException:
-        Output.write("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
+        Output.info1("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
 
     # USER CONFIG
     if user_config is not None:
         merge_configs(cfg, user_config)
-        Output.write("Loaded config from User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.info2("Loaded config from User context. ({})".format(CONST.USER_CONF_FILE))
     else:
-        Output.write("No config found from User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.info1("No config found from User context. ({})".format(CONST.USER_CONF_FILE))
 
     cfg = validate_config(cfg)
     return cfg
@@ -154,23 +154,23 @@ def save_username(username):
 
         # username found in config file
         if username_line_nb is not None:
-            Output.write("Changing to username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.info2("Changing to username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines[username_line_nb] = "username = {}\n".format(username)
 
         # username not found, but [global] found
         elif global_section_line_nb is not None:
-            Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.info2("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(global_section_line_nb+1, "username = {}\n".format(username))
 
         # [global] not found
         else:
-            Output.write("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.info2("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(0, "[global]\n")
             lines.insert(1, "username = {}\n".format(username))
             lines.insert(2, "\n")
 
     except FileNotFoundException:
-        Output.write("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
+        Output.info2("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
         lines.insert(0, "[global]\n")
         lines.insert(1, "username = {}\n".format(username))
         lines.insert(2, "\n")
@@ -236,24 +236,24 @@ def save_bookmark(section_name, bookmark_on):
 
         # bookmark found in config file
         if option_line_nb is not None:
-            Output.write("Changing {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.info2("Changing {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines[option_line_nb] = "bookmark = {}\n".format(bookmark_on)
 
         # bookmark not found, but [CIFS_mount] found
         elif section_name_line_nb is not None:
-            Output.write("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.info2("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines.insert(section_name_line_nb+1, "bookmark = {}\n".format(bookmark_on))
 
         # [CIFS_mount] not found
         else:
-            Output.write("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.info2("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines.append("[CIFS_mount]\n")
             lines.append("name = {}\n".format(section_name))
             lines.append("bookmark = {}\n".format(bookmark_on))
             lines.append("\n")
 
     except FileNotFoundException:
-        Output.write("Saving {}'s bookmark='{}' to new config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+        Output.info2("Saving {}'s bookmark='{}' to new config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
         lines.append("[CIFS_mount]\n")
         lines.append("name = {}\n".format(section_name))
         lines.append("bookmark = {}\n".format(bookmark_on))
@@ -320,24 +320,24 @@ def save_windows_letter(section_name, letter):
 
         # Windows_letter found in config file
         if option_line_nb is not None:
-            Output.write("Changing {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.info2("Changing {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines[option_line_nb] = "Windows_letter = {}\n".format(letter)
 
         # Windows_letter not found, but [CIFS_mount] found
         elif section_name_line_nb is not None:
-            Output.write("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.info2("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines.insert(section_name_line_nb+1, "Windows_letter = {}\n".format(letter))
 
         # [CIFS_mount] not found
         else:
-            Output.write("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.info2("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines.append("[CIFS_mount]\n")
             lines.append("name = {}\n".format(section_name))
             lines.append("Windows_letter = {}\n".format(letter))
             lines.append("\n")
 
     except FileNotFoundException:
-        Output.write("Saving {}'s Windows_letter='{}' to new config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+        Output.info2("Saving {}'s Windows_letter='{}' to new config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
         lines.append("[CIFS_mount]\n")
         lines.append("name = {}\n".format(section_name))
         lines.append("Windows_letter = {}\n".format(letter))
@@ -517,7 +517,7 @@ def read_config_source(src):
             cfg[current_section_name].setdefault(name, {})
             cfg[current_section_name][name].update(current_section_values)
         except KeyError:
-            Output.write("Error : Expected name option not found at line {}. Skipping that section.".format(section_line_nb))
+            Output.error("Expected name option not found at line {}. Skipping that section.".format(section_line_nb))
 
     multi_entries_sections = ("CIFS_mount", "realm", "network")
     allowed_options = {
@@ -578,14 +578,14 @@ def read_config_source(src):
         l = l.strip()  # remove white spaces
         if l == "":
             continue
-        # Output.write(l)
+        # Output.debug(l)
 
         # New section
         if l.startswith("["):
             try:
                 new_section = re.match(r"\[(\S+)\]$", l).groups()[0]
             except AttributeError:
-                Output.write("Error : Unexpected content at line {}:\n{}".format(line_nb, line))
+                Output.error("Unexpected content at line {}:\n{}".format(line_nb, line))
                 nb_unexpected_lines += 1
                 continue
             if current_section_name in multi_entries_sections and current_section_values != {}:
@@ -596,13 +596,13 @@ def read_config_source(src):
                 current_section_values = {}
                 section_line_nb = line_nb
             else:
-                Output.write("Error : Unexpected section name '{}' at line {}:\n{}".format(new_section, line_nb, line))
+                Output.error("Unexpected section name '{}' at line {}:\n{}".format(new_section, line_nb, line))
                 current_section_name = ""
                 nb_unexpected_lines += 1
             continue
 
         if current_section_name == "":
-            Output.write("Error : Unexpected content at line {}:\n{}".format(line_nb, line))
+            Output.error("Unexpected content at line {}:\n{}".format(line_nb, line))
             nb_unexpected_lines += 1
             continue
 
@@ -614,7 +614,7 @@ def read_config_source(src):
             nb_unexpected_lines += 1
             continue
         if k not in allowed_options[current_section_name]:
-            Output.write("Error : Unexpected option at line {}:\n{}".format(line_nb, line))
+            Output.error("Unexpected option at line {}:\n{}".format(line_nb, line))
             nb_unexpected_lines += 1
             continue
 
@@ -636,16 +636,16 @@ def read_config_source(src):
                 # This is a single entry section type
                 cfg.setdefault(current_section_name, {})[k] = validate_value(k, v)
         except ConfigException as e:
-            Output.write(str(e))
+            Output.error(str(e))
 
-        # Output.write("'{}' = '{}'".format(k, v))
+        # Output.debug("'{}' = '{}'".format(k, v))
 
     if current_section_name in multi_entries_sections and current_section_values != {}:
         # Save last section content
         save_current_section()
 
     if nb_unexpected_lines > (line_nb / 2):
-        Output.write("Warning : Too many unexpected lines found. Skipping this source.")
+        Output.warning("Too many unexpected lines found. Skipping this source.")
         raise ConfigException("Too many unexpected lines found. Skipping this source.")
 
     return cfg
@@ -662,7 +662,7 @@ def validate_config(cfg):
             if alert:
                 if ored_options is not None:
                     option = "' or '".join(ored_options)
-                Output.write("Error: expected '{}' option in {} section.".format(option, section))
+                Output.error("expected '{}' option in {} section.".format(option, section))
             return False
         return True
 
@@ -687,7 +687,7 @@ def validate_config(cfg):
                 cfg["CIFS_mount"][m_name]["server_name"] = m.group(1)
                 cfg["CIFS_mount"][m_name]["server_path"] = m.group(2)
             else:
-                Output.write("Error: unrecognized 'unc' option in CIFS_mount section ({}).".format(cfg["CIFS_mount"][m_name]["unc"]))
+                Output.error("unrecognized 'unc' option in CIFS_mount section ({}).".format(cfg["CIFS_mount"][m_name]["unc"]))
         
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
@@ -709,14 +709,14 @@ def validate_config(cfg):
                 expected_networks_by_CIFS_m.setdefault(net, [])
                 expected_networks_by_CIFS_m[net].append(m_name)
         else:
-            Output.write("Removing incomplete CIFS_mount '{}'.".format(m_name))
+            Output.error("Removing incomplete CIFS_mount '{}'.".format(m_name))
             invalid_cifs_m.append(m_name)
 
     for realm in expected_realms:
         if realm not in cfg.get("realm", []):
-            Output.write("Missing realm '{}'.".format(realm))
+            Output.error("Missing realm '{}'.".format(realm))
             for m_name in expected_realms[realm]:
-                Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
+                Output.error("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
 
     for realm in cfg.get("realm", []):
@@ -725,17 +725,17 @@ def validate_config(cfg):
             expect_option(cfg["realm"][realm], "realm", "domain")
         )
         if not is_ok:
-            Output.write("Removing incomplete realm '{}'.".format(realm))
+            Output.error("Removing incomplete realm '{}'.".format(realm))
             invalid_realm.append(realm)
             for m_name in expected_realms.get(realm, []):
-                Output.write("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
+                Output.error("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
     
     for net in expected_networks_by_CIFS_m:
         if net not in cfg.get("network", []):
-            Output.write("Missing network '{}'.".format(net))
+            Output.error("Missing network '{}'.".format(net))
             for m_name in expected_networks_by_CIFS_m[net]:
-                Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
+                Output.error("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
                 del(cfg["CIFS_mount"][m_name]["require_network"])
                 
     for net in cfg.get("network", []):
@@ -745,7 +745,7 @@ def validate_config(cfg):
             expect_option(cfg["network"][net], "network", "error_msg")
         )
         if not is_ok:
-            Output.write("Removing incomplete network '{}'.".format(net))
+            Output.error("Removing incomplete network '{}'.".format(net))
             invalid_network.append(net)
     
     had_change = True
@@ -772,7 +772,7 @@ def validate_config(cfg):
     for net in invalid_network:
         del(cfg["network"][net])
         for m_name in expected_networks_by_CIFS_m.get(net, []):
-            Output.write("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
+            Output.error("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
             del(cfg["CIFS_mount"][m_name]["require_network"])
 
     return cfg
@@ -781,7 +781,7 @@ def validate_config(cfg):
 def main():
     with Output():
         cfg = get_config()
-        Output.write(pprint.pformat(cfg))
+        Output.debug(pprint.pformat(cfg))
 
 if __name__ == "__main__":
     main()

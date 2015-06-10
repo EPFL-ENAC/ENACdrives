@@ -195,14 +195,14 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
     def toggle_mount(self):
         def _cb(is_mounted):
-            # Output.write("gui._cb")
+            # Output.debug("gui._cb")
             if is_mounted:
                 self.mount_instance.umount()
             else:
                 self.mount_instance.mount()
             self.update_status()
 
-        # Output.write("gui.toggle_mount")
+        # Output.debug("gui.toggle_mount")
         self.mount_instance.is_mounted(_cb)
         
     def update_status(self):
@@ -383,7 +383,7 @@ class GUI(QtGui.QMainWindow):
     def load_config(self):
         self.cfg = conf.get_config()
         self.networks_check = Networks_Check(self.cfg)
-        Output.write(pprint.pformat(self.cfg))
+        Output.info2(pprint.pformat(self.cfg))
 
         # Delete previous config
         for entry in self.entries:
@@ -398,7 +398,7 @@ class GUI(QtGui.QMainWindow):
                 self.entries.append(UI_Mount_Entry(self, entry))
                 entries_added.append(entry_name)
             else:
-                Output.write("Warning, Entry not found '{0}'.".format(entry_name))
+                Output.warning("Entry not found '{0}'.".format(entry_name))
         for entry_name in self.cfg.get("CIFS_mount", {}):
             if entry_name not in entries_added:
                 entry = CIFS_Mount(self, self.cfg, entry_name, self.key_chain)
@@ -457,17 +457,17 @@ License : pending ...
 
 
 def main_GUI():
-    Output.write("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
-    Output.write("ENACdrives " + CONST.FULL_VERSION)
-    Output.write("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
-    Output.write("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
-    Output.write("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
-    Output.write("LOCAL_UID:" + str(CONST.LOCAL_UID))
-    Output.write("LOCAL_GID:" + str(CONST.LOCAL_GID))
-    Output.write("HOME_DIR:" + CONST.HOME_DIR)
-    Output.write("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
-    Output.write("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
-    Output.write()
+    Output.info2("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.info2("ENACdrives " + CONST.FULL_VERSION)
+    Output.info2("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    Output.info2("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
+    Output.info2("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
+    Output.info2("LOCAL_UID:" + str(CONST.LOCAL_UID))
+    Output.info2("LOCAL_GID:" + str(CONST.LOCAL_GID))
+    Output.info2("HOME_DIR:" + CONST.HOME_DIR)
+    Output.info2("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
+    Output.info2("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
+    Output.br()
 
     app = QtGui.QApplication(sys.argv)
     ui = GUI()

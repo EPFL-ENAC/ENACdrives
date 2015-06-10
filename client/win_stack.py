@@ -40,15 +40,15 @@ def cifs_is_mounted(mount, cb):
         i_search = i_search.replace("\\", "\\\\")
         i_search = i_search.replace("$", r"\$")
         i_search += "$"
-        # Output.write("i_search='{0}'".format(i_search))
+        # Output.debug("i_search='{0}'".format(i_search))
         for l in lines[1:]:
             try:
                 drive_letter = l[caption_start:caption_end].strip()
                 provider = l[providername_start:providername_end].strip()
-                # Output.write("{} <- {}".format(drive_letter, provider))
+                # Output.debug("{} <- {}".format(drive_letter, provider))
                 if re.search(i_search, provider, flags=re.IGNORECASE):
                     mount.settings["Windows_letter"] = drive_letter
-                    # Output.write("MATCH!")
+                    # Output.debug("MATCH!")
                     cb(True)
                     return
             except IndexError:
@@ -62,17 +62,17 @@ def cifs_is_mounted(mount, cb):
 def cifs_mount(mount):
     remote = r"\\{server_name}\{server_path}".format(**mount.settings)
     local = mount.settings["Windows_letter"]
-    Output.write("remote={0}\nlocal={1}".format(remote, local))
+    Output.info1("remote={0}\nlocal={1}".format(remote, local))
 
     # 1st attempt without password
     try:
-        Output.write("1st attempt without password")
+        Output.info1("1st attempt without password")
         win32wnet.WNetAddConnection2(
             win32netcon.RESOURCETYPE_DISK,
             local,
             remote,
         )
-        Output.write("succeeded")
+        Output.info1("succeeded")
         NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
         return True
     except pywintypes.error as e:
@@ -96,7 +96,7 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         else:
-            Output.write("failed : {0}".format(e))
+            Output.info1("failed : {0}".format(e))
             debug_send("mount without password:\n{0}".format(e))
 
     # 2nd attempt with password
@@ -105,7 +105,7 @@ def cifs_mount(mount):
         try:
             pw = mount.key_chain.get_password(mount.settings["realm"], wrong_password)
             wrong_password = False
-            Output.write("New attempt with password")
+            Output.info1("New attempt with password")
             win32wnet.WNetAddConnection2(
                 win32netcon.RESOURCETYPE_DISK,
                 local,
@@ -116,7 +116,7 @@ def cifs_mount(mount):
                 0
             )
             mount.key_chain.ack_password(mount.settings["realm"])
-            Output.write("succeeded")
+            Output.info1("succeeded")
             NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
             return True
         except pywintypes.error as e:
@@ -142,10 +142,10 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             else:
-                Output.write("failed : {0}".format(e))
+                Output.info1("failed : {0}".format(e))
                 debug_send("mount with password:\n{0}".format(e))
         except CancelOperationException:
-            Output.write("Operation cancelled.")
+            Output.info1("Operation cancelled.")
             return False
     return False
 
@@ -160,7 +160,7 @@ def cifs_post_mount(mount):
 
 def cifs_umount(mount):
     try:
-        Output.write("Doing umount of {0}".format(mount.settings["Windows_letter"]))
+        Output.info1("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
         NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
     except pywintypes.error as e:
@@ -169,7 +169,7 @@ def cifs_umount(mount):
         elif e.winerror == 2250:  # (2250, 'WNetCancelConnection2', 'This network connection does not exist.')
             mount.ui.notify_user(e.strerror)
         else:
-            Output.write("failed : {0}".format(e))
+            Output.error("failed : {0}".format(e))
             debug_send("umount:\n{0}".format(e))
 
 
@@ -187,7 +187,7 @@ def open_file_manager(mount):
 
     path = mount.settings["Windows_letter"]
     cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
-    Output.write("cmd : %s" % cmd)
+    Output.info1("cmd : %s" % cmd)
     NonBlockingProcess(
         cmd,
         _cb

@@ -9,12 +9,12 @@ from utility import Output, CONST
 
 
 def main_CLI():
-    Output.write()
-    Output.write("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.br()
+    Output.info2("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
 
-    Output.write("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
-    Output.write("Local username:" + CONST.LOCAL_USERNAME)
-    Output.write("Local groupname:" + CONST.LOCAL_GROUPNAME)
-    Output.write("Local uid:" + str(CONST.LOCAL_UID))
-    Output.write("Local gid:" + str(CONST.LOCAL_GID))
-    Output.write("Home dir:" + CONST.HOME_DIR)
+    Output.info2("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    Output.info2("Local username:" + CONST.LOCAL_USERNAME)
+    Output.info2("Local groupname:" + CONST.LOCAL_GROUPNAME)
+    Output.info2("Local uid:" + str(CONST.LOCAL_UID))
+    Output.info2("Local gid:" + str(CONST.LOCAL_GID))
+    Output.info2("Home dir:" + CONST.HOME_DIR)

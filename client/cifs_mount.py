@@ -110,9 +110,9 @@ class CIFS_Mount():
 
     def is_mounted(self, cb):
         def _cb(is_mounted):
-            # Output.write("cifs_mount._cb")
+            # Output.debug("cifs_mount._cb")
             if is_mounted != self._cache["is_mounted"]:
-                Output.write("{} is_mounted : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
+                Output.info1("--> {} is_mounted : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
                 if is_mounted:
                     cifs_post_mount(self)
                 else:
@@ -120,17 +120,17 @@ class CIFS_Mount():
                 self._cache["is_mounted"] = is_mounted
             cb(is_mounted)
 
-        # Output.write("cifs_mount.is_mounted")
+        # Output.debug("cifs_mount.is_mounted")
         cifs_is_mounted(self, _cb)
         
     def mount(self):
-        Output.write()
+        Output.br()
         return cifs_mount(self)
 
     def umount(self):
-        Output.write()
+        Output.br()
         return cifs_umount(self)
 
     def open_file_manager(self):
-        Output.write()
+        Output.br()
         return open_file_manager(self)

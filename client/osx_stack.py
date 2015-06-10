@@ -51,7 +51,7 @@ def cifs_mount(mount):
         OSX_CONST.CMD_MOUNT_SMBFS,
         r"//{realm_domain}\;{realm_username}@{server_name}/{s_path} {local_path}".format(s_path=s_path, **mount.settings)
     ]
-    Output.write("cmd : %s" % cmd)
+    Output.info1("cmd : %s" % cmd)
     for _ in range(3):  # 3 attempts (for passwords mistyped)
         process_meta = {
             "was_cancelled": False,
@@ -88,7 +88,7 @@ def cifs_mount(mount):
                     try:
                         os.rmdir(mount.settings["local_path"])
                     except OSError as e:
-                        Output.write("Warning, could not rmdir : {}".format(e))
+                        Output.warning("Could not rmdir : {}".format(e))
                 return False
             else:
                 mount.ui.notify_user("Mount failure :<br>{}".format(output))
@@ -110,7 +110,7 @@ def cifs_umount(mount):
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
 
     cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
-    Output.write("cmd : %s" % cmd)
+    Output.info1("cmd : %s" % cmd)
     NonBlockingProcess(
         cmd,
         _cb,
@@ -127,7 +127,7 @@ def cifs_post_umount(mount):
         try:
             os.rmdir(mount.settings["local_path"])
         except OSError as e:
-            Output.write("Warning, could not rmdir : {0}".format(e))
+            Output.warning("Could not rmdir : {0}".format(e))
 
 
 def open_file_manager(mount):
@@ -136,7 +136,7 @@ def open_file_manager(mount):
 
     path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in OSX_CONST.CMD_OPEN.split(" ")]
-    Output.write("cmd : %s" % cmd)
+    Output.info1("cmd : %s" % cmd)
     NonBlockingProcess(
         cmd,
         _cb,
@@ -164,7 +164,7 @@ def pexpect_ask_password(values):
                 values["extra_args"]["process_meta"]["previous_auth_realm"] = auth_realm
                 return values["extra_args"]["key_chain"].get_password(auth_realm, password_mistyped) + "\n"
     except CancelOperationException:
-        Output.write("Operation cancelled.")
+        Output.info1("Operation cancelled.")
         values["extra_args"]["process_meta"]["was_cancelled"] = True
         # Stop current process
         return True

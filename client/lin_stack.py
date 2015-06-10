@@ -36,8 +36,8 @@ class LIN_CONST():
 
 def cifs_is_mounted(mount, cb):
     def _cb_gvfs(success, output, exit_code):
-        # Output.write("lin_stack._cb_gvfs")
-        # Output.write("-> gvfs-mount -l : \n{0}\n\n".format(output))
+        # Output.debug("lin_stack._cb_gvfs")
+        # Output.debug("-> gvfs-mount -l : \n{0}\n\n".format(output))
         share_format1 = re.sub(r"\$", r"\\$", mount.settings["server_share"])
         share_format2 = re.sub(r" ", r"%20", mount.settings["server_share"])
         share_format2 = re.sub(r"\$", r"\\$", share_format2)
@@ -45,7 +45,7 @@ def cifs_is_mounted(mount, cb):
             share_format1=share_format1, share_format2=share_format2, **mount.settings)
         for l in output.split("\n"):
             if re.search(i_search, l, flags=re.IGNORECASE):
-                # Output.write(l)
+                # Output.debug(l)
                 cb(True)
                 return
         cb(False)
@@ -53,10 +53,10 @@ def cifs_is_mounted(mount, cb):
     def _target_mountcifs():
         return os.path.ismount(mount.settings["local_path"])
         
-    # Output.write("lin_stack.cifs_is_mounted")
+    # Output.debug("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-        # Output.write(" ".join(cmd))
+        # Output.debug(" ".join(cmd))
         NonBlockingProcess(
             cmd,
             _cb_gvfs,
@@ -88,7 +88,7 @@ def cifs_mount(mount):
         # 2) Mount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
-        Output.write(" ".join(cmd))
+        Output.info1(" ".join(cmd))
         process_meta = {
             "was_cancelled": False,
         }
@@ -158,7 +158,7 @@ def cifs_mount(mount):
             "{Linux_mountcifs_options}"
         ]
         cmd = [s.format(s_path=s_path, **mount.settings) for s in cmd]
-        Output.write(" ".join(cmd))
+        Output.info1(" ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
         process_meta = {
             "was_cancelled": False,
@@ -192,7 +192,7 @@ def cifs_mount(mount):
                     try:
                         os.rmdir(mount.settings["local_path"])
                     except OSError as e:
-                        Output.write("Warning, could not rmdir : {0}".format(e))
+                        Output.warning("Could not rmdir : {0}".format(e))
             else:
                 mount.ui.notify_user("Mount failure : {}".format(output))
                 return False
@@ -252,7 +252,7 @@ def cifs_umount(mount):
         # 1) Umount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
-        Output.write(" ".join(cmd))
+        Output.info1(" ".join(cmd))
         
         NonBlockingProcess(
             cmd,
@@ -264,7 +264,7 @@ def cifs_umount(mount):
         # 1) uMount
         cmd = ["sudo", LIN_CONST.CMD_UMOUNT, "{local_path}"]
         cmd = [s.format(**mount.settings) for s in cmd]
-        Output.write(" ".join(cmd))
+        Output.info1(" ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
         process_meta = {
             "was_cancelled": False,
@@ -319,7 +319,7 @@ def cifs_post_umount(mount):
             try:
                 os.rmdir(mount.settings["local_path"])
             except OSError as e:
-                Output.write("Warning, could not rmdir : {0}".format(e))
+                Output.warning("Could not rmdir : {0}".format(e))
 
 
 def open_file_manager(mount):
@@ -345,7 +345,7 @@ def open_file_manager(mount):
     else:
         path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
-    Output.write("cmd : %s" % cmd)
+    Output.info1("cmd : %s" % cmd)
     NonBlockingProcess(
         cmd,
         _cb,
@@ -373,7 +373,7 @@ def pexpect_ask_password(values):
                 values["extra_args"]["process_meta"]["previous_auth_realm"] = auth_realm
                 return values["extra_args"]["key_chain"].get_password(auth_realm, password_mistyped) + "\n"
     except CancelOperationException:
-        Output.write("Operation cancelled.")
+        Output.info1("Operation cancelled.")
         values["extra_args"]["process_meta"]["was_cancelled"] = True
         # Stop current process
         return True

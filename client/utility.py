@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-10"
-    VERSION = "1.0.11"
+    VERSION = "1.0.12"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -177,7 +177,16 @@ class CONST():
 
 
 class Output():
-    def __init__(self, dest=None):
+    LEVELS = {
+        "debug": {"prefix": "debug: ", "rank": 4},  # -vv
+        "info2": {"prefix": "info: ", "rank": 3},  # -v
+        "info1": {"prefix": "", "rank": 2},  # This is default level of output
+        "warning": {"prefix": "Warning: ", "rank": 1},  
+        "error": {"prefix": "Error: ", "rank": 0},
+    }
+
+    def __init__(self, dest=None, level="info1"):
+        self.level = level
         if dest is not None:
             self.output = dest
         else:
@@ -189,6 +198,7 @@ class Output():
            getattr(sys, 'frozen', False)):
             # Windows frozen application
             self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "w")
+        return self
 
     def __exit__(self, typ, value, traceback):
         Output.del_instance()
@@ -197,8 +207,11 @@ class Output():
             # Windows frozen application
             self.output.close()
 
-    def do_write(self, msg):
-        self.output.write(msg)
+    def do_write(self, msg, level):
+        if level is None:
+            self.output.write(msg)
+        elif Output.LEVELS[level]["rank"] <= Output.LEVELS[self.level]["rank"]:
+            self.output.write("{}{}".format(Output.LEVELS[level]["prefix"], msg))
 
     @classmethod
     def set_instance(cls, instance):
@@ -209,8 +222,28 @@ class Output():
         cls.instance = None
 
     @classmethod
-    def write(cls, msg="", end="\n"):
-        cls.instance.do_write(msg + end)
+    def br(cls):
+        cls.instance.do_write("\n", None)
+
+    @classmethod
+    def error(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "error")
+
+    @classmethod
+    def warning(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "warning")
+
+    @classmethod
+    def info1(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "info1")
+
+    @classmethod
+    def info2(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "info2")
+
+    @classmethod
+    def debug(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "debug")
 
 
 # ENACIT1LOGS
@@ -240,7 +273,7 @@ def enacit1logs_notify():
 def debug_send(msg, additional_tags=None):
     if additional_tags is None:
         additional_tags = []
-    Output.write("GONNA SEND MSG TO ENACIT1LOGS : " + msg)
+    Output.debug("GONNA SEND MSG TO ENACIT1LOGS : " + msg)
     enacit1logs.send(
         message=str(msg),
         tags=["ENACdrives_debug", "notify_bancal", CONST.VERSION] + additional_tags
@@ -262,13 +295,13 @@ class Key_Chain():
         if realm in self.keys:
             for _ in range(3):
                 if self.keys[realm]["ack"]:
-                    Output.write("Getting password for {0}".format(realm))
+                    Output.info1("Getting password for {0}".format(realm))
                     return self.keys[realm]["pw"]
                 time.sleep(0.1)
         if password_mistyped:
-            Output.write("Asking password for {0} (previously mistyped)".format(realm))
+            Output.info1("Asking password for {0} (previously mistyped)".format(realm))
         else:
-            Output.write("Asking password for {0}".format(realm))
+            Output.info1("Asking password for {0}".format(realm))
         password = self.ui.get_password(realm, password_mistyped)
         self.keys[realm] = {
             "ack": False,
@@ -304,7 +337,7 @@ class Networks_Check():
     def __init__(self, cfg):
         now = datetime.datetime.now()
         
-        # Output.write("Networks_Check.__init__ {}".format(cfg))
+        # Output.debug("Networks_Check.__init__ {}".format(cfg))
         self.networks = {}
         self.hosts_status = {
             "ping": {},
@@ -386,21 +419,21 @@ class Networks_Check():
                 if (self.hosts_status["cifs"][h]["status"] and
                    self.hosts_status["cifs"][h]["dt"] > dt_limit):
                     if self.networks[net]["last_state"] is not True:
-                        Output.write("network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        Output.info1("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
                         self.networks[net]["last_state"] = True
                     return (True, "")
             for h in self.networks[net]["ping"]:
                 if (self.hosts_status["ping"][h]["status"] and
                    self.hosts_status["ping"][h]["dt"] > dt_limit):
                     if self.networks[net]["last_state"] is not True:
-                        Output.write("network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        Output.info1("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
                         self.networks[net]["last_state"] = True
                     return (True, "")
         except KeyError:
             return (True, "")
 
         if self.networks[net]["last_state"] is not False:
-            Output.write("network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
+            Output.info1("==> network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
             self.networks[net]["last_state"] = False
 
         # this network is unreachable -> check parent
@@ -421,7 +454,7 @@ def validate_username(username):
             lines = [bytes_decode(l) for l in response.readlines()]
         return lines[0]
     except (socket.timeout, urllib.error.URLError):
-        Output.write("Warning, could not load validate url. ({0})".format(validate_url))
+        Output.warning("Could not load validate url. ({0})".format(validate_url))
         return "Error, could not contact config server."
 
 
@@ -431,7 +464,7 @@ def validate_release_number():
             latest_release = bytes_decode(response.readline())
             return latest_release == CONST.VERSION
     except (socket.timeout, urllib.error.URLError):
-        Output.write("Warning, could not validate release number.")
+        Output.warning("Could not validate release number.")
         return True
 
 
@@ -508,7 +541,7 @@ class NonBlockingProcess(QtCore.QProcess):
             cls.cache = {}
 
         with cls.lock:
-            # Output.write("NonBlockingProcess.notify_answer '{}' took: {}.".format(name, datetime.datetime.now()-cls.process_names[name]["launch_dt"]))
+            # Output.debug("NonBlockingProcess.notify_answer '{}' took: {}.".format(name, datetime.datetime.now()-cls.process_names[name]["launch_dt"]))
             try:
                 all_cb = cls.process_names[name]["cb"]
                 cb_extra_args = cls.process_names[name]["instance"].cb_extra_args
