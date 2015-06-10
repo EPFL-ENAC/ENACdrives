@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-08"
-    VERSION = "1.0.10"
+    VERSION_DATE = "2015-06-10"
+    VERSION = "1.0.11"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -217,10 +217,13 @@ class Output():
 # used to know what version are used
 def enacit1logs_notify():
     def _target():
-        enacit1logs.send(
-            message="run ENACdrives",
-            tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION)]
-        )
+        try:
+            enacit1logs.send(
+                message="run ENACdrives",
+                tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION)]
+            )
+        except enacit1logs.SendLogException as e:
+            Output.warning("Could not notify enacit1logs")
     
     def _finished(answer):
         pass
