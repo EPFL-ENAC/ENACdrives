@@ -42,11 +42,8 @@ client :
 ========
 
 - CLI
-+ non verbose by default
-  + -v|--verbose to be back verbose
 - add menus for
   - Edit > Show/Hide entries
-+ enacit1logs of all kind of errors with "notify_bancal"
 
 
 Windows

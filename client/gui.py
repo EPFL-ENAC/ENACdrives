@@ -383,7 +383,7 @@ class GUI(QtGui.QMainWindow):
     def load_config(self):
         self.cfg = conf.get_config()
         self.networks_check = Networks_Check(self.cfg)
-        Output.info2(pprint.pformat(self.cfg))
+        Output.verbose(pprint.pformat(self.cfg))
 
         # Delete previous config
         for entry in self.entries:
@@ -457,16 +457,16 @@ License : pending ...
 
 
 def main_GUI():
-    Output.info2("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
-    Output.info2("ENACdrives " + CONST.FULL_VERSION)
-    Output.info2("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
-    Output.info2("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
-    Output.info2("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
-    Output.info2("LOCAL_UID:" + str(CONST.LOCAL_UID))
-    Output.info2("LOCAL_GID:" + str(CONST.LOCAL_GID))
-    Output.info2("HOME_DIR:" + CONST.HOME_DIR)
-    Output.info2("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
-    Output.info2("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
+    Output.verbose("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.verbose("ENACdrives " + CONST.FULL_VERSION)
+    Output.verbose("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    Output.debug("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
+    Output.debug("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
+    Output.debug("LOCAL_UID:" + str(CONST.LOCAL_UID))
+    Output.debug("LOCAL_GID:" + str(CONST.LOCAL_GID))
+    Output.debug("HOME_DIR:" + CONST.HOME_DIR)
+    Output.debug("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
+    Output.debug("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
     Output.br()
 
     app = QtGui.QApplication(sys.argv)

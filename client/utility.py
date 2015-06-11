@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-10"
-    VERSION = "1.0.12"
+    VERSION_DATE = "2015-06-11"
+    VERSION = "1.0.13"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -178,14 +178,14 @@ class CONST():
 
 class Output():
     LEVELS = {
-        "debug": {"prefix": "debug: ", "rank": 4},  # -vv
-        "info2": {"prefix": "info: ", "rank": 3},  # -v
-        "info1": {"prefix": "", "rank": 2},  # This is default level of output
-        "warning": {"prefix": "Warning: ", "rank": 1},  
-        "error": {"prefix": "Error: ", "rank": 0},
+        "debug": {"prefix": "DEBUG: ", "rank": 4},  # -vv
+        "verbose": {"prefix": "", "rank": 3},  # -v
+        "normal": {"prefix": "", "rank": 2},  # This is default level of output
+        "warning": {"prefix": "WARNING: ", "rank": 1},  
+        "error": {"prefix": "ERROR: ", "rank": 0},
     }
 
-    def __init__(self, dest=None, level="info1"):
+    def __init__(self, dest=None, level="normal"):
         self.level = level
         if dest is not None:
             self.output = dest
@@ -234,12 +234,12 @@ class Output():
         cls.instance.do_write(msg + end, "warning")
 
     @classmethod
-    def info1(cls, msg="", end="\n"):
-        cls.instance.do_write(msg + end, "info1")
+    def normal(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "normal")
 
     @classmethod
-    def info2(cls, msg="", end="\n"):
-        cls.instance.do_write(msg + end, "info2")
+    def verbose(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "verbose")
 
     @classmethod
     def debug(cls, msg="", end="\n"):
@@ -295,13 +295,13 @@ class Key_Chain():
         if realm in self.keys:
             for _ in range(3):
                 if self.keys[realm]["ack"]:
-                    Output.info1("Getting password for {0}".format(realm))
+                    Output.verbose("Getting password for {0}".format(realm))
                     return self.keys[realm]["pw"]
                 time.sleep(0.1)
         if password_mistyped:
-            Output.info1("Asking password for {0} (previously mistyped)".format(realm))
+            Output.normal("Asking password for {0} (previously mistyped)".format(realm))
         else:
-            Output.info1("Asking password for {0}".format(realm))
+            Output.normal("Asking password for {0}".format(realm))
         password = self.ui.get_password(realm, password_mistyped)
         self.keys[realm] = {
             "ack": False,
@@ -419,21 +419,21 @@ class Networks_Check():
                 if (self.hosts_status["cifs"][h]["status"] and
                    self.hosts_status["cifs"][h]["dt"] > dt_limit):
                     if self.networks[net]["last_state"] is not True:
-                        Output.info1("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        Output.normal("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
                         self.networks[net]["last_state"] = True
                     return (True, "")
             for h in self.networks[net]["ping"]:
                 if (self.hosts_status["ping"][h]["status"] and
                    self.hosts_status["ping"][h]["dt"] > dt_limit):
                     if self.networks[net]["last_state"] is not True:
-                        Output.info1("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                        Output.normal("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
                         self.networks[net]["last_state"] = True
                     return (True, "")
         except KeyError:
             return (True, "")
 
         if self.networks[net]["last_state"] is not False:
-            Output.info1("==> network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
+            Output.normal("==> network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
             self.networks[net]["last_state"] = False
 
         # this network is unreachable -> check parent

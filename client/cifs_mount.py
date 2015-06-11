@@ -112,7 +112,7 @@ class CIFS_Mount():
         def _cb(is_mounted):
             # Output.debug("cifs_mount._cb")
             if is_mounted != self._cache["is_mounted"]:
-                Output.info1("--> {} is_mounted : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
+                Output.normal("--> CIFS_mount {} : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
                 if is_mounted:
                     cifs_post_mount(self)
                 else:

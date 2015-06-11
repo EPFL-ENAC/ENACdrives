@@ -53,22 +53,22 @@ def get_config():
             user_config = read_config_source(f)
         username = user_config.get("global", {}).get("username", None)
         if username is not None:
-            Output.info2("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
+            Output.verbose("Loaded username '{}' from User context. ({})".format(username, CONST.USER_CONF_FILE))
         else:
-            Output.info1("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+            Output.normal("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     except FileNotFoundException:
-        Output.info1("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.normal("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     
     if username is None:
         if CONST.AD_USERNAME is not None:
             username = CONST.AD_USERNAME
-            Output.info2("Loaded username '{}' from environment variables (user in domain '{}').".format(username, CONST.AD_DOMAIN))
+            Output.verbose("Loaded username '{}' from environment variables (user in domain '{}').".format(username, CONST.AD_DOMAIN))
             # Save to config file and reload it for after
             save_username(username)
             with open(CONST.USER_CONF_FILE, "r") as f:
                 user_config = read_config_source(f)
         else:
-            Output.info1("Username not found in environment variables (user not in a domain).")
+            Output.normal("Username not found in environment variables (user not in a domain).")
 
     # ENACDRIVE SERVER CONFIG (included cache function)
     if username is not None:
@@ -83,34 +83,34 @@ def get_config():
                 s_io.seek(0)
                 with open(cache_filename, "w") as f:
                     f.writelines(s_io.readlines())
-            Output.info2("Loaded config from ENACdrives server ({})".format(config_url))
+            Output.verbose("Loaded config from ENACdrives server ({})".format(config_url))
         except (socket.timeout, urllib.error.URLError, ConfigException):
-            Output.info1("Warning, could not load config ENACdrives server. ({})".format(config_url))
+            Output.normal("Warning, could not load config ENACdrives server. ({})".format(config_url))
             try:
                 with open(cache_filename, "r") as f:
                     cached_config = read_config_source(f)
                     merge_configs(cfg, cached_config)
-                Output.info2("Loaded config from cache file. ({})".format(cache_filename))
+                Output.verbose("Loaded config from cache file. ({})".format(cache_filename))
             except FileNotFoundException:
-                Output.info1("!!! Error, could not load config from cache file. ({})".format(cache_filename))
+                Output.normal("!!! Error, could not load config from cache file. ({})".format(cache_filename))
     else:
-        Output.info1("Skipping config from ENACdrives server (no username).")
+        Output.normal("Skipping config from ENACdrives server (no username).")
 
     # SYSTEM CONFIG
     try:
         with open(CONST.SYSTEM_CONF_FILE, "r") as f:
             system_config = read_config_source(f)
             merge_configs(cfg, system_config)
-        Output.info2("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
+        Output.verbose("Loaded config from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
     except FileNotFoundException:
-        Output.info1("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
+        Output.normal("No config found from System context. ({})".format(CONST.SYSTEM_CONF_FILE))
 
     # USER CONFIG
     if user_config is not None:
         merge_configs(cfg, user_config)
-        Output.info2("Loaded config from User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.verbose("Loaded config from User context. ({})".format(CONST.USER_CONF_FILE))
     else:
-        Output.info1("No config found from User context. ({})".format(CONST.USER_CONF_FILE))
+        Output.normal("No config found from User context. ({})".format(CONST.USER_CONF_FILE))
 
     cfg = validate_config(cfg)
     return cfg
@@ -154,23 +154,23 @@ def save_username(username):
 
         # username found in config file
         if username_line_nb is not None:
-            Output.info2("Changing to username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.verbose("Changing to username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines[username_line_nb] = "username = {}\n".format(username)
 
         # username not found, but [global] found
         elif global_section_line_nb is not None:
-            Output.info2("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.verbose("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(global_section_line_nb+1, "username = {}\n".format(username))
 
         # [global] not found
         else:
-            Output.info2("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
+            Output.verbose("Saving username='{}' in config file {}".format(username, CONST.USER_CONF_FILE))
             lines.insert(0, "[global]\n")
             lines.insert(1, "username = {}\n".format(username))
             lines.insert(2, "\n")
 
     except FileNotFoundException:
-        Output.info2("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
+        Output.verbose("Saving username='{}' to new config file {}".format(username, CONST.USER_CONF_FILE))
         lines.insert(0, "[global]\n")
         lines.insert(1, "username = {}\n".format(username))
         lines.insert(2, "\n")
@@ -236,24 +236,24 @@ def save_bookmark(section_name, bookmark_on):
 
         # bookmark found in config file
         if option_line_nb is not None:
-            Output.info2("Changing {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.verbose("Changing {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines[option_line_nb] = "bookmark = {}\n".format(bookmark_on)
 
         # bookmark not found, but [CIFS_mount] found
         elif section_name_line_nb is not None:
-            Output.info2("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.verbose("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines.insert(section_name_line_nb+1, "bookmark = {}\n".format(bookmark_on))
 
         # [CIFS_mount] not found
         else:
-            Output.info2("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+            Output.verbose("Saving {}'s bookmark='{}' in config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
             lines.append("[CIFS_mount]\n")
             lines.append("name = {}\n".format(section_name))
             lines.append("bookmark = {}\n".format(bookmark_on))
             lines.append("\n")
 
     except FileNotFoundException:
-        Output.info2("Saving {}'s bookmark='{}' to new config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
+        Output.verbose("Saving {}'s bookmark='{}' to new config file {}".format(section_name, bookmark_on, CONST.USER_CONF_FILE))
         lines.append("[CIFS_mount]\n")
         lines.append("name = {}\n".format(section_name))
         lines.append("bookmark = {}\n".format(bookmark_on))
@@ -320,24 +320,24 @@ def save_windows_letter(section_name, letter):
 
         # Windows_letter found in config file
         if option_line_nb is not None:
-            Output.info2("Changing {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.verbose("Changing {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines[option_line_nb] = "Windows_letter = {}\n".format(letter)
 
         # Windows_letter not found, but [CIFS_mount] found
         elif section_name_line_nb is not None:
-            Output.info2("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.verbose("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines.insert(section_name_line_nb+1, "Windows_letter = {}\n".format(letter))
 
         # [CIFS_mount] not found
         else:
-            Output.info2("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+            Output.verbose("Saving {}'s Windows_letter='{}' in config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
             lines.append("[CIFS_mount]\n")
             lines.append("name = {}\n".format(section_name))
             lines.append("Windows_letter = {}\n".format(letter))
             lines.append("\n")
 
     except FileNotFoundException:
-        Output.info2("Saving {}'s Windows_letter='{}' to new config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
+        Output.verbose("Saving {}'s Windows_letter='{}' to new config file {}".format(section_name, letter, CONST.USER_CONF_FILE))
         lines.append("[CIFS_mount]\n")
         lines.append("name = {}\n".format(section_name))
         lines.append("Windows_letter = {}\n".format(letter))
