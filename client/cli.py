@@ -8,7 +8,7 @@ import datetime
 from utility import Output, CONST
 
 
-def main_CLI():
+def main_CLI(args):
     Output.verbose("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
     Output.verbose("ENACdrives " + CONST.FULL_VERSION)
     Output.verbose("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
