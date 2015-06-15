@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-06-15"
-    VERSION = "1.0.14"
+    VERSION = "1.0.15"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -530,6 +530,19 @@ class BlockingProcess():
             "answer": answer,
         }
     
+    @classmethod
+    def invalidate_cmd_cache(cls, cmd):
+        try:
+            cls.cache
+        except AttributeError:
+            cls.cache = {}
+        name = ".".join(cmd)
+        try:
+            del(cls.cache[name])
+        except (KeyError, AttributeError):
+            pass
+
+        
 
 class NonBlockingProcess(QtCore.QProcess):
     CACHE_DURATION = datetime.timedelta(seconds=1)

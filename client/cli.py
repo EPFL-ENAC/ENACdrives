@@ -15,6 +15,8 @@ from cifs_mount import CIFS_Mount
 
 
 class CLI():
+    UI_TYPE = "CLI"
+
     def __init__(self, args):
         self.args = args
         self.key_chain = Key_Chain(self)
@@ -25,31 +27,95 @@ class CLI():
         entries_added = []
         for m_name in self.cfg["global"].get("entries_order", ()):
             if m_name in self.cfg["CIFS_mount"]:
-                self.entries.append(CIFS_Mount(self, self.cfg, m_name, self.key_chain))
+                entry = CIFS_Mount(self, self.cfg, m_name, self.key_chain)
+                self.entries.append(entry)
                 entries_added.append(m_name)
+                self.cfg["CIFS_mount"][m_name]["entry"] = entry
             else:
                 Output.warning("Entry not found '{0}'.".format(m_name))
         for m_name in self.cfg["CIFS_mount"]:
             if m_name not in entries_added:
-                self.entries.append(CIFS_Mount(self, self.cfg, m_name, self.key_chain))
+                entry = CIFS_Mount(self, self.cfg, m_name, self.key_chain)
+                self.entries.append(entry)
+                self.cfg["CIFS_mount"][m_name]["entry"] = entry
+        
+        self.returncode = None
+
+    def execution_status(self, returncode):
+        if self.returncode is None:
+            self.returncode = returncode
+        else:
+            self.returncode = max(self.returncode, returncode)
 
     def run(self):
         if self.args.add_bookmark is not None:
+            self.execution_status(0)
             for m_name in self.args.add_bookmark:
                 if m_name in self.cfg["CIFS_mount"]:
                     conf.save_bookmark(m_name, True)
                 else:
+                    self.execution_status(1)
                     Output.warning("Skipping to add bookmark {}: Unknown entry.".format(m_name))
 
         if self.args.rm_bookmark is not None:
+            self.execution_status(0)
             for m_name in self.args.rm_bookmark:
                 if m_name in self.cfg["CIFS_mount"]:
                     conf.save_bookmark(m_name, False)
                 else:
+                    self.execution_status(1)
                     Output.warning("Skipping to rm bookmark {}: Unknown entry.".format(m_name))
 
+        if self.returncode is not None:
+            return self.returncode
+
         if self.args.summary:
+            # print("self.args : {}".format(self.args))
             self.show_summary()
+            return 0
+        
+        what_entries = []
+        if self.args.all:
+            self.execution_status(0)
+            for entry in self.entries:
+                what_entries.append(entry)
+        if self.args.named is not None:
+            self.execution_status(0)
+            for m_name in self.args.named:
+                if m_name in self.cfg["CIFS_mount"]:
+                    what_entries.append(self.cfg["CIFS_mount"][m_name]["entry"])
+                else:
+                    self.execution_status(1)
+                    Output.warning("Skipping named '{}'. Unknown entry.".format(m_name))
+        if self.args.bookmarked:
+            self.execution_status(0)
+            for entry in self.entries:
+                if entry.settings["bookmark"]:
+                    what_entries.append(entry)
+        
+        if len(what_entries) == 0:
+            self.execution_status(1)
+            Output.warning("No entry selected to (u)mount.")
+        
+        if self.args.umount:
+            umount_list = []
+            for entry in what_entries:
+                if entry.is_mounted():
+                    umount_list.append(entry)
+            for entry in umount_list:
+                print("+ umounting {}".format(entry.settings["name"]))
+                entry.umount()
+        else:
+            mount_list = []
+            for entry in what_entries:
+                if not entry.is_mounted():
+                    mount_list.append(entry)
+            for entry in mount_list:
+                print("+ mounting {}".format(entry.settings["name"]))
+                entry.mount()
+        self.show_summary()
+
+        return self.returncode
 
     def show_summary(self):
         def is_bookmarked(entry):
@@ -64,6 +130,7 @@ class CLI():
             else:
                 return "\033[01;31m\u2717\033[00m"
 
+        Output.cli("\033[01;37m*** ENACdrives entries summary ***\033[00m")
         name_width = 1
         label_width = 1
         for entry in self.entries:

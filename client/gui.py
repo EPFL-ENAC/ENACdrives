@@ -258,6 +258,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
 
 class GUI(QtGui.QMainWindow):
+    UI_TYPE = "GUI"
 
     def __init__(self):
         super(GUI, self).__init__()

@@ -142,9 +142,14 @@ def cifs_mount(mount):
             else:
                 mount.ui.notify_user("Mount failure :<br>{}".format(output))
                 return False
-        NonBlockingProcess.invalidate_cmd_cache(
-            [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-        )
+        if mount.ui.UI_TYPE == "GUI":
+            NonBlockingProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
+        else:
+            BlockingProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
 
     else:  # "mount.cifs"
         if LIN_CONST.CMD_MOUNT_CIFS is None:
@@ -263,9 +268,14 @@ def cifs_umount(mount):
     def _cb_gvfs(success, output, exit_code):
         if not success:
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
-        NonBlockingProcess.invalidate_cmd_cache(
-            [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-        )
+        if mount.ui.UI_TYPE == "GUI":
+            NonBlockingProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
+        else:
+            BlockingProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
     
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # gvfs umount apparently never locks on open files.
@@ -275,11 +285,17 @@ def cifs_umount(mount):
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.verbose("cmd: " + " ".join(cmd))
         
-        NonBlockingProcess(
-            cmd,
-            _cb_gvfs,
-            env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
-        )
+        if mount.ui.UI_TYPE == "GUI":
+            NonBlockingProcess(
+                cmd,
+                _cb_gvfs,
+                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+            )
+        else:
+            _cb_gvfs(**BlockingProcess.run(
+                cmd,
+                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+            ))
 
     else:  # "mount.cifs"
         # 1) uMount

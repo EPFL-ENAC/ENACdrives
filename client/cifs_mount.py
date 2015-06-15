@@ -135,13 +135,13 @@ class CIFS_Mount():
             cifs_is_mounted(self, _cb)
         
     def mount(self):
-        Output.br()
+        # Output.br()
         return cifs_mount(self)
 
     def umount(self):
-        Output.br()
+        # Output.br()
         return cifs_umount(self)
 
     def open_file_manager(self):
-        Output.br()
+        # Output.br()
         return open_file_manager(self)
