@@ -68,6 +68,7 @@ class CLI():
             for m_name in self.args.add_bookmark:
                 if m_name in self.cfg["CIFS_mount"]:
                     conf.save_bookmark(m_name, True)
+                    self.cfg["CIFS_mount"][m_name]["entry"].settings["bookmark"] = True
                 else:
                     self.execution_status(1)
                     Output.warning("Skipping to add bookmark {}: Unknown entry.".format(m_name))
@@ -77,17 +78,19 @@ class CLI():
             for m_name in self.args.rm_bookmark:
                 if m_name in self.cfg["CIFS_mount"]:
                     conf.save_bookmark(m_name, False)
+                    self.cfg["CIFS_mount"][m_name]["entry"].settings["bookmark"] = False
                 else:
                     self.execution_status(1)
                     Output.warning("Skipping to rm bookmark {}: Unknown entry.".format(m_name))
 
         if self.returncode is not None:
+            self.show_summary()
             return self.returncode
 
         if self.args.summary:
-            # print("self.args : {}".format(self.args))
+            self.execution_status(0)
             self.show_summary()
-            return 0
+            return self.returncode
         
         which_entries = []
         if self.args.all:
@@ -118,7 +121,7 @@ class CLI():
                 if entry.is_mounted():
                     umount_list.append(entry)
             for entry in umount_list:
-                print("+ Umounting {}".format(entry.settings["name"]))
+                print("- Umounting {}".format(entry.settings["name"]))
                 entry.umount()
         else:
             mount_list = []
@@ -145,7 +148,10 @@ class CLI():
             else:
                 return "\033[01;31m\u2717\033[00m"
 
-        Output.cli("\033[01;37m*** ENACdrives entries summary ***\033[00m")
+        if self.cfg["global"].get("username") is None:
+            Output.cli("\033[01;37m*** ENACdrives entries summary ***\033[00m")
+        else:
+            Output.cli("\033[01;37m*** ENACdrives entries summary for user {} ***\033[00m".format(self.cfg["global"]["username"]))
         name_width = 1
         label_width = 1
         for entry in self.entries:
@@ -156,7 +162,7 @@ class CLI():
         if len(self.entries) == 0:
             Output.cli("No entry found.")
         if self.cfg["global"].get("username") is None:
-            Output.cli("username not defined. You can set it with argument --username=username")
+            Output.warning("username not defined. You can set it with argument --username=username")
             self.execution_status(1)
 
     def get_password(self, realm, password_mistyped):

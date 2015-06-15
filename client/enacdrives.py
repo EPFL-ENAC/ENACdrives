@@ -22,7 +22,7 @@ if __name__ == '__main__':
         parser.add_argument(
             "--username",
             action="store",
-            help="set username")
+            help="set EPFL USERNAME")
         parser.add_argument(
             "-s", "--summary",
             action="store_true",
