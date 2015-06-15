@@ -351,12 +351,12 @@ def cifs_post_umount(mount):
 
     else:  # "mount.cifs"
         # 2) Remove mount dir
-        if (os.path.exists(mount.settings["local_path"]) and
-           os.listdir(mount.settings["local_path"]) == []):
-            try:
+        try:
+            if (os.path.exists(mount.settings["local_path"]) and
+               os.listdir(mount.settings["local_path"]) == []):
                 os.rmdir(mount.settings["local_path"])
-            except OSError as e:
-                Output.warning("Could not rmdir : {0}".format(e))
+        except OSError as e:
+            Output.warning("Could not rmdir : {0}".format(e))
 
 
 def open_file_manager(mount):

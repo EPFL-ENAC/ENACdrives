@@ -337,6 +337,7 @@ class GUI(QtGui.QMainWindow):
         enacit1logs_notify()
 
     def notify_user(self, msg):
+        Output.normal("Notified User: " + msg)
         msgBox = QtGui.QMessageBox()
         msgBox.setText(msg)
         msgBox.exec_()
