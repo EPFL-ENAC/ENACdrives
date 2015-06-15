@@ -20,6 +20,10 @@ if __name__ == '__main__':
             action="count", default=0,
             help="increase Verbosity level (max is -vvv)")
         parser.add_argument(
+            "--username",
+            action="store",
+            help="set username")
+        parser.add_argument(
             "-s", "--summary",
             action="store_true",
             help="show Summary")
@@ -49,8 +53,10 @@ if __name__ == '__main__':
             help="Remove a bookmark")
         args = parser.parse_args()
         
+        # print("args: {}".format(args))
         if (args.summary or args.umount or args.all or args.named is not None or
-           args.bookmarked or args.add_bookmark is not None or args.rm_bookmark is not None):
+           args.bookmarked or args.add_bookmark is not None or args.rm_bookmark is not None or
+           args.username is not None):
             ui = "CLI"
             args.verbose -= 1
         

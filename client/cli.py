@@ -10,7 +10,7 @@ import getpass
 import datetime
 
 import conf
-from utility import Output, CONST, Key_Chain
+from utility import Output, CONST, Key_Chain, validate_username
 from cifs_mount import CIFS_Mount
 
 
@@ -20,26 +20,38 @@ class CLI():
     def __init__(self, args):
         self.args = args
         self.key_chain = Key_Chain(self)
+        
+        self.returncode = None
+        
+        self.set_username(args)
         self.cfg = conf.get_config()
         Output.verbose(pprint.pformat(self.cfg))
         
         self.entries = []
-        entries_added = []
+        already_added = []
         for m_name in self.cfg["global"].get("entries_order", ()):
             if m_name in self.cfg["CIFS_mount"]:
                 entry = CIFS_Mount(self, self.cfg, m_name, self.key_chain)
                 self.entries.append(entry)
-                entries_added.append(m_name)
+                already_added.append(m_name)
                 self.cfg["CIFS_mount"][m_name]["entry"] = entry
             else:
                 Output.warning("Entry not found '{0}'.".format(m_name))
         for m_name in self.cfg["CIFS_mount"]:
-            if m_name not in entries_added:
+            if m_name not in already_added:
                 entry = CIFS_Mount(self, self.cfg, m_name, self.key_chain)
                 self.entries.append(entry)
                 self.cfg["CIFS_mount"][m_name]["entry"] = entry
         
-        self.returncode = None
+
+    def set_username(self, args):
+        if args.username is not None:
+            validation_answer = validate_username(args.username)
+            if validation_answer == "ok":
+                conf.save_username(args.username)
+            else:
+                Output.error(validation_answer)
+                self.execution_status(2)
 
     def execution_status(self, returncode):
         if self.returncode is None:
@@ -48,6 +60,9 @@ class CLI():
             self.returncode = max(self.returncode, returncode)
 
     def run(self):
+        if self.returncode is not None:
+            return self.returncode
+
         if self.args.add_bookmark is not None:
             self.execution_status(0)
             for m_name in self.args.add_bookmark:
@@ -74,16 +89,16 @@ class CLI():
             self.show_summary()
             return 0
         
-        what_entries = []
+        which_entries = []
         if self.args.all:
             self.execution_status(0)
             for entry in self.entries:
-                what_entries.append(entry)
+                which_entries.append(entry)
         if self.args.named is not None:
             self.execution_status(0)
             for m_name in self.args.named:
                 if m_name in self.cfg["CIFS_mount"]:
-                    what_entries.append(self.cfg["CIFS_mount"][m_name]["entry"])
+                    which_entries.append(self.cfg["CIFS_mount"][m_name]["entry"])
                 else:
                     self.execution_status(1)
                     Output.warning("Skipping named '{}'. Unknown entry.".format(m_name))
@@ -91,27 +106,27 @@ class CLI():
             self.execution_status(0)
             for entry in self.entries:
                 if entry.settings["bookmark"]:
-                    what_entries.append(entry)
+                    which_entries.append(entry)
         
-        if len(what_entries) == 0:
+        if len(which_entries) == 0:
             self.execution_status(1)
             Output.warning("No entry selected to (u)mount.")
         
         if self.args.umount:
             umount_list = []
-            for entry in what_entries:
+            for entry in which_entries:
                 if entry.is_mounted():
                     umount_list.append(entry)
             for entry in umount_list:
-                print("+ umounting {}".format(entry.settings["name"]))
+                print("+ Umounting {}".format(entry.settings["name"]))
                 entry.umount()
         else:
             mount_list = []
-            for entry in what_entries:
+            for entry in which_entries:
                 if not entry.is_mounted():
                     mount_list.append(entry)
             for entry in mount_list:
-                print("+ mounting {}".format(entry.settings["name"]))
+                print("+ Mounting {}".format(entry.settings["name"]))
                 entry.mount()
         self.show_summary()
 
@@ -138,6 +153,11 @@ class CLI():
             label_width = max(label_width, len(entry.settings["label"]))
         for entry in self.entries:
             Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
+        if len(self.entries) == 0:
+            Output.cli("No entry found.")
+        if self.cfg["global"].get("username") is None:
+            Output.cli("username not defined. You can set it with argument --username=username")
+            self.execution_status(1)
 
     def get_password(self, realm, password_mistyped):
         # For Key_Chain
