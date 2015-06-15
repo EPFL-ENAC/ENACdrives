@@ -85,14 +85,14 @@ def get_config():
                     f.writelines(s_io.readlines())
             Output.verbose("Loaded config from ENACdrives server ({})".format(config_url))
         except (socket.timeout, urllib.error.URLError, ConfigException):
-            Output.normal("Warning, could not load config ENACdrives server. ({})".format(config_url))
+            Output.warning("Could not load config ENACdrives server. ({})".format(config_url))
             try:
                 with open(cache_filename, "r") as f:
                     cached_config = read_config_source(f)
                     merge_configs(cfg, cached_config)
-                Output.verbose("Loaded config from cache file. ({})".format(cache_filename))
+                Output.normal("Loaded config from cache file. ({})".format(cache_filename))
             except FileNotFoundException:
-                Output.normal("!!! Error, could not load config from cache file. ({})".format(cache_filename))
+                Output.warning("Could not load config from cache file. ({})".format(cache_filename))
     else:
         Output.normal("Skipping config from ENACdrives server (no username).")
 

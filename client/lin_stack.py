@@ -13,7 +13,7 @@
 import os
 import re
 import pexpect
-from utility import CONST, Output, which, CancelOperationException, NonBlockingProcess, NonBlockingThread
+from utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingProcess, NonBlockingThread
 
 
 class LIN_CONST():
@@ -34,7 +34,12 @@ class LIN_CONST():
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
 
 
-def cifs_is_mounted(mount, cb):
+def cifs_is_mounted(mount, cb=None):
+    """
+        evaluate if this mount is mounted
+        if cb is None make it synchronously (CLI)
+        else make it asynchronously (GUI)
+    """
     def _cb_gvfs(success, output, exit_code):
         # Output.debug("lin_stack._cb_gvfs")
         # Output.debug("-> gvfs-mount -l : \n{0}\n\n".format(output))
@@ -45,10 +50,16 @@ def cifs_is_mounted(mount, cb):
             share_format1=share_format1, share_format2=share_format2, **mount.settings)
         for l in output.split("\n"):
             if re.search(i_search, l, flags=re.IGNORECASE):
-                # Output.debug(l)
-                cb(True)
-                return
-        cb(False)
+                Output.debug(l)
+                if cb is None:
+                    return True
+                else:
+                    cb(True)
+                    return
+        if cb is None:
+            return False
+        else:
+            cb(False)
     
     def _target_mountcifs():
         return os.path.ismount(mount.settings["local_path"])
@@ -57,18 +68,28 @@ def cifs_is_mounted(mount, cb):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.debug("cmd: " + " ".join(cmd))
-        NonBlockingProcess(
-            cmd,
-            _cb_gvfs,
-            env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
-            cache=True,
-        )
+        if cb is None:
+            return _cb_gvfs(**BlockingProcess.run(
+                cmd,
+                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+                cache=True,
+            ))
+        else:
+            NonBlockingProcess(
+                cmd,
+                _cb_gvfs,
+                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+                cache=True,
+            )
     else:  # "mount.cifs"
-        NonBlockingThread(
-            "os.path.ismounted.{}".format(mount.settings["local_path"]),
-            _target_mountcifs,
-            cb
-        )
+        if cb is None:
+            return _target_mountcifs()
+        else:
+            NonBlockingThread(
+                "os.path.ismounted.{}".format(mount.settings["local_path"]),
+                _target_mountcifs,
+                cb
+            )
 
 
 def cifs_mount(mount):

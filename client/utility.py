@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-11"
-    VERSION = "1.0.13"
+    VERSION_DATE = "2015-06-15"
+    VERSION = "1.0.14"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -178,15 +178,17 @@ class CONST():
 
 class Output():
     LEVELS = {
-        "debug": {"prefix": "DEBUG: ", "rank": 4},  # -vv
-        "verbose": {"prefix": "", "rank": 3},  # -v
-        "normal": {"prefix": "", "rank": 2},  # This is default level of output
+        "debug": {"prefix": "DEBUG: ", "rank": 5},  # -vv default for Windows & OSX
+        "verbose": {"prefix": "", "rank": 4},  # -v
+        "normal": {"prefix": "", "rank": 3},  # default for Linux GUI
+        "cli": {"prefix": "", "rank": 2},  # default for Linux CLI
         "warning": {"prefix": "WARNING: ", "rank": 1},  
         "error": {"prefix": "ERROR: ", "rank": 0},
     }
 
     def __init__(self, dest=None, level="normal"):
         self.level = level
+        self.level_rank = Output.LEVELS[level]["rank"]
         if dest is not None:
             self.output = dest
         else:
@@ -210,7 +212,7 @@ class Output():
     def do_write(self, msg, level):
         if level is None:
             self.output.write(msg)
-        elif Output.LEVELS[level]["rank"] <= Output.LEVELS[self.level]["rank"]:
+        elif Output.LEVELS[level]["rank"] <= self.level_rank:
             self.output.write("{}{}".format(Output.LEVELS[level]["prefix"], msg))
 
     @classmethod
@@ -232,6 +234,10 @@ class Output():
     @classmethod
     def warning(cls, msg="", end="\n"):
         cls.instance.do_write(msg + end, "warning")
+
+    @classmethod
+    def cli(cls, msg="", end="\n"):
+        cls.instance.do_write(msg + end, "cli")
 
     @classmethod
     def normal(cls, msg="", end="\n"):
@@ -467,6 +473,63 @@ def validate_release_number():
         Output.warning("Could not validate release number.")
         return True
 
+
+class BlockingProcess():
+    CACHE_DURATION = datetime.timedelta(seconds=1)
+    PROC_TIMEOUT = 2  # seconds
+
+    @classmethod
+    def run(cls, cmd, env=None, cache=False):
+        name = ".".join(cmd)
+        if cache:
+            cached = BlockingProcess.check_in_cache(name)
+            if cached["found"]:
+                return cached["answer"]
+        
+        proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        try:
+            outs, errs = proc.communicate(timeout = BlockingProcess.PROC_TIMEOUT)
+            success = True
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            outs, errs = proc.communicate()
+            success = False
+        answer = {
+            "success": success and (proc.returncode == 0),
+            "output": bytes_decode(outs),
+            "exit_code": proc.returncode,
+        }
+        if cache:
+            BlockingProcess.save_in_cache(name, answer)
+        return answer
+        
+
+    @classmethod
+    def check_in_cache(cls, name):
+        try:
+            cls.cache
+        except AttributeError:
+            cls.cache = {}
+        if cls.cache.get(name) and cls.cache[name]["expire_dt"] > datetime.datetime.now():
+            return {
+                "found": True,
+                "answer": cls.cache[name]["answer"],
+            }
+        return {
+            "found": False,
+        }
+
+    @classmethod
+    def save_in_cache(cls, name, answer):
+        try:
+            cls.cache
+        except AttributeError:
+            cls.cache = {}
+        cls.cache[name] = {
+            "expire_dt": datetime.datetime.now() + BlockingProcess.CACHE_DURATION,
+            "answer": answer,
+        }
+    
 
 class NonBlockingProcess(QtCore.QProcess):
     CACHE_DURATION = datetime.timedelta(seconds=1)

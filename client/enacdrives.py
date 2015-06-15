@@ -18,7 +18,7 @@ if __name__ == '__main__':
         parser.add_argument(
             "-v", "--verbose",
             action="count", default=0,
-            help="increase Verbosity level")
+            help="increase Verbosity level (max is -vvv)")
         parser.add_argument(
             "-s", "--summary",
             action="store_true",
@@ -49,11 +49,14 @@ if __name__ == '__main__':
             help="Remove a bookmark")
         args = parser.parse_args()
         
-        if (args.summary or args.umount or args.all or args.named or
-           args.bookmarked or args.add_bookmark or args.rm_bookmark):
+        if (args.summary or args.umount or args.all or args.named is not None or
+           args.bookmarked or args.add_bookmark is not None or args.rm_bookmark is not None):
             ui = "CLI"
+            args.verbose -= 1
         
-        if args.verbose == 0:
+        if args.verbose == -1:
+            output_level = "cli"
+        elif args.verbose == 0:
             output_level = "normal"
         elif args.verbose == 1:
             output_level = "verbose"

@@ -108,20 +108,31 @@ class CIFS_Mount():
         self.ui = ui
         self.key_chain = key_chain
 
-    def is_mounted(self, cb):
-        def _cb(is_mounted):
+    def is_mounted(self, cb=None):
+        """
+            evaluate if this CIFS_mount is mounted
+            if cb is None make it synchronously
+            else make it asynchronously
+        """
+        def _cb(is_m):
             # Output.debug("cifs_mount._cb")
-            if is_mounted != self._cache["is_mounted"]:
-                Output.normal("--> CIFS_mount {} : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_mounted))
-                if is_mounted:
+            if is_m != self._cache["is_mounted"]:
+                Output.normal("--> CIFS_mount {} : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_m))
+                if is_m:
                     cifs_post_mount(self)
                 else:
                     cifs_post_umount(self)
-                self._cache["is_mounted"] = is_mounted
-            cb(is_mounted)
+                self._cache["is_mounted"] = is_m
+            if cb is not None:
+                cb(is_m)
 
         # Output.debug("cifs_mount.is_mounted")
-        cifs_is_mounted(self, _cb)
+        if cb is None:
+            is_m = cifs_is_mounted(self)
+            _cb(is_m)
+            return is_m
+        else:
+            cifs_is_mounted(self, _cb)
         
     def mount(self):
         Output.br()
