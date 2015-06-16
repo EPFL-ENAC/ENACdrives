@@ -14,7 +14,7 @@ import os
 import re
 import pexpect
 import subprocess
-from utility import Output, which, CancelOperationException, NonBlockingThread, NonBlockingProcess
+from utility import Output, which, CancelOperationException, NonBlockingQtThread, NonBlockingQtProcess
 
 
 class OSX_CONST():
@@ -28,7 +28,7 @@ def cifs_is_mounted(mount, cb):
     def _target_mountcifs():
         return os.path.ismount(mount.settings["local_path"])
 
-    NonBlockingThread(
+    NonBlockingQtThread(
         "os.path.ismounted.{}".format(mount.settings["local_path"]),
         _target_mountcifs,
         cb
@@ -111,7 +111,7 @@ def cifs_umount(mount):
 
     cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
     Output.verbose("cmd: " + " ".join(cmd))
-    NonBlockingProcess(
+    NonBlockingQtProcess(
         cmd,
         _cb,
     )
@@ -137,7 +137,7 @@ def open_file_manager(mount):
     path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in OSX_CONST.CMD_OPEN.split(" ")]
     Output.verbose("cmd: " + " ".join(cmd))
-    NonBlockingProcess(
+    NonBlockingQtProcess(
         cmd,
         _cb,
     )

@@ -384,7 +384,7 @@ class GUI(QtGui.QMainWindow):
 
     def load_config(self):
         self.cfg = conf.get_config()
-        self.networks_check = Networks_Check(self.cfg)
+        self.networks_check = Networks_Check(self.cfg, self)
         Output.verbose(pprint.pformat(self.cfg))
 
         # Delete previous config

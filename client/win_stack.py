@@ -16,7 +16,7 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import Output, CancelOperationException, debug_send, NonBlockingProcess
+from utility import Output, CancelOperationException, debug_send, NonBlockingQtProcess
 
 
 class WIN_CONST():
@@ -56,7 +56,7 @@ def cifs_is_mounted(mount, cb):
         cb(False)
         
     cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
-    NonBlockingProcess(cmd, _cb, cache=True)
+    NonBlockingQtProcess(cmd, _cb, cache=True)
 
 
 def cifs_mount(mount):
@@ -73,7 +73,7 @@ def cifs_mount(mount):
             remote,
         )
         Output.verbose("succeeded")
-        NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
         return True
     except pywintypes.error as e:
         if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -117,7 +117,7 @@ def cifs_mount(mount):
             )
             mount.key_chain.ack_password(mount.settings["realm"])
             Output.verbose("succeeded")
-            NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+            NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
             return True
         except pywintypes.error as e:
             if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -162,7 +162,7 @@ def cifs_umount(mount):
     try:
         Output.verbose("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
-        NonBlockingProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
     except pywintypes.error as e:
         if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)
@@ -188,7 +188,7 @@ def open_file_manager(mount):
     path = mount.settings["Windows_letter"]
     cmd = [s.format(path=path) for s in WIN_CONST.CMD_OPEN.split(" ")]
     Output.verbose("cmd: " + " ".join(cmd))
-    NonBlockingProcess(
+    NonBlockingQtProcess(
         cmd,
         _cb
     )

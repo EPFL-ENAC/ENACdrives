@@ -13,7 +13,7 @@
 import os
 import re
 import pexpect
-from utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingProcess, NonBlockingThread
+from utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingQtProcess, NonBlockingQtThread
 
 
 class LIN_CONST():
@@ -75,7 +75,7 @@ def cifs_is_mounted(mount, cb=None):
                 cache=True,
             ))
         else:
-            NonBlockingProcess(
+            NonBlockingQtProcess(
                 cmd,
                 _cb_gvfs,
                 env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
@@ -85,7 +85,7 @@ def cifs_is_mounted(mount, cb=None):
         if cb is None:
             return _target_mountcifs()
         else:
-            NonBlockingThread(
+            NonBlockingQtThread(
                 "os.path.ismounted.{}".format(mount.settings["local_path"]),
                 _target_mountcifs,
                 cb
@@ -143,7 +143,7 @@ def cifs_mount(mount):
                 mount.ui.notify_user("Mount failure :<br>{}".format(output))
                 return False
         if mount.ui.UI_TYPE == "GUI":
-            NonBlockingProcess.invalidate_cmd_cache(
+            NonBlockingQtProcess.invalidate_cmd_cache(
                 [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
             )
         else:
@@ -269,7 +269,7 @@ def cifs_umount(mount):
         if not success:
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
         if mount.ui.UI_TYPE == "GUI":
-            NonBlockingProcess.invalidate_cmd_cache(
+            NonBlockingQtProcess.invalidate_cmd_cache(
                 [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
             )
         else:
@@ -286,7 +286,7 @@ def cifs_umount(mount):
         Output.verbose("cmd: " + " ".join(cmd))
         
         if mount.ui.UI_TYPE == "GUI":
-            NonBlockingProcess(
+            NonBlockingQtProcess(
                 cmd,
                 _cb_gvfs,
                 env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
@@ -383,7 +383,7 @@ def open_file_manager(mount):
         path = mount.settings["local_path"]
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.verbose("cmd: " + " ".join(cmd))
-    NonBlockingProcess(
+    NonBlockingQtProcess(
         cmd,
         _cb,
     )

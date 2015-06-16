@@ -10,7 +10,7 @@ import getpass
 import datetime
 
 import conf
-from utility import Output, CONST, Key_Chain, validate_username
+from utility import Output, CONST, Key_Chain, validate_username, Networks_Check
 from cifs_mount import CIFS_Mount
 
 
@@ -26,6 +26,9 @@ class CLI():
         self.set_username(args)
         self.cfg = conf.get_config()
         Output.verbose(pprint.pformat(self.cfg))
+        
+        self.networks_check = Networks_Check(self.cfg, self)
+        self.networks_check.scan()
         
         self.entries = []
         already_added = []
@@ -62,6 +65,11 @@ class CLI():
     def run(self):
         if self.returncode is not None:
             return self.returncode
+        
+        for net in self.cfg["network"]:
+            net_status, net_msg = self.networks_check.get_status(net)
+            if not net_status:
+                Output.warning(net_msg)
 
         if self.args.add_bookmark is not None:
             self.execution_status(0)
