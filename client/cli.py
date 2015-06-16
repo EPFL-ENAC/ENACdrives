@@ -124,6 +124,13 @@ class CLI():
                 if entry.is_mounted():
                     umount_list.append(entry)
             for entry in umount_list:
+                required_network = entry.settings.get("require_network")
+                if required_network is not None:
+                    net_status, net_msg = self.networks_check.get_status(required_network)
+                    if not net_status:
+                        print("! Skip Umounting {} : {}".format(entry.settings["name"], net_msg))
+                        self.execution_status(1)
+                        continue
                 print("- Umounting {}".format(entry.settings["name"]))
                 entry.umount()
         else:
@@ -132,6 +139,13 @@ class CLI():
                 if not entry.is_mounted():
                     mount_list.append(entry)
             for entry in mount_list:
+                required_network = entry.settings.get("require_network")
+                if required_network is not None:
+                    net_status, net_msg = self.networks_check.get_status(required_network)
+                    if not net_status:
+                        print("! Skip Mounting {} : {}".format(entry.settings["name"], net_msg))
+                        self.execution_status(1)
+                        continue
                 print("+ Mounting {}".format(entry.settings["name"]))
                 entry.mount()
         self.show_summary()

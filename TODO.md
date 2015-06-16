@@ -41,7 +41,6 @@ Monitoring :
 client :
 ========
 
-- CLI
 - add menus for
   - Edit > Show/Hide entries
 
