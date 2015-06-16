@@ -66,11 +66,6 @@ class CLI():
         if self.returncode is not None:
             return self.returncode
         
-        for net in self.cfg["network"]:
-            net_status, net_msg = self.networks_check.get_status(net)
-            if not net_status:
-                Output.warning(net_msg)
-
         if self.args.add_bookmark is not None:
             self.execution_status(0)
             for m_name in self.args.add_bookmark:
@@ -151,6 +146,11 @@ class CLI():
                 return " "  # "\u274F"  # "\u274d"
 
         def is_mounted(entry):
+            required_network = entry.settings.get("require_network")
+            if required_network is not None:
+                net_status, net_msg = self.networks_check.get_status(required_network)
+                if not net_status:
+                    return "\033[01;31m\u2757\033[00m {}".format(net_msg)
             if entry.is_mounted():
                 return "\033[01;32m\u2713\033[00m on {}".format(entry.settings["local_path"])
             else:
