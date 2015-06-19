@@ -36,7 +36,7 @@ class Config(models.Model):
         (CAT_EPFL_UNIT, "to EPFL Unit"),
         (CAT_LDAP_GROUP, "to LDAP Group"),
     )
-    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, default=CAT_ALL)
+    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, default=CAT_LDAP_GROUP)
 
     name = models.CharField(max_length=256)
     users = models.ManyToManyField(User, blank=True)
