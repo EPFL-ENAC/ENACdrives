@@ -42,7 +42,10 @@ def get_config():
          'Linux_mountcifs_dirmode': '0770',
          'Linux_mountcifs_filemode': '0770',
          'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
-        }
+        'CIFS_mount': {},
+        'network': {},
+        'realm': {}
+    }
     cfg = default_config
 
     # USER CONFIG -> get only username from [global]

@@ -17,7 +17,10 @@ from utility import CONST, Output, which, CancelOperationException, BlockingProc
 
 
 class LIN_CONST():
-    CMD_OPEN = which("xdg-open") + " {path}"
+    try:
+        CMD_OPEN = which("xdg-open") + " {path}"
+    except TypeError:  # TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+        CMD_OPEN = None
 
     CMD_MOUNT_CIFS = which("mount.cifs")
     CMD_UMOUNT = which("umount")
@@ -66,6 +69,9 @@ def cifs_is_mounted(mount, cb=None):
         
     # Output.debug("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
+        if LIN_CONST.CMD_GVFS_MOUNT is None:
+            Output.error("'gvfs-mount' not installed.")
+            return _cb_gvfs(False, "'gvfs-mount' not installed.", 1)
         cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         # Output.debug("cmd: " + " ".join(cmd))
         if cb is None:
@@ -173,7 +179,7 @@ def cifs_mount(mount):
         # 2) Mount
         s_path = re.sub(" ", "\\ ", mount.settings["server_path"])
         cmd = [
-            "sudo", LIN_CONST.CMD_MOUNT_CIFS,
+            LIN_CONST.CMD_MOUNT_CIFS,
             "//{server_name}/{s_path}",
             "{local_path}",
             "-o",
@@ -183,6 +189,8 @@ def cifs_mount(mount):
             "dir_mode={Linux_mountcifs_filemode},"
             "{Linux_mountcifs_options}"
         ]
+        if CONST.LOCAL_UID != 0:
+            cmd.insert(0, "sudo")
         cmd = [s.format(s_path=s_path, **mount.settings) for s in cmd]
         Output.verbose("cmd: " + " ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
@@ -299,7 +307,9 @@ def cifs_umount(mount):
 
     else:  # "mount.cifs"
         # 1) uMount
-        cmd = ["sudo", LIN_CONST.CMD_UMOUNT, "{local_path}"]
+        cmd = [LIN_CONST.CMD_UMOUNT, "{local_path}"]
+        if CONST.LOCAL_UID != 0:
+            cmd.insert(0, "sudo")
         cmd = [s.format(**mount.settings) for s in cmd]
         Output.verbose("cmd: " + " ".join(cmd))
         # for i in xrange(3): # 3 attempts (for passwords mistyped)
@@ -362,7 +372,7 @@ def cifs_post_umount(mount):
 def open_file_manager(mount):
     def _cb(success, output, exit_code):
         pass
-        
+    
     if (mount.settings["Linux_CIFS_method"] == "gvfs" and
        not mount.settings["Linux_gvfs_symlink"]):
         path = None
@@ -381,6 +391,9 @@ def open_file_manager(mount):
             raise Exception("Error: Could not find the GVFS mountpoint.")
     else:
         path = mount.settings["local_path"]
+    if LIN_CONST.CMD_OPEN is None:
+        Output.warning("Cannot open location '{}', xdg-open not found.".format(path))
+        return
     cmd = [s.format(path=path) for s in LIN_CONST.CMD_OPEN.split(" ")]
     Output.verbose("cmd: " + " ".join(cmd))
     NonBlockingQtProcess(

@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-16"
-    VERSION = "1.0.21"
+    VERSION_DATE = "2015-06-22"
+    VERSION = "1.0.22"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -387,14 +387,18 @@ class Networks_Check():
 
         def _ping_target(host):
             if CONST.OS_SYS == "Windows":
-                cmd = ["ping", h, "-n", '1']
+                cmd = ["ping", host, "-n", '1']
             elif CONST.OS_SYS == "Linux":
-                cmd = ["ping", "-c1", "-w1", h]
+                cmd = ["ping", "-c1", "-w1", host]
             elif CONST.OS_SYS == "Darwin":
-                cmd = ["ping", "-c1", "-W1", h]
+                cmd = ["ping", "-c1", "-W1", host]
             else:
                 raise Exception("Unknown OS {}".format(CONST.OS_SYS))
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            try:
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            except FileNotFoundError:  #  FileNotFoundError: [Errno 2] No such file or directory: 'ping'
+                Output.error("Could not find 'ping' utility. Skipping and considering ping {} is ok.".format(host))
+                return True
             try:
                 outs, errs = proc.communicate(timeout = CONST.PROC_TIMEOUT)
                 success = True

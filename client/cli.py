@@ -153,22 +153,40 @@ class CLI():
         return self.returncode
 
     def show_summary(self):
+        special_chars = {
+            "unicode": {
+                "stared": "\u272F",
+                "unstared": " ",   # "\u274F"  # "\u274d"
+                "no_network": "\u2757",
+                "mounted": "\u2713",
+                "umounted": "\u2717",
+            },
+            "ascii": {
+                "stared": "*",
+                "unstared": " ",   # "\u274F"  # "\u274d"
+                "no_network": "!",
+                "mounted": "v",
+                "umounted": "x",
+            },
+        }
+        display_mode = "unicode"  # may be switched to "ascii" if necessary
+        
         def is_bookmarked(entry):
             if entry.settings["bookmark"]:
-                return "\033[01;33m\u272F\033[00m"
+                return "\033[01;33m{}\033[00m".format(special_chars[display_mode]["stared"])
             else:
-                return " "  # "\u274F"  # "\u274d"
+                return "{}".format(special_chars[display_mode]["unstared"])
 
         def is_mounted(entry):
             required_network = entry.settings.get("require_network")
             if required_network is not None:
                 net_status, net_msg = self.networks_check.get_status(required_network)
                 if not net_status:
-                    return "\033[01;31m\u2757\033[00m {}".format(net_msg)
+                    return "\033[01;31m{}\033[00m {}".format(special_chars[display_mode]["no_network"], net_msg)
             if entry.is_mounted():
-                return "\033[01;32m\u2713\033[00m on {}".format(entry.settings["local_path"])
+                return "\033[01;32m{}\033[00m on {}".format(special_chars[display_mode]["mounted"], entry.settings["local_path"])
             else:
-                return "\033[01;31m\u2717\033[00m"
+                return "\033[01;31m{}\033[00m".format(special_chars[display_mode]["umounted"])
 
         if self.cfg["global"].get("username") is None:
             Output.cli("\033[01;37m*** ENACdrives entries summary ***\033[00m")
@@ -180,7 +198,11 @@ class CLI():
             name_width = max(name_width, len(entry.settings["name"]))
             label_width = max(label_width, len(entry.settings["label"]))
         for entry in self.entries:
-            Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
+            try:
+                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
+            except UnicodeEncodeError:  # UnicodeEncodeError: 'ascii' codec can't encode character '\u2717' in position 86: ordinal not in range(128)
+                display_mode = "ascii"
+                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))            
         if len(self.entries) == 0:
             Output.cli("No entry found.")
         if self.cfg["global"].get("username") is None:
