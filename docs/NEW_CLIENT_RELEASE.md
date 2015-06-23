@@ -13,16 +13,8 @@ LINUX
 =====
 
 
-Compile
--------
-
-~~~ bash
-docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_amd64 python3 setup.py install --prefix=/enacdrives/client/build/debian/usr
-~~~
-
-
-Package
--------
+Compile & Package
+-----------------
 
 ~~~ bash
 ~/Projects/enacdrives/tools/build_enacdrives_deb.sh

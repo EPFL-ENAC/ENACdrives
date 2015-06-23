@@ -30,21 +30,15 @@ mkdir -p ${DIR_DEB_CREATION}
 # Build a package - Content
 # -------------------------
 
-mkdir -m 755 ${DIR_DEB_CREATION}/opt
-mkdir -m 755 ${DIR_DEB_CREATION}/opt/enacdrives
-cp -r ~/Projects/enacdrives/client/build/exe.linux-x86_64-3.4/* ${DIR_DEB_CREATION}/opt/enacdrives/
-chmod 644 ${DIR_DEB_CREATION}/opt/enacdrives/*.png
-chmod 644 ${DIR_DEB_CREATION}/opt/enacdrives/*.ico
-mkdir -m 755 ${DIR_DEB_CREATION}/usr
-mkdir -m 755 ${DIR_DEB_CREATION}/usr/local
-mkdir -m 755 ${DIR_DEB_CREATION}/usr/local/bin
-ln -s /opt/enacdrives/enacdrives ${DIR_DEB_CREATION}/usr/local/bin
+docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_amd64 python3 setup.py install --prefix=/enacdrives/deb_building/${PACKAGE}/usr
+sudo chown -R sbancal\: ${DIR_DEB_CREATION}
+
+# System wide conf file
 mkdir -m 755 ${DIR_DEB_CREATION}/etc
 cat > ${DIR_DEB_CREATION}/etc/enacdrives.conf << %%%EOF%%%
 # Full documentation here : http://enacit.epfl.ch/enacdrives/
 %%%EOF%%%
 chmod 644 ${DIR_DEB_CREATION}/etc/enacdrives.conf
-
 
 # Icon and a Launcher
 mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/
@@ -57,7 +51,7 @@ Version=${SOFT_VER}
 Name=${SOFT}
 Comment=Application to automate access to EPFL, ENAC and units NAS
 Keywords=EPFL;ENAC;NAS;filers;Drives;mount;CIFS;SMB
-Exec=/opt/enacdrives/enacdrives
+Exec=/usr/bin/enacdrives
 Icon=/usr/share/pixmaps/enacdrives.svg
 Terminal=false
 Type=Application
@@ -69,56 +63,45 @@ chmod 644 ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop
 ESTIMATE_INSTALLED_SIZE=0
 ESTIMATE_INSTALLED_SIZE=$(echo ${ESTIMATE_INSTALLED_SIZE} + $(du -sk ${DIR_DEB_CREATION}/etc/ | awk '{ print $1 }') | bc)
 ESTIMATE_INSTALLED_SIZE=$(echo ${ESTIMATE_INSTALLED_SIZE} + $(du -sk ${DIR_DEB_CREATION}/usr/ | awk '{ print $1 }') | bc)
-ESTIMATE_INSTALLED_SIZE=$(echo ${ESTIMATE_INSTALLED_SIZE} + $(du -sk ${DIR_DEB_CREATION}/opt/ | awk '{ print $1 }') | bc)
 
 
 # Build a package - Meta informations
 # -----------------------------------
 
-mkdir -p ${DIR_DEB_CREATION}/DEBIAN
+cd ${DIR_DEB_CREATION}/..
+
+mkdir -m 755 ${DIR_DEB_CREATION}/DEBIAN
+
+# debian/control
 cat > ${DIR_DEB_CREATION}/DEBIAN/control << %%%EOF%%%
 Package: ${PACKAGE}
+Source: ${PACKAGE}
+Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
+Homepage: http://enacit.epfl.ch/enacdrives
+Description: Application to automate access to EPFL, ENAC and units NAS.
 Version: ${SOFT_VER}-${PACKAGE_VER}
-Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
+Section: misc
+Priority: optional
 Architecture: amd64
+Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
 Depends: gvfs-bin
 Recommends: cifs-utils
-Homepage: http://enacit.epfl.ch/enacdrives
-Maintainer: Samuel BANCAL <Samuel.Bancal@epfl.ch>
-Section: main
-Priority: extra
-Description: Application to automate access to EPFL, ENAC and units NAS
 %%%EOF%%%
 chmod 644 ${DIR_DEB_CREATION}/DEBIAN/control
 
-cat > ${DIR_DEB_CREATION}/DEBIAN/postrm << %%%EOF%%%
-#!/bin/bash
-
-%%%EOF%%%
-chmod 755 ${DIR_DEB_CREATION}/DEBIAN/postrm
-
-
-# creation of the DEBIAN/conffiles
-# used to manage which file is a config file and should not be overwriten
-# by new versions by default.
+# debian/conffiles
 cat > ${DIR_DEB_CREATION}/DEBIAN/conffiles << %%%EOF%%%
 /etc/enacdrives.conf
 %%%EOF%%%
 chmod 644 ${DIR_DEB_CREATION}/DEBIAN/conffiles
 
-
-# Build a package - The .deb
-# --------------------------
+find ${DIR_DEB_CREATION} -name '*.png' -exec chmod 644 \{\} \;
 
 sudo chown -R root: ${DIR_DEB_CREATION}
-find ${DIR_DEB_CREATION} -name '*~'
-find ${DIR_DEB_CREATION} -name '*~' -exec rm {} \;
-
 tree -a ${DIR_DEB_CREATION} 
 
-cd ~/Projects/enacdrives/deb_building/
 fakeroot dpkg -b ${PACKAGE}
-
+lintian ${PACKAGE}.deb
 cp ${PACKAGE}.deb ${PACKAGE}-${SHORT_SOFT_VER}-${PACKAGE_VER}.deb
 
 popd
