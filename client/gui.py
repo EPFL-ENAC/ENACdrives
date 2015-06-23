@@ -334,7 +334,7 @@ class GUI(QtGui.QMainWindow):
         self.setWindowTitle("ENACdrives")
         self.setWindowIcon(QtGui.QIcon(CONST.ENACDRIVES_PNG))
         self.show()
-        enacit1logs_notify()
+        enacit1logs_notify(self)
 
     def notify_user(self, msg):
         Output.normal("Notified User: " + msg)

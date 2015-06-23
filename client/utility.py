@@ -70,13 +70,23 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-22"
-    VERSION = "1.0.22"
+    VERSION_DATE = "2015-06-23"
+    VERSION = "1.0.23"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
     
     OS_SYS = platform.system()
+    if sys.maxsize > 2**64:
+        ARCH_BITS = "128bit"
+    elif sys.maxsize > 2**32:
+        ARCH_BITS = "64bit"
+    elif sys.maxsize > 2**16:
+        ARCH_BITS = "32bit"
+    elif sys.maxsize > 2**8:
+        ARCH_BITS = "16bit"
+    else:
+        ARCH_BITS = "8bit"
     LOCAL_USERNAME = getpass.getuser()
     HOME_DIR = os.path.expanduser("~")
 
@@ -256,24 +266,35 @@ class Output():
 
 # ENACIT1LOGS
 # used to know what version are used
-def enacit1logs_notify():
+def enacit1logs_notify(ui):
     def _target():
         try:
+            if ui.UI_TYPE == "GUI":
+                msg = "run ENACdrives GUI"
+            else:
+                msg = "run ENACdrives CLI"
             enacit1logs.send(
-                message="run ENACdrives",
-                tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION)]
+                message=msg,
+                tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION, CONST.ARCH_BITS)]
             )
         except enacit1logs.SendLogException as e:
             Output.warning("Could not notify enacit1logs")
     
     def _finished(answer):
         pass
-        
-    NonBlockingQtThread(
-        "enacit1logs_notify",
-        _target,
-        _finished,
-    )
+    
+    if ui.UI_TYPE == "GUI":
+        NonBlockingQtThread(
+            "enacit1logs_notify",
+            _target,
+            _finished,
+        )
+    else:
+        NonBlockingThread(
+            "enacit1logs_notify",
+            _target,
+            _finished,
+        )
 
 
 # used to repatriate test cases

@@ -10,7 +10,7 @@ import getpass
 import datetime
 
 import conf
-from utility import Output, CONST, Key_Chain, validate_username, Networks_Check
+from utility import Output, CONST, Key_Chain, validate_username, Networks_Check, enacit1logs_notify
 from cifs_mount import CIFS_Mount
 
 
@@ -63,6 +63,7 @@ class CLI():
             self.returncode = max(self.returncode, returncode)
 
     def run(self):
+        enacit1logs_notify(self)
         if self.returncode is not None:
             return self.returncode
         
