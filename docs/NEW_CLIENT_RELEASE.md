@@ -33,10 +33,14 @@ reprepro -b enacrepo.epfl.ch/public/ list trusty
 reprepro -b enacrepo.epfl.ch/public/ list utopic
 reprepro -b enacrepo.epfl.ch/public/ list vivid
 
-reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives.deb
-reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb trusty enacdrives.deb
-reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb utopic enacdrives.deb
-reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb vivid enacdrives.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb trusty enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb trusty enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb utopic enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb utopic enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb vivid enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb vivid enacdrives_amd64.deb
 ~~~
 
 
