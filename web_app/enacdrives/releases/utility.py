@@ -60,7 +60,7 @@ def parse_uploaded_file(filename):
         raise Exception("Unrecognized OS in {}".format(filename))
     
     # Release Number
-    m = re.search(r"-([0-9.]+)(-[0-9+])?[-.][^0-9]", filename)
+    m = re.search(r"[-_]([0-9.]+)(-[0-9+])?[-_.][^0-9]", filename)
     if m:
         answer["release_number"] = m.groups()[0]
     else:
