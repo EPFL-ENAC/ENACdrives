@@ -70,6 +70,11 @@ Type=Application
 Categories=GNOME;GTK;System;
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop
+    
+    # FIX unstripped-binary-or-object
+    # https://lintian.debian.org/tags/unstripped-binary-or-object.html
+    # https://github.com/vbatts/SlackBuilds/blob/master/cx_Freeze/cx_Freeze.SlackBuild
+    find ${DIR_DEB_CREATION} -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
     # Content - size
     ESTIMATE_INSTALLED_SIZE=0
@@ -103,6 +108,7 @@ Description: EPFL, ENAC and units NAS directory
     # Meta - DEBIAN/md5sums
     cd ${DIR_DEB_CREATION}
     find etc usr -type f -exec md5sum \{\} >> DEBIAN/md5sums \;
+    chmod 644 ${DIR_DEB_CREATION}/DEBIAN/md5sums
 
     # Meta - DEBIAN/conffiles
     cat > ${DIR_DEB_CREATION}/DEBIAN/conffiles << %%%EOF%%%
