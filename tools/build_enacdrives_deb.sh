@@ -101,7 +101,7 @@ Version: ${SOFT_VER}-${PACKAGE_VER}
 Architecture: ${arch}
 Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
 Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
-Depends: gvfs-bin
+Depends: libc6 (>= 2.15), gvfs-bin
 Recommends: cifs-utils
 Replaces: mountfilers
 Section: misc
