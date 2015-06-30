@@ -82,18 +82,27 @@ Categories=GNOME;GTK;System;
     cat > ${DIR_DEB_CREATION}/DEBIAN/control << %%%EOF%%%
 Package: ${PACKAGE}
 Source: ${PACKAGE}
-Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
-Homepage: http://enacit.epfl.ch/enacdrives
-Description: Application to automate access to EPFL, ENAC and units NAS.
 Version: ${SOFT_VER}-${PACKAGE_VER}
-Section: misc
-Priority: optional
 Architecture: ${arch}
+Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
 Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
 Depends: gvfs-bin
 Recommends: cifs-utils
+Replaces: mountfilers
+Section: misc
+Priority: optional
+Homepage: http://enacit.epfl.ch/enacdrives
+Description: EPFL, ENAC and units NAS directory
+ An application that let the user know which NAS he has access to and
+ mount/umount them. It can be used with :
+ + the graphical interface (Linux/Windows/MacOSX)
+ + a command line (Linux only).
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/DEBIAN/control
+    
+    # Meta - DEBIAN/md5sums
+    cd ${DIR_DEB_CREATION}
+    find etc usr -type f -exec md5sum \{\} >> DEBIAN/md5sums \;
 
     # Meta - DEBIAN/conffiles
     cat > ${DIR_DEB_CREATION}/DEBIAN/conffiles << %%%EOF%%%
