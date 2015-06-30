@@ -74,6 +74,34 @@ Categories=GNOME;GTK;System;
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop
     
+    # Content - /usr/share/doc/enacdrives/copyright
+    mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/
+    mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}
+    cat > ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright << %%%EOF%%%
+This package was packaged by Samuel Bancal <Samuel.Bancal@epfl.ch> on
+%%%EOF%%%
+    date >> ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright
+    cat >> ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright << %%%EOF%%%
+
+Copyright 2015 Samuel Bancal <Samuel.Bancal@epfl.ch>
+
+Project team : enacit.epfl.ch
+ Samuel Bancal <Samuel.Bancal@epfl.ch>
+ Jean-Daniel Bonjour <Jean-Daniel.Bonjour@epfl.ch>
+ Paulo De Jesus <Paulo.DeJesus@epfl.ch>
+ Nicolas Dubois <Nicolas.Dubois@epfl.ch>
+ Stefano Nepa <Stefano.Nepa@epfl.ch>
+
+Technologies used :
+ client side: Python3, PyQt4, pexpect
+ server side: Python3, Django
+
+Term of License:
+ pending...
+
+%%%EOF%%%
+    chmod 644 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright
+
     # FIX unstripped-binary-or-object
     # https://lintian.debian.org/tags/unstripped-binary-or-object.html
     # https://github.com/vbatts/SlackBuilds/blob/master/cx_Freeze/cx_Freeze.SlackBuild
