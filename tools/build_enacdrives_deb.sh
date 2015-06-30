@@ -4,6 +4,9 @@
 # 2015-06-18
 # Builds the current ENACdrives package
 
+# Pre-requisite :
+# sudo apt-get install chrpath
+
 
 # Build a package - Definition
 # ----------------------------
@@ -75,6 +78,13 @@ Categories=GNOME;GTK;System;
     # https://lintian.debian.org/tags/unstripped-binary-or-object.html
     # https://github.com/vbatts/SlackBuilds/blob/master/cx_Freeze/cx_Freeze.SlackBuild
     find ${DIR_DEB_CREATION} -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+    
+    # FIX binary-or-shlib-defines-rpath on
+    # + usr/lib/ENACdrives-1.0.23/PyQt4.QtCore.so
+    # + usr/lib/ENACdrives-1.0.23/PyQt4.QtGui.so
+    # https://lintian.debian.org/tags/binary-or-shlib-defines-rpath.html
+    # http://linux.die.net/man/1/chrpath
+    find ${DIR_DEB_CREATION} -name 'PyQt4.Qt*.so' | xargs chrpath -d
 
     # Content - size
     ESTIMATE_INSTALLED_SIZE=0
