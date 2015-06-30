@@ -137,9 +137,8 @@ Priority: optional
 Homepage: http://enacit.epfl.ch/enacdrives
 Description: EPFL, ENAC and units NAS directory
  An application that let the user know which NAS he has access to and
- mount/umount them. It can be used with :
- + the graphical interface (Linux/Windows/MacOSX)
- + a command line (Linux only).
+ mount/umount them. It can be used with the graphical interface
+ (Linux/Windows/MacOSX) and the command line (Linux only).
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/DEBIAN/control
     
