@@ -51,12 +51,16 @@ if __name__ == '__main__':
             "--rm-bookmark",
             action="append",
             help="Remove a bookmark")
+        parser.add_argument(
+            "--version",
+            action="store_true",
+            help="Show version and quit")
         args = parser.parse_args()
         
         # print("args: {}".format(args))
         if (args.summary or args.umount or args.all or args.named is not None or
            args.bookmarked or args.add_bookmark is not None or args.rm_bookmark is not None or
-           args.username is not None):
+           args.username is not None or args.version):
             ui = "CLI"
             args.verbose -= 1
         

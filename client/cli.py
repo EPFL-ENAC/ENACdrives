@@ -235,6 +235,9 @@ def main_CLI(args):
     Output.debug("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
     Output.debug("RESOURCES_DIR:" + CONST.RESOURCES_DIR + "\n")
     
+    if args.version:
+        Output.cli("ENACdrives " + CONST.FULL_VERSION)
+        sys.exit(0)
     ui = CLI(args)
     sys.exit(ui.run())
     
