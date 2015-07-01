@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-06-30"
-    VERSION = "1.0.24"
+    VERSION_DATE = "2015-07-01"
+    VERSION = "1.0.25"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -123,6 +123,7 @@ class CONST():
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
+        NEED_TO_UPDATE_MSG = "You are not running the latest release.<br>Please upgrade the package enacdrives."
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -144,6 +145,8 @@ class CONST():
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         if getattr(sys, 'frozen', False):
             RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
+        NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
+            "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -167,6 +170,8 @@ class CONST():
         SYSTEM_CONF_FILE = "C:\\ProgramData\\ENACdrives\\enacdrives.conf"
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
+        NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
+            "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
     else:
         OS_VERSION = "Error: OS not supported."
 
@@ -222,6 +227,11 @@ class Output():
             self.output.close()
 
     def do_write(self, msg, level):
+        msg = msg.replace("<br>", "\n")
+        msg = msg.replace("<b>", "\033[01;37m")
+        msg = msg.replace("</b>", "\033[00m")
+        msg = msg.replace("<i>", "\033[00;37m")
+        msg = msg.replace("</i>", "\033[00m")
         if level is None:
             self.output.write(msg)
         elif Output.LEVELS[level]["rank"] <= self.level_rank:

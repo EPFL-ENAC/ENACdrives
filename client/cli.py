@@ -10,7 +10,7 @@ import getpass
 import datetime
 
 import conf
-from utility import Output, CONST, Key_Chain, validate_username, Networks_Check, enacit1logs_notify
+from utility import Output, CONST, Key_Chain, validate_username, Networks_Check, enacit1logs_notify, validate_release_number
 from cifs_mount import CIFS_Mount
 
 
@@ -235,6 +235,8 @@ def main_CLI(args):
     Output.debug("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
     Output.debug("RESOURCES_DIR:" + CONST.RESOURCES_DIR + "\n")
     
+    if not validate_release_number():
+        Output.warning(CONST.NEED_TO_UPDATE_MSG)
     if args.version:
         Output.cli("ENACdrives " + CONST.FULL_VERSION)
         sys.exit(0)

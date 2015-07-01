@@ -40,12 +40,7 @@ class UI_Download_New_Release(QtGui.QWidget):
         warning_png = QtGui.QLabel()
         warning_png.setGeometry(0, 0, 48, 48)
         warning_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
-        if CONST.OS_SYS == "Linux":
-            label = QtGui.QLabel("You are not running the latest release.<br>Please upgrade the package enacdrives.")
-        else:
-            label = QtGui.QLabel(
-                "You are not running the latest release.<br>Please download it from <a href='{}'>here</a>.".format(CONST.DOWNLOAD_NEW_RELEASE_URL),
-                openExternalLinks=True)
+        label = QtGui.QLabel(CONST.NEED_TO_UPDATE_MSG, openExternalLinks=True)
         # label.setStyleSheet("QLabel {color : red;}")
         hlayout.addStretch(1)
         hlayout.addWidget(warning_png)
