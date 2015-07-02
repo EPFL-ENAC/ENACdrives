@@ -80,6 +80,7 @@ def get_config():
         try:
             with urllib.request.urlopen(config_url, timeout=CONST.URL_TIMEOUT) as response:
                 lines = [bytes_decode(l) for l in response.readlines()]
+                Output.debug("get_config {} : {}".format(config_url, lines))
                 s_io = io.StringIO("".join(lines))
                 enacdrives_config = read_config_source(s_io)
                 merge_configs(cfg, enacdrives_config)
@@ -87,8 +88,9 @@ def get_config():
                 with open(cache_filename, "w") as f:
                     f.writelines(s_io.readlines())
             Output.verbose("Loaded config from ENACdrives server ({})".format(config_url))
-        except (socket.timeout, urllib.error.URLError, ConfigException):
+        except (socket.timeout, urllib.error.URLError, ConfigException) as e:
             Output.warning("Could not load config ENACdrives server. ({})".format(config_url))
+            Output.warning("Got error : {}".format(e))
             try:
                 with open(cache_filename, "r") as f:
                     cached_config = read_config_source(f)

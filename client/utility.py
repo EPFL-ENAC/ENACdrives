@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2015-07-02"
-    VERSION = "1.0.26"
+    VERSION = "1.0.27"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -561,19 +561,23 @@ def validate_username(username):
     try:
         with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) as response:
             lines = [bytes_decode(l) for l in response.readlines()]
-        return lines[0]
-    except (socket.timeout, urllib.error.URLError):
-        Output.warning("Could not load validate url. ({0})".format(validate_url))
+            Output.debug("validate_username {} : {}".format(validate_url, lines))
+            return lines[0]
+    except (socket.timeout, urllib.error.URLError) as e:
+        Output.warning("Could not load validate url. ({})".format(validate_url))
+        Output.warning("Got error : {}".format(e))
         return "Error, could not contact config server."
 
 
 def validate_release_number():
     try:
         with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) as response:
-            latest_release = bytes_decode(response.readline())
-            return latest_release == CONST.VERSION
-    except (socket.timeout, urllib.error.URLError):
-        Output.warning("Could not validate release number.")
+            lines = [bytes_decode(l) for l in response.readlines()]
+            Output.debug("validate_release_number {} : {}".format(CONST.LATEST_RELEASE_NUMBER_URL, lines))
+            return CONST.VERSION == lines[0]
+    except (socket.timeout, urllib.error.URLError) as e:
+        Output.warning("Could not validate release number. ({})".format(CONST.LATEST_RELEASE_NUMBER_URL))
+        Output.warning("Got error : {}".format(e))
         return True
 
 

@@ -70,6 +70,7 @@ export PYTHONPATH=/usr/lib/python3/dist-packages
 export VERSION=$(python ~/Projects/enacdrives/client/tell_version.py)
 
 pushd ~/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/
+rm -rf ENACdrives-${VERSION}
 cp -r exe.win32-3.4 ENACdrives-${VERSION}
 zip -r ENACdrives-${VERSION}.zip ENACdrives-${VERSION}/
 popd
