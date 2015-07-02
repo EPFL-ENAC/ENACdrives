@@ -239,15 +239,18 @@ def cifs_post_mount(mount):
     May happen some seconds after cifs_mount is completed (OS)
     """
     if mount.settings["Linux_CIFS_method"] == "gvfs":
-        share = re.sub(r" ", r"%20", mount.settings["server_share"])
-        share = re.sub(r"\$", r"\\$", share)
         # 3) Symlink
         if mount.settings["Linux_gvfs_symlink"]:
             if not os.path.lexists(mount.settings["local_path"]):
                 mount_point = None
+                if LIN_CONST.GVFS_GENERATION == 1:
+                    share = re.sub(r"\$", r"\\$", mount.settings["server_share"])
+                else:
+                    share = re.sub(r" ", r"%20", mount.settings["server_share"])
+                    share = re.sub(r"\$", r"\\$", share)
                 for f in os.listdir(LIN_CONST.GVFS_DIR):
                     if LIN_CONST.GVFS_GENERATION == 1:
-                        if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f, flags=re.IGNORECASE):
+                        if re.match(r"{share} \S+ {server_name}".format(share=share, **mount.settings), f, flags=re.IGNORECASE):
                             mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
                     else:
                         if (re.match(r"^smb-share:", f) and
