@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-07-02"
-    VERSION = "1.0.27"
+    VERSION_DATE = "2015-07-06"
+    VERSION = "1.0.28"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -108,7 +108,10 @@ class CONST():
 
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
-        LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+        try:
+            LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+        except KeyError:
+            LOCAL_GROUPNAME = "Unknown"
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         AD_DOMAIN = None
@@ -127,7 +130,10 @@ class CONST():
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
-        LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+        try:
+            LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
+        except KeyError:
+            LOCAL_GROUPNAME = "Unknown"
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
         if "LDAPv3" in bytes_decode(subprocess.check_output(["dscl"], input=b"ls\n")).strip():

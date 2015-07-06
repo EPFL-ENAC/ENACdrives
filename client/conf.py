@@ -427,7 +427,7 @@ def read_config_source(src):
             [network]
             name = Internet
             ping = www.epfl.ch
-            ping = www.enacit.epfl.ch
+            ping = enacit.epfl.ch
             error_msg = Error, you are not connected to the network. You won't be able to mount this resource.
             
             [network]
