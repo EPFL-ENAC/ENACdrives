@@ -51,8 +51,6 @@ WINDOWS
 
 ~~~ bash
 cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/
-rm -f /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/ENACdrives.py
-cp /home/sbancal/Projects/enacdrives/client/enacdrives.py /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/
 rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4
 ~~~
 
@@ -100,6 +98,7 @@ to_macp
 ssh -p 2210 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null bancal@localhost
 cd ~/enacdrives_client/
 rm -rf dist/*
+mv enacdrives.py ENACdrives.py
 python setup_osx.py py2app
 cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
 cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/ENACdrives.app/Contents/Resources/lib/

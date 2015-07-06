@@ -3,7 +3,7 @@
 # Bancal Samuel
 
 # ENACdrives : Main Python File
-# used for Windows & Linux
+# used for Windows, Linux & Mac OSX
 
 import argparse
 from cli import main_CLI
