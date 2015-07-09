@@ -14,11 +14,12 @@ from utility import CONST, Output
 if __name__ == '__main__':
     ui = "GUI"
     if CONST.OS_SYS == "Linux":
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         parser.add_argument(
-            "-v", "--verbose",
-            action="count", default=0,
-            help="increase Verbosity level (max is -vvv)")
+            "--version",
+            action="store_true",
+            help="Show ENACdrives version and exit\n ")
+
         parser.add_argument(
             "--username",
             action="store",
@@ -26,35 +27,39 @@ if __name__ == '__main__':
         parser.add_argument(
             "-s", "--summary",
             action="store_true",
-            help="show Summary")
-        parser.add_argument(
-            "-u", "--umount",
-            action="store_true",
-            help="Umount instead of default mount")
-        parser.add_argument(
-            "-a", "--all",
-            action="store_true",
-            help="(u)mount All entries")
+            help="show Summary (drives list, status and mountpoints)\n ")
+        
         parser.add_argument(
             "-n", "--named",
             action="append",
-            help="(u)mount Named entries")
+            help="mount NAMED entry (unmount if -u)")
+        parser.add_argument(
+            "-a", "--all",
+            action="store_true",
+            help="mount All entries (unmount if -u)")
         parser.add_argument(
             "-b", "--bookmarked",
             action="store_true",
-            help="(u)mount Bookmarked entries")
+            help="mount Bookmarked entries (unmount if -u)")
+        parser.add_argument(
+            "-u", "--umount",
+            action="store_true",
+            help="Unmount instead of mount (applies to -n -a -b)\n ")
+            
         parser.add_argument(
             "--add-bookmark",
+            metavar="NAMED",
             action="append",
-            help="Add a bookmark")
+            help="bookmark NAMED entry")
         parser.add_argument(
             "--rm-bookmark",
+            metavar="NAMED",
             action="append",
-            help="Remove a bookmark")
+            help="unbookmark NAMED entry")
         parser.add_argument(
-            "--version",
-            action="store_true",
-            help="Show version and quit")
+            "-v", "--verbose",
+            action="count", default=0,
+            help="increase Verbosity level (max is -vvv)")
         args = parser.parse_args()
         
         # print("args: {}".format(args))
