@@ -11,11 +11,11 @@ import re
 from utility import CONST, Output
 
 if CONST.OS_SYS == "Linux":
-    from lin_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from lin_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
 elif CONST.OS_SYS == "Windows":
-    from win_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from win_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
 elif CONST.OS_SYS == "Darwin":
-    from osx_stack import cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from osx_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
     
 
 class CIFS_Mount():
@@ -108,6 +108,9 @@ class CIFS_Mount():
         self.ui = ui
         self.key_chain = key_chain
 
+    def uncache_is_mounted(self):
+        cifs_uncache_is_mounted(self)
+        
     def is_mounted(self, cb=None):
         """
             evaluate if this CIFS_mount is mounted

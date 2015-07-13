@@ -23,6 +23,10 @@ class WIN_CONST():
     CMD_OPEN = "explorer {path}"
 
 
+def cifs_uncache_is_mounted(mount):
+    NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+
+
 def cifs_is_mounted(mount, cb):
     def _cb(success, output, exit_code):
         lines = output.split("\n")
@@ -73,7 +77,7 @@ def cifs_mount(mount):
             remote,
         )
         Output.verbose("succeeded")
-        NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        cifs_uncache_is_mounted(mount)
         return True
     except pywintypes.error as e:
         if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -117,7 +121,7 @@ def cifs_mount(mount):
             )
             mount.key_chain.ack_password(mount.settings["realm"])
             Output.verbose("succeeded")
-            NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+            cifs_uncache_is_mounted(mount)
             return True
         except pywintypes.error as e:
             if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
@@ -162,7 +166,7 @@ def cifs_umount(mount):
     try:
         Output.verbose("Doing umount of {0}".format(mount.settings["Windows_letter"]))
         win32wnet.WNetCancelConnection2(mount.settings["Windows_letter"], 0, False)
-        NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+        cifs_uncache_is_mounted(mount)
     except pywintypes.error as e:
         if e.winerror == 2401:  # (2401, "WNetCancelConnection2", "There are open files on the connection.")
             mount.ui.notify_user(e.strerror)

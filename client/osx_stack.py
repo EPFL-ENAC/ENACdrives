@@ -24,6 +24,10 @@ class OSX_CONST():
     CMD_UMOUNT = which("umount")
 
 
+def cifs_uncache_is_mounted(mount):
+    pass
+
+
 def cifs_is_mounted(mount, cb):
     def _target_mountcifs():
         return os.path.ismount(mount.settings["local_path"])

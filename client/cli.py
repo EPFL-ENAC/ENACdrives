@@ -5,6 +5,7 @@
 # Offers main CLI
 
 import sys
+import time
 import pprint
 import getpass
 import datetime
@@ -119,6 +120,7 @@ class CLI():
             self.execution_status(1)
             Output.warning("No entry selected to (u)mount.")
         
+        expected_status = {}
         if self.args.umount:
             umount_list = []
             for entry in which_entries:
@@ -134,6 +136,7 @@ class CLI():
                         continue
                 print("- Umounting {}".format(entry.settings["name"]))
                 entry.umount()
+                expected_status[entry.settings["name"]] = False
         else:
             mount_list = []
             for entry in which_entries:
@@ -149,11 +152,14 @@ class CLI():
                         continue
                 print("+ Mounting {}".format(entry.settings["name"]))
                 entry.mount()
-        self.show_summary()
+                expected_status[entry.settings["name"]] = True
+        self.show_summary(expected_status)
 
         return self.returncode
 
-    def show_summary(self):
+    def show_summary(self, expected_status=None):
+        if expected_status is None:
+            expected_status = {}
         special_chars = {
             "unicode": {
                 "stared": "\u272F",
@@ -199,6 +205,14 @@ class CLI():
             name_width = max(name_width, len(entry.settings["name"]))
             label_width = max(label_width, len(entry.settings["label"]))
         for entry in self.entries:
+            if expected_status.get(entry.settings["name"]) is not None:
+                iteration_max = 3
+                while expected_status[entry.settings["name"]] != entry.is_mounted():
+                    time.sleep(0.5)
+                    entry.uncache_is_mounted()
+                    iteration_max -= 1
+                    if iteration_max <= 0:
+                        break
             try:
                 Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
             except UnicodeEncodeError:  # UnicodeEncodeError: 'ascii' codec can't encode character '\u2717' in position 86: ordinal not in range(128)

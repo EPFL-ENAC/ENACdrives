@@ -37,6 +37,18 @@ class LIN_CONST():
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
 
 
+def cifs_uncache_is_mounted(mount):
+    if mount.settings["Linux_CIFS_method"] == "gvfs":
+        if mount.ui.UI_TYPE == "GUI":
+            NonBlockingQtProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
+        else:
+            BlockingProcess.invalidate_cmd_cache(
+                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+            )
+
+
 def cifs_is_mounted(mount, cb=None):
     """
         evaluate if this mount is mounted
@@ -148,14 +160,7 @@ def cifs_mount(mount):
             else:
                 mount.ui.notify_user("Mount failure :<br>{}".format(output))
                 return False
-        if mount.ui.UI_TYPE == "GUI":
-            NonBlockingQtProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
-        else:
-            BlockingProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
+        cifs_uncache_is_mounted(mount)
 
     else:  # "mount.cifs"
         if LIN_CONST.CMD_MOUNT_CIFS is None:
@@ -279,15 +284,8 @@ def cifs_umount(mount):
     def _cb_gvfs(success, output, exit_code):
         if not success:
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
-        if mount.ui.UI_TYPE == "GUI":
-            NonBlockingQtProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
-        else:
-            BlockingProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
-    
+        cifs_uncache_is_mounted(mount)
+
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # gvfs umount apparently never locks on open files.
         
