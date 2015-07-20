@@ -52,6 +52,7 @@ class CLI():
         if args.username is not None:
             validation_answer = validate_username(args.username)
             if validation_answer == "ok":
+                Output.cli("\033[01;37m*** ENACdrives username set to {} ***\033[00m".format(args.username))
                 conf.save_username(args.username)
             else:
                 Output.error(validation_answer)
@@ -116,7 +117,7 @@ class CLI():
                 if entry.settings["bookmark"]:
                     which_entries.append(entry)
         
-        if len(which_entries) == 0:
+        if len(which_entries) == 0 and self.args.username is None:
             self.execution_status(1)
             Output.warning("No entry selected to (u)mount.")
         
