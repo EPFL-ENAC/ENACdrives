@@ -6,7 +6,7 @@ COMMON
 ======
 
 * Project repo : https://_username_@git.epfl.ch/repo/enacdrives.git
-* Release version : set in enacdrives/client/utility.py (CONST.VERSION & CONST.FULL_VERSION & CONST.PACKAGE_SIGNATURE_VERSION)
+* Release version : set in enacdrives/client/utility.py (CONST.VERSION & CONST.VERSION_DATE)
 
 
 LINUX
@@ -50,6 +50,7 @@ WINDOWS
 <SB>
 
 ~~~ bash
+enacdrives -n nas3_enac-it_files
 cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/
 rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4
 ~~~
@@ -64,11 +65,10 @@ Test ...
 
 Make a zip (-> PortableApps)
 ~~~ bash
-export PYTHONPATH=/usr/lib/python3/dist-packages
-export VERSION=$(python ~/Projects/enacdrives/client/tell_version.py)
+export VERSION=$(PYTHONPATH=/usr/lib/python3/dist-packages python3 ~/Projects/enacdrives/client/tell_version.py); echo $VERSION
 
 pushd ~/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/
-rm -rf ENACdrives-${VERSION}
+rm -rf ENACdrives-${VERSION} ENACdrives-${VERSION}.zip
 cp -r exe.win32-3.4 ENACdrives-${VERSION}
 zip -r ENACdrives-${VERSION}.zip ENACdrives-${VERSION}/
 popd

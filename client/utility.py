@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2015-07-20"
-    VERSION = "1.0.33"
+    VERSION_DATE = "2015-08-31"
+    VERSION = "1.0.34"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -222,7 +222,20 @@ class Output():
         if (CONST.OS_SYS == "Windows" and
            getattr(sys, 'frozen', False)):
             # Windows frozen application
-            self.output = open(CONST.RESOURCES_DIR + "/execution_output.txt", "w")
+            for f_name in (
+                CONST.RESOURCES_DIR + "\\execution_output.txt",
+                os.environ["LOCALAPPDATA"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Local
+                os.environ["APPDATA"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Roaming
+                os.environ["TEMP"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Local\Temp
+            ):
+                try:
+                    parent = os.path.dirname(f_name)
+                    if not os.path.exists(parent):
+                        os.makedirs(parent)
+                    self.output = open(f_name, "w")
+                    break
+                except IOError:
+                    pass
         return self
 
     def __exit__(self, typ, value, traceback):
