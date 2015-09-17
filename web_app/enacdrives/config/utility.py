@@ -12,6 +12,7 @@ def validate_input(data_source, data_type):
         data = smart_text(data, errors="ignore")
         data = data.lower()
         all_str = re.findall(r"\w", data)
+        # all_str = re.findall(r"[\w\.@]", data) # needed for username=a.s.bancal@bluewin.ch (test)
         data = "".join(all_str)
         return data
     raise Exception("Unknown data_type '{0}'".format(data_type))

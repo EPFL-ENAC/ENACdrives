@@ -2,6 +2,8 @@ import os
 import re
 import json
 import ldap3
+# import pprint
+# import logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,12 +18,11 @@ class Ldap():
     """
     def __init__(self):
         self.server_name = "ldap.epfl.ch"
-        self.base_dn = "o=epfl,c=ch"  # "c=ch"
         self.scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
         self.s = ldap3.Server(self.server_name)
         self.c = ldap3.Connection(self.s)
 
-    def read_ldap(self, l_filter, l_attrs):
+    def read_ldap(self, l_filter, l_attrs, base_dn = "o=epfl,c=ch"):
         """
             + Proceed a request to the LDAP
             + sort entries (only possible if "uid" attribute was requested)
@@ -32,7 +33,7 @@ class Ldap():
             if not self.c.bound:
                 raise Exception("Could not bind to {}".format(self.server_name))
             self.c.search(
-                search_base=self.base_dn,
+                search_base=base_dn,
                 search_filter=l_filter,
                 search_scope=self.scope,
                 attributes=l_attrs,
@@ -70,6 +71,7 @@ def get_user_settings(username):
                 "ldap_groups": [],
             }
     """
+    # debug_logger = logging.getLogger("debug")
     l = Ldap()
     user_settings = {
         "username": username,
@@ -85,8 +87,9 @@ def get_user_settings(username):
     # -> displayName
     # -> sciper
     # -> last_sciper_digit
-    r = l.read_ldap("(uid={0})".format(username), ["uniqueIdentifier", "displayName", ])
+    r = l.read_ldap("(uid={0})".format(username), ["uniqueIdentifier", "displayName", ], "c=ch")
     if len(r) == 0:
+        # debug_logger.debug("get_user_settings({}) : UserNotFoundException".format(username))
         raise UserNotFoundException(username)
     sciper_no = r[0]["attributes"]["uniqueIdentifier"][0]
     user_settings["displayName"] = r[0]["attributes"]["displayName"][0]
@@ -112,4 +115,5 @@ def get_user_settings(username):
     user_settings["epfl_units"] = user_settings["epfl_units"][:1] + sorted(user_settings["epfl_units"][1:])
     user_settings["ldap_groups"] = sorted(list(ldap_groups))
 
+    # debug_logger.debug("get_user_settings({}) :\n{}".format(username, pprint.pformat(user_settings)))
     return user_settings
