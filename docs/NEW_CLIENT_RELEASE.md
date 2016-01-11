@@ -5,7 +5,7 @@
 COMMON
 ======
 
-* Project repo : https://_username_@git.epfl.ch/repo/enacdrives.git
+* Project repo : git@gitlab.epfl.ch:bancal/MyDrives.git
 * Release version : set in enacdrives/client/utility.py (CONST.VERSION & CONST.VERSION_DATE)
 
 
@@ -84,8 +84,25 @@ mv /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/buil
 rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/enacdrives.conf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/enacdrives.cache /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built/execution_output.txt
 ~~~
 
-<ND>
-...
+<ND> contenu du fichier \\enac1files\enac-it\common\ENACdrives\Windows\readme.txt :
+
+Manuel  de création du fichier SetupENACdrives-version.exe
+
+Installer Inno Setup à partir de http://www.jrsoftware.org/isinfo.php
+La version de base non-unicode sans package supplémentaire fonctionne très bien.
+
+Depuis Inno Setup, ouvrez le fichier \\enac1files.epfl.ch\ENAC-IT\common\ENACdrives\Windows\script.iss
+
+Adaptez le numéro de version:
+#define MyAppVersion "0.2.1"
+
+Cliquez le menu Build > Compile
+Le setup est généré dans le répertoire \\enac1files.epfl.ch\ENAC-IT\common\ENACdrives\Windows
+Pardois le génération échoue, jusqu'ici il a suffit de relancer.
+
+Si l'icône change, Visual Studio permet d'extraire le .ico du .exe
+
+Pour signer l'exe, l'envoyer via enacshare à codesigning@epfl.ch
 
 
 
