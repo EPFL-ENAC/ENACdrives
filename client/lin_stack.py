@@ -3,6 +3,7 @@
 # Bancal Samuel
 
 # Offers Linux stack for :
+# + os_check
 # + cifs_is_mount
 # + cifs_mount
 # + cifs_post_mount
@@ -35,6 +36,17 @@ class LIN_CONST():
     else:
         GVFS_GENERATION = 3
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
+
+
+def os_check(ui):
+    """
+    Check that OS has all pre-requisite functionalities 
+    """
+    if ui.cfg["global"]["Linux_CIFS_method"] == "gvfs" and LIN_CONST.CMD_GVFS_MOUNT is None:
+        ui.notify_user("Warning: gvfs-bin is not installed and default config uses it.<br>"
+                       "Please switch to mount.cifs as described in documentation "
+                       "<a href='{doc}'>{doc}</a> "
+                       "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
 
 
 def cifs_uncache_is_mounted(mount):

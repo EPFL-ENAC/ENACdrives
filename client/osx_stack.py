@@ -3,6 +3,7 @@
 # Bancal Samuel
 
 # Offers Mac OSX stack for :
+# + os_check
 # + cifs_is_mount
 # + cifs_mount
 # + cifs_post_mount
@@ -22,6 +23,13 @@ class OSX_CONST():
     
     CMD_MOUNT_SMBFS = which("mount_smbfs")
     CMD_UMOUNT = which("umount")
+
+
+def os_check(ui):
+    """
+    Check that OS has all pre-requisite functionalities 
+    """
+    pass
 
 
 def cifs_uncache_is_mounted(mount):

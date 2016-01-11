@@ -13,6 +13,12 @@ import datetime
 import conf
 from utility import Output, CONST, Key_Chain, validate_username, Networks_Check, enacit1logs_notify, validate_release_number
 from cifs_mount import CIFS_Mount
+if CONST.OS_SYS == "Linux":
+    from lin_stack import os_check
+elif CONST.OS_SYS == "Windows":
+    from win_stack import os_check
+elif CONST.OS_SYS == "Darwin":
+    from osx_stack import os_check
 
 
 class CLI():
@@ -46,6 +52,8 @@ class CLI():
                 entry = CIFS_Mount(self, self.cfg, m_name, self.key_chain)
                 self.entries.append(entry)
                 self.cfg["CIFS_mount"][m_name]["entry"] = entry
+
+        os_check(self)
         
 
     def set_username(self, args):

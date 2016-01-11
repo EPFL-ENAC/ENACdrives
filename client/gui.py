@@ -12,8 +12,12 @@ from PyQt4 import QtGui, QtCore
 from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
 from cifs_mount import CIFS_Mount
 import conf
-if CONST.OS_SYS == "Windows":
-    from win_stack import WindowsLettersManager
+if CONST.OS_SYS == "Linux":
+    from lin_stack import os_check
+elif CONST.OS_SYS == "Windows":
+    from win_stack import WindowsLettersManager, os_check
+elif CONST.OS_SYS == "Darwin":
+    from osx_stack import os_check
 
 
 class Unsupported_OS(QtGui.QHBoxLayout):
@@ -321,6 +325,8 @@ class GUI(QtGui.QMainWindow):
             self.last_refresh_dt = now
             self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
 
+            os_check(self)
+            
             if CONST.OS_SYS == "Darwin":
                 self.setContentsMargins(2, 2, 2, 2)
                 self.vbox_layout.setSpacing(0)

@@ -3,6 +3,7 @@
 # Bancal Samuel
 
 # Offers Windows stack for :
+# + os_check
 # + cifs_is_mount
 # + cifs_mount
 # + cifs_post_mount
@@ -21,6 +22,13 @@ from utility import Output, CancelOperationException, debug_send, NonBlockingQtP
 
 class WIN_CONST():
     CMD_OPEN = "explorer {path}"
+
+
+def os_check(ui):
+    """
+    Check that OS has all pre-requisite functionalities 
+    """
+    pass
 
 
 def cifs_uncache_is_mounted(mount):
