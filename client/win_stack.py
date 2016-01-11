@@ -17,7 +17,7 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import Output, CancelOperationException, debug_send, NonBlockingQtProcess
+from utility import CONST, Output, CancelOperationException, debug_send, NonBlockingQtProcess
 
 
 class WIN_CONST():
@@ -28,7 +28,10 @@ def os_check(ui):
     """
     Check that OS has all pre-requisite functionalities 
     """
-    pass
+    if (CONST.OS_DISTRIB == "Microsoft" and
+            CONST.OS_SYS == "Windows" and
+            CONST.OS_VERSION == "XP"):
+        ui.notify_user("We're sorry but ENACdrives is not supported on Windows XP. See <a href='{}'>full documentation</a>.".format(CONST.DOC_URL))
 
 
 def cifs_uncache_is_mounted(mount):

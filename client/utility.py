@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2016.01.11"
-    VERSION = "1.0.35"
+    VERSION = "1.0.36"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
@@ -222,12 +222,17 @@ class Output():
         if (CONST.OS_SYS == "Windows" and
            getattr(sys, 'frozen', False)):
             # Windows frozen application
-            for f_name in (
-                CONST.RESOURCES_DIR + "\\execution_output.txt",
-                os.environ["LOCALAPPDATA"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Local
-                os.environ["APPDATA"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Roaming
-                os.environ["TEMP"] + "\\ENACdrives\\execution_output.txt",  # Goes to AppData\Local\Temp
-            ):
+            locations = [CONST.RESOURCES_DIR + "\\execution_output.txt",]
+            for env_var in ("LOCALAPPDATA", "APPDATA", "TEMP"):
+                # os.environ["LOCALAPPDATA"]  Goes to AppData\Local
+                # os.environ["APPDATA"]  Goes to AppData\Roaming
+                # os.environ["TEMP"]  Goes to AppData\Local\Temp
+                try:
+                    locations.append(os.environ[env_var] + "\\ENACdrives\\execution_output.txt")
+                except KeyError:
+                    # LOCALAPPDATA doesn't exist on Win XP
+                    pass
+            for f_name in locations:
                 try:
                     parent = os.path.dirname(f_name)
                     if not os.path.exists(parent):

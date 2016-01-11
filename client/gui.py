@@ -264,73 +264,65 @@ class GUI(QtGui.QMainWindow):
 
         now = datetime.datetime.now()
         
-        if (CONST.OS_DISTRIB == "Microsoft" and
-           CONST.OS_SYS == "Windows" and
-           CONST.OS_VERSION == "XP"):
-            error_label = Unsupported_OS("Windows XP")
-            central_widget = QtGui.QWidget()
-            central_widget.setLayout(error_label)
-            self.setCentralWidget(central_widget)
-        else:
-            self.key_chain = Key_Chain(self)
-            if CONST.OS_SYS == "Windows":
-                self.windows_letter_manager = WindowsLettersManager()
+        self.key_chain = Key_Chain(self)
+        if CONST.OS_SYS == "Windows":
+            self.windows_letter_manager = WindowsLettersManager()
 
-            self.networks_check = None  # set in load_config
-            self.cfg = None  # set in load_config
-            self.entries_layer = QtGui.QVBoxLayout()
-            self.entries = []
-            self.load_config()
+        self.networks_check = None  # set in load_config
+        self.cfg = None  # set in load_config
+        self.entries_layer = QtGui.QVBoxLayout()
+        self.entries = []
+        self.load_config()
 
-            self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
+        self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
 
-            self.vbox_layout = QtGui.QVBoxLayout()
-            if not validate_release_number():
-                self.vbox_layout.addWidget(UI_Download_New_Release())
-            self.vbox_layout.addWidget(self.username_box)
-            self.vbox_layout.addWidget(HLine())
-            self.vbox_layout.addLayout(self.entries_layer)
+        self.vbox_layout = QtGui.QVBoxLayout()
+        if not validate_release_number():
+            self.vbox_layout.addWidget(UI_Download_New_Release())
+        self.vbox_layout.addWidget(self.username_box)
+        self.vbox_layout.addWidget(HLine())
+        self.vbox_layout.addLayout(self.entries_layer)
 
-            # File > Quit
-            quit_action = QtGui.QAction("&Quit", self)
-            quit_action.setShortcut("Ctrl+Q")
-            quit_action.setStatusTip("Quit ENACdrives")
-            quit_action.triggered.connect(QtGui.qApp.quit)
-            # Help > About
-            about_action = QtGui.QAction("&About", self)
-            about_action.setShortcut("Ctrl+?")
-            about_action.setStatusTip("About ENACdrives")
-            about_action.triggered.connect(self.show_about)
-            # Help > Documentation
-            doc_action = QtGui.QAction("Web &documentation", self)
-            # doc_action.setShortcut("Ctrl+?")
-            doc_action.setStatusTip("ENACdrives web documentation")
-            doc_action.triggered.connect(self.show_web_documentation)
+        # File > Quit
+        quit_action = QtGui.QAction("&Quit", self)
+        quit_action.setShortcut("Ctrl+Q")
+        quit_action.setStatusTip("Quit ENACdrives")
+        quit_action.triggered.connect(QtGui.qApp.quit)
+        # Help > About
+        about_action = QtGui.QAction("&About", self)
+        about_action.setShortcut("Ctrl+?")
+        about_action.setStatusTip("About ENACdrives")
+        about_action.triggered.connect(self.show_about)
+        # Help > Documentation
+        doc_action = QtGui.QAction("Web &documentation", self)
+        # doc_action.setShortcut("Ctrl+?")
+        doc_action.setStatusTip("ENACdrives web documentation")
+        doc_action.triggered.connect(self.show_web_documentation)
 
-            menubar = self.menuBar()
-            file_menu = menubar.addMenu("&File")
-            file_menu.addAction(quit_action)
-            help_menu = menubar.addMenu("&Help")
-            help_menu.addAction(about_action)
-            help_menu.addAction(doc_action)
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu("&File")
+        file_menu.addAction(quit_action)
+        help_menu = menubar.addMenu("&Help")
+        help_menu.addAction(about_action)
+        help_menu.addAction(doc_action)
 
-            central_widget = QtGui.QWidget()
-            central_widget.setLayout(self.vbox_layout)
-            self.setCentralWidget(central_widget)
-            self.set_tab_order()
+        central_widget = QtGui.QWidget()
+        central_widget.setLayout(self.vbox_layout)
+        self.setCentralWidget(central_widget)
+        self.set_tab_order()
 
-            self.refresh_timer = QtCore.QTimer()
-            self.refresh_timer.timeout.connect(self._refresh_entries)
-            self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
-            self.last_refresh_dt = now
-            self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
+        self.refresh_timer = QtCore.QTimer()
+        self.refresh_timer.timeout.connect(self._refresh_entries)
+        self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
+        self.last_refresh_dt = now
+        self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
 
-            os_check(self)
-            
-            if CONST.OS_SYS == "Darwin":
-                self.setContentsMargins(2, 2, 2, 2)
-                self.vbox_layout.setSpacing(0)
-                self.vbox_layout.setContentsMargins(0, 0, 0, 0)
+        os_check(self)
+        
+        if CONST.OS_SYS == "Darwin":
+            self.setContentsMargins(2, 2, 2, 2)
+            self.vbox_layout.setSpacing(0)
+            self.vbox_layout.setContentsMargins(0, 0, 0, 0)
         self.setGeometry(300, 300, 200, 100)
         self.setWindowTitle("ENACdrives")
         self.setWindowIcon(QtGui.QIcon(CONST.ENACDRIVES_PNG))
