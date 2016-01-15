@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 EXPECTED_ADMINS = (
     "bancal",
     "bonjour",
+    "dameylan",
     "nepa",
     "pdejesus",
 )
