@@ -26,7 +26,7 @@ class Unsupported_OS(QtGui.QHBoxLayout):
         super(Unsupported_OS, self).__init__()
         error_png = QtGui.QLabel()
         error_png.setGeometry(0, 0, 48, 48)
-        error_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
+        error_png.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG_48))
         label = QtGui.QLabel(
             "We're sorry but ENACdrives is not supported on {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
             openExternalLinks=True)
@@ -43,12 +43,34 @@ class UI_Download_New_Release(QtGui.QWidget):
         hlayout = QtGui.QHBoxLayout()
         warning_png = QtGui.QLabel()
         warning_png.setGeometry(0, 0, 48, 48)
-        warning_png.setPixmap(QtGui.QPixmap(CONST.RELEASE_WARNING_PNG))
+        warning_png.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG_48))
         label = QtGui.QLabel(CONST.NEED_TO_UPDATE_MSG, openExternalLinks=True)
         # label.setStyleSheet("QLabel {color : red;}")
-        hlayout.addStretch(1)
         hlayout.addWidget(warning_png)
         hlayout.addWidget(label)
+        hlayout.addStretch(1)
+        self.setLayout(hlayout)
+
+class UI_Msg(QtGui.QWidget):
+
+    ICONS = {
+        "none": CONST.MSG_PNG_48,
+        "info": CONST.INFO_PNG_48,
+        "warning": CONST.WARNING_PNG_48,
+        "critical": CONST.CRITICAL_PNG_48,
+    }
+    def __init__(self, text, icon):
+        super(UI_Msg, self).__init__()
+
+        hlayout = QtGui.QHBoxLayout()
+        icon_png = QtGui.QLabel()
+        icon_png.setGeometry(0, 0, 48, 48)
+        icon_png.setPixmap(QtGui.QPixmap(UI_Msg.ICONS.get(icon, "transp")))
+        label = QtGui.QLabel(text, openExternalLinks=True)
+        # label.setStyleSheet("QLabel {color : red;}")
+        hlayout.addWidget(icon_png)
+        hlayout.addWidget(label)
+        hlayout.addStretch(1)
         self.setLayout(hlayout)
 
 
@@ -203,7 +225,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
 
         # Output.debug("gui.toggle_mount")
         self.mount_instance.is_mounted(_cb)
-        
+
     def update_status(self):
         def _cb(is_mounted):
             if is_mounted:
@@ -235,12 +257,12 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
                 network_present = False
                 self.bt_mount.setEnabled(False)
                 self.bt_open.setEnabled(False)
-        
+
         if network_present:
             if CONST.OS_SYS != "Windows" or self.win_letter.currentText() != "":
                 self.bt_mount.setEnabled(True)
             self.mount_instance.is_mounted(_cb)
-        
+
     def destroy(self):
         """
             This Mount_Entry has to be deleted.
@@ -263,7 +285,7 @@ class GUI(QtGui.QMainWindow):
         super(GUI, self).__init__()
 
         now = datetime.datetime.now()
-        
+
         self.key_chain = Key_Chain(self)
         if CONST.OS_SYS == "Windows":
             self.windows_letter_manager = WindowsLettersManager()
@@ -279,6 +301,8 @@ class GUI(QtGui.QMainWindow):
         self.vbox_layout = QtGui.QVBoxLayout()
         if not validate_release_number():
             self.vbox_layout.addWidget(UI_Download_New_Release())
+        for msg in self.cfg["msg"]:
+            self.vbox_layout.addWidget(UI_Msg(self.cfg["msg"][msg]["text"], self.cfg["msg"][msg]["icon"]))
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.entries_layer)
@@ -318,7 +342,7 @@ class GUI(QtGui.QMainWindow):
         self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
 
         os_check(self)
-        
+
         if CONST.OS_SYS == "Darwin":
             self.setContentsMargins(2, 2, 2, 2)
             self.vbox_layout.setSpacing(0)

@@ -176,6 +176,20 @@ Linux_mountcifs_dirmode = 0770
 Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 Linux_gvfs_symlink = true
 
+[msg]
+name = one msg to show up
+text = Hello user
+icon = info
+
+[msg]
+name = second msg to show up
+text = Be careful!
+icon = warning
+
+[msg]
+name = 3rd msg
+text = third with no icon
+
 [network]
 name = Internet
 ping = www.epfl.ch
@@ -273,7 +287,11 @@ Windows_letter = Z:
                  'realm': {
                   'EPFL': {
                    'domain': 'INTRANET',
-                   'username': 'bancal'}}}
+                   'username': 'bancal'}},
+                 'msg': {
+                  'one msg to show up': {'icon': 'info', 'text': 'Hello user'},
+                  'second msg to show up': {'icon': 'warning', 'text': 'Be careful!'},
+                  '3rd msg': {'text': 'third with no icon'}},}
             )
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
@@ -493,6 +511,26 @@ class TestValidateConfig(unittest.TestCase):
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [])
 
+    def test_incomplete_msg1(self):
+        cfg = {"msg": {"1st": {"no-text": "bla"}}}
+        cfg_expected = {"msg": {}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [
+                "ERROR: expected 'text' option in msg section.\n",
+                "ERROR: Removing incomplete msg '1st'.\n"])
+
+    def test_incomplete_msg2(self):
+        cfg = {"msg": {"1st": {"text": "bla"}}}
+        cfg_expected = {"msg": {"1st": {"text": "bla", "icon": "none"}}}
+        s_out = io.StringIO("")
+        with Output(dest=s_out):
+            self.assertEqual(validate_config(cfg), cfg_expected)
+            s_out.seek(0)
+            self.assertEqual(s_out.readlines(), [])
+
     def test_complete_config(self):
         self.maxDiff = None
         cfg = {'CIFS_mount': {
@@ -557,6 +595,10 @@ Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 Linux_gvfs_symlink = true
 require_network = EPFL-Intranet
 realm = EPFL-AD
+
+[msg]
+name = simple message
+text = this is a message
 
 [realm]
 name = EPFL-AD
@@ -634,7 +676,8 @@ unc = \\files9.epfl.ch\data\bancal
                'realm': {
                 'EPFL-AD': {
                  'domain': 'INTRANET',
-                 'username': 'bancal'}}}
+                 'username': 'bancal'}},
+                'msg': {'simple message': {'icon': 'none', 'text': 'this is a message'}}}
 
         s_out = io.StringIO("")
         with Output(dest=s_out):
@@ -647,7 +690,12 @@ class TestMergeConfigs(unittest.TestCase):
     def test_empty(self):
         cfg = {}
         cfg_to_merge = {}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': []}, 'realm': {}, 'network': {}}
+        expected_cfg = {
+            'CIFS_mount': {},
+            'global': {'entries_order': []},
+            'realm': {},
+            'network': {},
+            'msg': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -657,7 +705,12 @@ class TestMergeConfigs(unittest.TestCase):
     def test_yes_no(self):
         cfg = {'global': {'entries_order': ["a", "b"]}}
         cfg_to_merge = {}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}, 'network': {}}
+        expected_cfg = {
+            'CIFS_mount': {},
+            'global': {'entries_order': ["a", "b"]},
+            'realm': {},
+            'network': {},
+            'msg': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -667,7 +720,12 @@ class TestMergeConfigs(unittest.TestCase):
     def test_no_yes(self):
         cfg = {}
         cfg_to_merge = {'global': {'entries_order': ["a", "b"]}}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["a", "b"]}, 'realm': {}, 'network': {}}
+        expected_cfg = {
+            'CIFS_mount': {},
+            'global': {'entries_order': ["a", "b"]},
+            'realm': {},
+            'network': {},
+            'msg': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)
@@ -677,7 +735,12 @@ class TestMergeConfigs(unittest.TestCase):
     def test_yes_yes(self):
         cfg = {'global': {'entries_order': ["a", "b", "c", "d"]}}
         cfg_to_merge = {'global': {'entries_order': ["c", "a"]}}
-        expected_cfg = {'CIFS_mount': {}, 'global': {'entries_order': ["c", "a", "b", "d"]}, 'realm': {}, 'network': {}}
+        expected_cfg = {
+            'CIFS_mount': {},
+            'global': {'entries_order': ["c", "a", "b", "d"]},
+            'realm': {},
+            'network': {},
+            'msg': {}}
         s_out = io.StringIO("")
         with Output(dest=s_out):
             self.assertEqual(merge_configs(cfg, cfg_to_merge), expected_cfg)

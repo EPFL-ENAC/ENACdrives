@@ -27,16 +27,16 @@ class CLI():
     def __init__(self, args):
         self.args = args
         self.key_chain = Key_Chain(self)
-        
+
         self.returncode = None
-        
+
         self.set_username(args)
         self.cfg = conf.get_config()
         Output.verbose(pprint.pformat(self.cfg))
-        
+
         self.networks_check = Networks_Check(self.cfg, self)
         self.networks_check.scan()
-        
+
         self.entries = []
         already_added = []
         for m_name in self.cfg["global"].get("entries_order", ()):
@@ -54,7 +54,7 @@ class CLI():
                 self.cfg["CIFS_mount"][m_name]["entry"] = entry
 
         os_check(self)
-        
+
 
     def set_username(self, args):
         if args.username is not None:
@@ -74,9 +74,10 @@ class CLI():
 
     def run(self):
         enacit1logs_notify(self)
+        self.show_msgs()
         if self.returncode is not None:
             return self.returncode
-        
+
         if self.args.add_bookmark is not None:
             self.execution_status(0)
             for m_name in self.args.add_bookmark:
@@ -105,7 +106,7 @@ class CLI():
             self.execution_status(0)
             self.show_summary()
             return self.returncode
-        
+
         which_entries = []
         if self.args.all:
             self.execution_status(0)
@@ -124,11 +125,11 @@ class CLI():
             for entry in self.entries:
                 if entry.settings["bookmark"]:
                     which_entries.append(entry)
-        
+
         if len(which_entries) == 0 and self.args.username is None:
             self.execution_status(1)
             Output.warning("No entry selected to (u)mount.")
-        
+
         expected_status = {}
         if self.args.umount:
             umount_list = []
@@ -186,7 +187,7 @@ class CLI():
             },
         }
         display_mode = "unicode"  # may be switched to "ascii" if necessary
-        
+
         def is_bookmarked(entry):
             if entry.settings["bookmark"]:
                 return "\033[01;33m{}\033[00m".format(special_chars[display_mode]["stared"])
@@ -226,7 +227,7 @@ class CLI():
                 Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
             except UnicodeEncodeError:  # UnicodeEncodeError: 'ascii' codec can't encode character '\u2717' in position 86: ordinal not in range(128)
                 display_mode = "ascii"
-                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))            
+                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
         if len(self.entries) == 0:
             Output.cli("No entry found.")
         if self.cfg["global"].get("username") is None:
@@ -240,11 +241,25 @@ class CLI():
         else:
             Output.cli("Please type '{}' password".format(realm))
         return getpass.getpass()
-    
+
     def notify_user(self, msg):
         # For CIFS_Mount
         Output.cli("Notify_user: " + msg)
 
+    def show_msgs(self):
+        for msg in self.cfg["msg"]:
+            pre = " "
+            post = ""
+            if self.cfg["msg"][msg]["icon"] == "info":
+                pre = "\033[01;37m -> INFO: "
+                post = " <-\033[00m"
+            if self.cfg["msg"][msg]["icon"] == "warning":
+                pre = "\033[01;33m !! WARNING: "
+                post = " !!\033[00m"
+            if self.cfg["msg"][msg]["icon"] == "critical":
+                pre = "\033[01;31m !!! CRITICAL: "
+                post = " !!!\033[00m"
+            Output.cli(pre + self.cfg["msg"][msg]["text"] + post)
 
 def main_CLI(args):
     Output.verbose("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
@@ -257,7 +272,7 @@ def main_CLI(args):
     Output.debug("HOME_DIR:" + CONST.HOME_DIR)
     Output.debug("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
     Output.debug("RESOURCES_DIR:" + CONST.RESOURCES_DIR + "\n")
-    
+
     if not validate_release_number():
         Output.warning(CONST.NEED_TO_UPDATE_MSG)
     if args.version:
@@ -265,4 +280,3 @@ def main_CLI(args):
         sys.exit(0)
     ui = CLI(args)
     sys.exit(ui.run())
-    

@@ -70,12 +70,12 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2016.01.11"
-    VERSION = "1.0.36"
+    VERSION_DATE = "2016.04.22"
+    VERSION = "1.1.0"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "http://enacit.epfl.ch/enacdrives"
-    
+
     OS_SYS = platform.system()
     if sys.maxsize > 2**64:
         ARCH_BITS = "128bit"
@@ -93,7 +93,7 @@ class CONST():
     URL_TIMEOUT = 2
     PROC_TIMEOUT = 2
     CIFS_TIMEOUT = 1
-    
+
     GUI_FOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=3)
     GUI_FOCUS_LOST_STILL_FULL_REFRESH = datetime.timedelta(seconds=30)
     GUI_NOFOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=30)
@@ -196,7 +196,10 @@ class CONST():
     BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
     BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
     WARNING_PNG = RESOURCES_DIR + "/warning.png"
-    RELEASE_WARNING_PNG = RESOURCES_DIR + "/warning_48.png"
+    MSG_PNG_48 = RESOURCES_DIR + "/msg_48.png"
+    INFO_PNG_48 = RESOURCES_DIR + "/info_48.png"
+    WARNING_PNG_48 = RESOURCES_DIR + "/warning_48.png"
+    CRITICAL_PNG_48 = RESOURCES_DIR + "/critical_48.png"
 
 
 class Output():
@@ -205,7 +208,7 @@ class Output():
         "verbose": {"prefix": "", "rank": 4},  # -v
         "normal": {"prefix": "", "rank": 3},  # default for Linux GUI
         "cli": {"prefix": "", "rank": 2},  # default for Linux CLI
-        "warning": {"prefix": "WARNING: ", "rank": 1},  
+        "warning": {"prefix": "WARNING: ", "rank": 1},
         "error": {"prefix": "ERROR: ", "rank": 0},
     }
 
@@ -313,10 +316,10 @@ def enacit1logs_notify(ui):
             )
         except enacit1logs.SendLogException as e:
             Output.warning("Could not notify enacit1logs")
-    
+
     def _finished(answer):
         pass
-    
+
     if ui.UI_TYPE == "GUI":
         NonBlockingQtThread(
             "enacit1logs_notify",
@@ -395,23 +398,23 @@ class Key_Chain():
 
 class Networks_Check():
     MAX_NO_PING_SECONDS = datetime.timedelta(seconds=45)
-    
+
     def __init__(self, cfg, ui):
         now = datetime.datetime.now()
-        
+
         self.ui = ui
         if self.ui.UI_TYPE == "GUI":
             default_status = True
         else:
             default_status = None
-        
+
         # Output.debug("Networks_Check.__init__ {}".format(cfg))
         self.networks = {}
         self.hosts_status = {
             "ping": {},
             "cifs": {},
         }
-        
+
         for net in cfg.get("network", []):
             self.networks[net] = {
                 "parent": cfg["network"][net].get("parent"),
@@ -615,7 +618,7 @@ class BlockingProcess():
             cached = BlockingProcess.check_in_cache(name)
             if cached["found"]:
                 return cached["answer"]
-        
+
         proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         try:
             outs, errs = proc.communicate(timeout = CONST.PROC_TIMEOUT)
@@ -632,7 +635,7 @@ class BlockingProcess():
         if cache:
             BlockingProcess.save_in_cache(name, answer)
         return answer
-        
+
 
     @classmethod
     def check_in_cache(cls, name):
@@ -659,7 +662,7 @@ class BlockingProcess():
             "expire_dt": datetime.datetime.now() + BlockingProcess.CACHE_DURATION,
             "answer": answer,
         }
-    
+
     @classmethod
     def invalidate_cmd_cache(cls, cmd):
         try:
@@ -672,11 +675,11 @@ class BlockingProcess():
         except (KeyError, AttributeError):
             pass
 
-        
+
 
 class NonBlockingQtProcess(QtCore.QProcess):
     CACHE_DURATION = datetime.timedelta(seconds=1)
-    
+
     def __init__(self, cmd, cb, env=None, cb_extra_args=None, cache=False):
         super(NonBlockingQtProcess, self).__init__()
         name = ".".join(cmd)
@@ -685,22 +688,22 @@ class NonBlockingQtProcess(QtCore.QProcess):
         self.cb_extra_args = cb_extra_args
         self.cache = cache
         self.output = ""
-        
+
         if cache:
             if NonBlockingQtProcess.answer_if_in_cache(name, self, cb):
                 return
-        
+
         if not NonBlockingQtProcess.register_process(name, self, cb):
             return  # A process is already running. cb will be called
         self.finished.connect(self._finished)
         self.readyReadStandardOutput.connect(self._readyReadStandardOutput)
-        
+
         if env is not None:
             proc_env = QtCore.QProcessEnvironment()
             for k, v in env.items():
                 proc_env.insert(k, v)
             self.setProcessEnvironment(proc_env)
-        
+
         self.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.start(" ".join(self.cmd), QtCore.QIODevice.ReadOnly)
 
@@ -708,7 +711,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
         out = self.readAll()
         out = bytes_decode(bytes(out))
         self.output += out
-        
+
     def _finished(self, exit_code, exit_status):
         success = (exit_status == 0 and exit_code == 0)
         out = self.readAll()
@@ -766,7 +769,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
                 cb(success, output, exit_code)
             else:
                 cb(success, output, exit_code, **cb_extra_args)
-    
+
     @classmethod
     def answer_if_in_cache(cls, name, instance, cb):
         try:
@@ -796,7 +799,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
             pass
         # print("answer_if_in_cache {} : not found".format(name))
         return False
-    
+
     @classmethod
     def invalidate_cmd_cache(cls, cmd):
         name = ".".join(cmd)
@@ -817,7 +820,7 @@ class NonBlockingQtThread(QtCore.QThread):
             return  # A thread is already running. cb will be called
         self.finished.connect(self._finished)
         self.start()
-    
+
     def run(self):
         # time.sleep(6)  # Make heavy delay tests
         if self.target_extra_args is None:
@@ -825,10 +828,10 @@ class NonBlockingQtThread(QtCore.QThread):
         else:
             answer = self.target(**self.target_extra_args)
         NonBlockingQtThread.save_answer(self.name, answer)
-    
+
     def _finished(self):
         NonBlockingQtThread.notify_cb(self.name)
-    
+
     @classmethod
     def register_thread(cls, name, instance, cb, cb_extra_args):
         try:
@@ -893,7 +896,7 @@ class NonBlockingThread(threading.Thread):
         if not NonBlockingThread.register_thread(name, self, cb, cb_extra_args):
             return  # A thread is already running. cb will be called
         self.start()
-    
+
     def run(self):
         # time.sleep(6)  # Make heavy delay tests
         if self.target_extra_args is None:
@@ -902,7 +905,7 @@ class NonBlockingThread(threading.Thread):
             answer = self.target(**self.target_extra_args)
         NonBlockingThread.save_answer(self.name, answer)
         NonBlockingThread.notify_cb(self.name)
-    
+
     @classmethod
     def register_thread(cls, name, instance, cb, cb_extra_args):
         try:

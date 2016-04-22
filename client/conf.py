@@ -61,7 +61,7 @@ def get_config():
             Output.normal("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
     except FileNotFoundException:
         Output.normal("Username not found in User context. ({})".format(CONST.USER_CONF_FILE))
-    
+
     if username is None:
         if CONST.AD_USERNAME is not None:
             username = CONST.AD_USERNAME
@@ -383,6 +383,12 @@ def merge_configs(cfg, cfg_to_merge):
         cfg["network"].setdefault(net, {})
         cfg["network"][net].update(cfg_to_merge["network"][net])
 
+    # merge ["msg"]
+    cfg.setdefault("msg", {})
+    for msg in cfg_to_merge.get("msg", {}):
+        cfg["msg"].setdefault(msg, {})
+        cfg["msg"][msg].update(cfg_to_merge["msg"][msg])
+
     return cfg
 
 
@@ -410,6 +416,9 @@ def validate_value(option, value):
             value = value.upper()
             if not re.match(r"[A-Z]:$", value):
                 raise ConfigException("Error, Windows drive letter has to be empty or a letter formated like 'Z:'.")
+    elif option == "icon":
+        if value not in ("none", "info", "warning", "critical"):
+            raise ConfigException("Error, inknown icon type '{}'. Should be one of none, info, warning, critical".format(value))
     return value
 
 
@@ -423,13 +432,18 @@ def read_config_source(src):
             Linux_mountcifs_dirmode = 0770
             Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
             Linux_gvfs_symlink = true
-            
+
+            [msg]
+            name = name this msg
+            text = This is a warning notification
+            icon = warning
+
             [network]
             name = Internet
             ping = www.epfl.ch
             ping = enacit.epfl.ch
             error_msg = Error, you are not connected to the network. You won't be able to mount this resource.
-            
+
             [network]
             name = Epfl
             parent = Internet
@@ -524,7 +538,7 @@ def read_config_source(src):
         except KeyError:
             Output.error("Expected name option not found at line {}. Skipping that section.".format(section_line_nb))
 
-    multi_entries_sections = ("CIFS_mount", "realm", "network")
+    multi_entries_sections = ("msg", "CIFS_mount", "realm", "network")
     allowed_options = {
         "global": (
             "username",
@@ -536,6 +550,11 @@ def read_config_source(src):
             "Linux_mountcifs_dirmode",
             "Linux_mountcifs_options",
             "Linux_gvfs_symlink",
+        ),
+        "msg": (
+            "name",
+            "text",
+            "icon",
         ),
         "CIFS_mount": (
             "name",
@@ -674,17 +693,18 @@ def validate_config(cfg):
     invalid_cifs_m = []
     invalid_realm = []
     invalid_network = []
+    invalid_msg = []
     expected_realms = {}
     expected_networks_by_CIFS_m = {}
     for m_name in cfg.get("CIFS_mount", {}):
         # If not defined, deduct local_path from m_name
         if "local_path" not in cfg["CIFS_mount"][m_name]:
             cfg["CIFS_mount"][m_name]["local_path"] = "{MNT_DIR}/" + m_name
-        
+
         # If not defined, deduct label from m_name
         if "label" not in cfg["CIFS_mount"][m_name]:
             cfg["CIFS_mount"][m_name]["label"] = m_name
-        
+
         # If specified, extract server_name and server_path from unc
         if "unc" in cfg["CIFS_mount"][m_name]:
             m = re.match(r"[\\/]{2}([^\\/]+)[\\/](.*)$", cfg["CIFS_mount"][m_name]["unc"])
@@ -693,7 +713,7 @@ def validate_config(cfg):
                 cfg["CIFS_mount"][m_name]["server_path"] = m.group(2)
             else:
                 Output.error("unrecognized 'unc' option in CIFS_mount section ({}).".format(cfg["CIFS_mount"][m_name]["unc"]))
-        
+
         is_ok = (
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "label") and
             expect_option(cfg["CIFS_mount"][m_name], "CIFS_mount", "server_name") and
@@ -735,14 +755,14 @@ def validate_config(cfg):
             for m_name in expected_realms.get(realm, []):
                 Output.error("Removing CIFS_mount '{}' depending on realm '{}'.".format(m_name, realm))
                 invalid_cifs_m.append(m_name)
-    
+
     for net in expected_networks_by_CIFS_m:
         if net not in cfg.get("network", []):
             Output.error("Missing network '{}'.".format(net))
             for m_name in expected_networks_by_CIFS_m[net]:
                 Output.error("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
                 del(cfg["CIFS_mount"][m_name]["require_network"])
-                
+
     for net in cfg.get("network", []):
         is_ok = (
             (expect_option(cfg["network"][net], "network", "ping", alert=False) or
@@ -752,7 +772,7 @@ def validate_config(cfg):
         if not is_ok:
             Output.error("Removing incomplete network '{}'.".format(net))
             invalid_network.append(net)
-    
+
     had_change = True
     while had_change:
         had_change = False
@@ -763,10 +783,19 @@ def validate_config(cfg):
             if parent_network is None:
                 continue
             if (
-             parent_network in invalid_network or 
+             parent_network in invalid_network or
              parent_network not in cfg["network"]):
                 invalid_network.append(net)
                 had_change = True
+
+    for msg in cfg.get("msg", []):
+        is_ok = (
+            expect_option(cfg["msg"][msg], "msg", "text")
+        )
+        cfg["msg"][msg].setdefault("icon", "none")
+        if not is_ok:
+            Output.error("Removing incomplete msg '{}'.".format(msg))
+            invalid_msg.append(msg)
 
     for m_name in invalid_cifs_m:
         del(cfg["CIFS_mount"][m_name])
@@ -779,6 +808,9 @@ def validate_config(cfg):
         for m_name in expected_networks_by_CIFS_m.get(net, []):
             Output.error("Removing 'require_network' to CIFS_mount '{}'.".format(m_name))
             del(cfg["CIFS_mount"][m_name]["require_network"])
+
+    for msg in invalid_msg:
+        del(cfg["msg"][msg])
 
     return cfg
 
