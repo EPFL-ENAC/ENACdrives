@@ -18,7 +18,7 @@ export PACKAGE=enacdrives
 export SOFT="ENACdrives"
 export SHORT_SOFT_VER=$(python tell_version.py)
 export SOFT_VER=$(python tell_version.py)
-export PACKAGE_VER=1
+export PACKAGE_VER=2
 
 # Build a package - Content
 # -------------------------
@@ -33,11 +33,11 @@ build_deb (){
     echo "Now Building ${PACKAGE}_${SHORT_SOFT_VER}-${PACKAGE_VER}_${arch}.deb in ${DIR_DEB_CREATION}"
     echo "------------"
     echo
-    
+
     # Cleanup
     sudo rm -rf ${DIR_DEB_CREATION}
     mkdir -p ${DIR_DEB_CREATION}
-    
+
     # Content - Compile
     docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_${arch} python3 setup.py install --prefix=/enacdrives/deb_building/${PACKAGE}_${arch}/usr
     sudo chown -R sbancal\: ${DIR_DEB_CREATION}
@@ -57,7 +57,7 @@ build_deb (){
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/pixmaps/
     cp ~/Projects/enacdrives/graphics/enacdrives.svg ${DIR_DEB_CREATION}/usr/share/pixmaps/
-    
+
     # Content - /usr/share/applications/enacdrives.desktop
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/applications
     cat > ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop << %%%EOF%%%
@@ -73,7 +73,7 @@ Type=Application
 Categories=GNOME;GTK;System;
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop
-    
+
     # Content - /usr/share/doc/enacdrives/copyright
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}
@@ -106,7 +106,7 @@ Term of License:
     # https://lintian.debian.org/tags/unstripped-binary-or-object.html
     # https://github.com/vbatts/SlackBuilds/blob/master/cx_Freeze/cx_Freeze.SlackBuild
     find ${DIR_DEB_CREATION} -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
-    
+
     # FIX binary-or-shlib-defines-rpath on
     # + usr/lib/ENACdrives-1.0.23/PyQt4.QtCore.so
     # + usr/lib/ENACdrives-1.0.23/PyQt4.QtGui.so
@@ -129,8 +129,7 @@ Version: ${SOFT_VER}-${PACKAGE_VER}
 Architecture: ${arch}
 Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
 Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
-Depends: libc6 (>= 2.15), cifs-utils, libqtcore4, libqtgui4
-Suggests: gvfs-bin
+Depends: libc6 (>= 2.15), cifs-utils, libqtcore4, libqtgui4, gvfs-bin
 Replaces: mountfilers
 Section: misc
 Priority: optional
@@ -141,7 +140,7 @@ Description: EPFL, ENAC and units NAS directory
  (Linux/Windows/MacOSX) and the command line (Linux only).
 %%%EOF%%%
     chmod 644 ${DIR_DEB_CREATION}/DEBIAN/control
-    
+
     # Meta - DEBIAN/md5sums
     cd ${DIR_DEB_CREATION}
     find etc usr -type f -exec md5sum \{\} >> DEBIAN/md5sums \;
@@ -155,7 +154,7 @@ Description: EPFL, ENAC and units NAS directory
 
     # Package
     sudo chown -R root: ${DIR_DEB_CREATION}
-    tree -a ${DIR_DEB_CREATION} 
+    tree -a ${DIR_DEB_CREATION}
 
     cd ${DIR_DEB_CREATION}/..
 
