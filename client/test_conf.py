@@ -405,7 +405,7 @@ class TestValidateConfig(unittest.TestCase):
                  "r_name": {
                   "username": "u",
                   "domain": "d", }}}
-        cfg_expected = {"CIFS_mount": {}, 
+        cfg_expected = {"CIFS_mount": {},
                         "realm": {
                          "r_name": {
                           "username": "u",
@@ -429,7 +429,9 @@ class TestValidateConfig(unittest.TestCase):
         with Output(dest=s_out):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
-            self.assertEqual(s_out.readlines(), ["Missing realm 'r_name'.\n", "Removing CIFS_mount 'name' depending on realm 'r_name'.\n"])
+            self.assertEqual(s_out.readlines(), [
+                "ERROR: Missing realm 'r_name'.\n",
+                "ERROR: Removing CIFS_mount 'name' depending on realm 'r_name'.\n"])
 
     def test_incomplete_network(self):
         self.maxDiff = None
@@ -445,8 +447,8 @@ class TestValidateConfig(unittest.TestCase):
             self.assertEqual(validate_config(cfg), cfg_expected)
             s_out.seek(0)
             self.assertEqual(s_out.readlines(), [
-                "Error: expected 'ping' or 'cifs' option in network section.\n",
-                "Removing incomplete network 'Epfl'.\n"])
+                "ERROR: expected 'ping' or 'cifs' option in network section.\n",
+                "ERROR: Removing incomplete network 'Epfl'.\n"])
 
     def test_incomplete_dependency_network(self):
         cfg = {'network': {
@@ -542,7 +544,7 @@ class TestValidateConfig(unittest.TestCase):
 
 
 class TestReadAndValidateConfig(unittest.TestCase):
-    
+
     def test_complete_config(self):
         self.maxDiff = None
         s_in = io.StringIO(r"""
