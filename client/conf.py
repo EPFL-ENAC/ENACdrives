@@ -669,8 +669,10 @@ def read_config_source(src):
         save_current_section()
 
     if nb_unexpected_lines > (line_nb / 2):
-        Output.warning("Too many unexpected lines found. Skipping this source.")
+        Output.warning("Found {}/{} ({}%) unexpected lines. Skipping this source.".format(nb_unexpected_lines, line_nb, nb_unexpected_lines*100.0/line_nb))
         raise ConfigException("Too many unexpected lines found. Skipping this source.")
+    elif nb_unexpected_lines > 0:
+        Output.warning("Found {}/{} ({}%) unexpected lines.".format(nb_unexpected_lines, line_nb, nb_unexpected_lines*100.0/line_nb))
 
     return cfg
 
