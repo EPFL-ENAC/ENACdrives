@@ -113,18 +113,20 @@ MACOSX
 ======
 
 ~~~ bash
-alias to_macp="rsync -e 'ssh -p 2210' -avH --exclude venv_py3 --exclude __pycache__  ~/Projects/enacdrives/client/ bancal@localhost:enacdrives_client/"
+alias to_macp="rsync -e ssh -avH --exclude venv_py3 --exclude __pycache__  ~/Projects/enacdrives/client/ bancal@enac1mac2-NR:enacdrives_client/"
 to_macp
 ~~~
 
 ~~~ bash
-ssh -p 2210 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null bancal@localhost
+ssh enac1mac2-NR
 cd ~/enacdrives_client/
 rm -rf dist/*
 mv enacdrives.py ENACdrives.py
 python setup_osx.py py2app
 cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
 cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libpng16.16.dylib dist/ENACdrives.app/Contents/Resources/lib/
+cp /Users/bancal/anaconda/lib/libpng.dylib dist/ENACdrives.app/Contents/Resources/lib/
 ~~~
 
 Test ... and give it to IT3 for Packaging via http://enacshare.epfl.ch (with Safari ... so that app is sent without preparing a zip)

@@ -28,7 +28,7 @@ if __name__ == '__main__':
             "-s", "--summary",
             action="store_true",
             help="show Summary (drives list, status and mountpoints)\n ")
-        
+
         parser.add_argument(
             "-n", "--named",
             action="append",
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             "-u", "--umount",
             action="store_true",
             help="Unmount instead of mount (applies to -n -a -b)\n ")
-            
+
         parser.add_argument(
             "--add-bookmark",
             metavar="NAMED",
@@ -61,14 +61,14 @@ if __name__ == '__main__':
             action="count", default=0,
             help="increase Verbosity level (max is -vvv)")
         args = parser.parse_args()
-        
+
         # print("args: {}".format(args))
         if (args.summary or args.umount or args.all or args.named is not None or
            args.bookmarked or args.add_bookmark is not None or args.rm_bookmark is not None or
            args.username is not None or args.version):
             ui = "CLI"
             args.verbose -= 1
-        
+
         if args.verbose == -1:
             output_level = "cli"
         elif args.verbose == 0:
