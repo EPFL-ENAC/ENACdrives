@@ -44,7 +44,8 @@ def get_config():
          'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
         'CIFS_mount': {},
         'network': {},
-        'realm': {}
+        'realm': {},
+        'msg': {},
     }
     cfg = default_config
 
