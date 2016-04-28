@@ -13,3 +13,4 @@ deb_building/
 *.dmg
 *.deb
 *.credentials
+.vagrant/
