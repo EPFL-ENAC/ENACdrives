@@ -5,8 +5,8 @@
     Fabric file to deploy web_app enacdrives
     usage :
     $ pww
-    $ fab -H enacit1sbtest4 --password=${PASS} deploy
-    $ fab -H enacit1vm1 --password=${PASS} full_deploy
+    $ /home/sbancal/py/2/bin/fab -H enacit1sbtest4 full_deploy
+    $ /home/sbancal/py/2/bin/fab -H enacit1vm1 --password=${PASS} full_deploy
 """
 
 
@@ -16,23 +16,16 @@ from fabric.contrib.project import rsync_project
 from fabric.operations import sudo
 
 
-HOSTS = {
-    "enacit1sbtest4": "sbancal@enacit1sbtest4",
-    "enacit1vm1": "enacit1@enacit1vm1",
-}
-
-try:
-    env.hosts = [HOSTS[h] for h in env.hosts]
-except KeyError:
-    abort("""\
-Unknown host.
-Supported hosts are :
-{allowed_hosts}
-""".format(
-            allowed_hosts="\n".join(["+ '%s' for %s" % (k, HOSTS[k]) for k in HOSTS])
-        )
-    )
-
+if env.hosts[0] == "enacit1sbtest4":
+    env.hosts = ["vagrant@enacit1sbtest4",]
+    env.key_filename = "/home/sbancal/Projects/enacdrives/Vagrant/.vagrant/machines/enacit1sbtest4/virtualbox/private_key"
+elif env.hosts[0] == "enacit1vm1":
+    env.hosts = ["enacit1@enacit1vm1",]
+else:
+    abort("Unknown host.",
+          "Supported hosts are :",
+          "+ 'enacit1vm1' for enacit1@enacit1vm1",
+          "+ 'enacit1sbtest4' for vagrant@enacit1sbtest4")
 
 def sub(s):
     if env.host == "enacit1sbtest4":
@@ -127,7 +120,7 @@ def rsync():
     rsync_project(
         local_dir=sub("{local_dir}"),
         remote_dir=sub("{code_dir}"),
-        exclude=("*.sqlite", "/static/*", "*.pyc"),
+        exclude=("*.sqlite", "/static/*", "*.pyc", "venv3/"),
         delete=True,
     )
 
@@ -137,7 +130,7 @@ def rsync_n():
     rsync_project(
         local_dir=sub("{local_dir}"),
         remote_dir=sub("{code_dir}"),
-        exclude=("*.sqlite", "/static/*", "*.pyc"),
+        exclude=("*.sqlite", "/static/*", "*.pyc", "venv3/"),
         delete=True,
         extra_opts="-n"
     )

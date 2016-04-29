@@ -1,4 +1,5 @@
 *.sqlite
+*.sqlite3
 *.pyc
 venv3/
 activate
