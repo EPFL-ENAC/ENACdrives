@@ -14,3 +14,4 @@ deb_building/
 *.deb
 *.credentials
 .vagrant/
+secrets.sh
