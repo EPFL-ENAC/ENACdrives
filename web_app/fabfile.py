@@ -5,7 +5,7 @@
     Fabric file to deploy web_app enacdrives
     usage :
     $ pww
-    $ /home/sbancal/py/2/bin/fab -H enacit1sbtest4 full_deploy
+    $ /home/sbancal/py/2/bin/fab -H enacit1sbtest4 --password=${PASS} full_deploy
     $ /home/sbancal/py/2/bin/fab -H enacit1vm1 --password=${PASS} full_deploy
 """
 
@@ -17,15 +17,14 @@ from fabric.operations import sudo
 
 
 if env.hosts[0] == "enacit1sbtest4":
-    env.hosts = ["vagrant@enacit1sbtest4",]
-    env.key_filename = "/home/sbancal/Projects/enacdrives/Vagrant/.vagrant/machines/enacit1sbtest4/virtualbox/private_key"
+    env.hosts = ["sbancal@enacit1sbtest4",]
 elif env.hosts[0] == "enacit1vm1":
     env.hosts = ["enacit1@enacit1vm1",]
 else:
     abort("Unknown host.",
           "Supported hosts are :",
           "+ 'enacit1vm1' for enacit1@enacit1vm1",
-          "+ 'enacit1sbtest4' for vagrant@enacit1sbtest4")
+          "+ 'enacit1sbtest4' for sbancal@enacit1sbtest4")
 
 def sub(s):
     if env.host == "enacit1sbtest4":

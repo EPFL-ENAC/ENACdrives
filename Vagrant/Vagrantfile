@@ -82,7 +82,7 @@ Vagrant.configure(2) do |config|
     config.vm.define "enacit1sbtest4" do |enacit1sbtest4|
     	enacit1sbtest4.vm.box = "ubuntu/trusty64"
     	enacit1sbtest4.vm.provider "virtualbox" do |vb|
-            vb.name = "Vagrant - enacit1sbtest4"
+            vb.name = "enacit1sbtest4 - ENACdrives tests"
             vb.customize [
                 "modifyvm", :id,
                 "--groups", "/Vagrant"

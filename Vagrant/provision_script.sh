@@ -33,9 +33,14 @@ sed -i.bak 's/^XKBVARIANT=.*/XKBVARIANT="fr"/' /etc/default/keyboard
 sed -i.bak 's/^XKBOPTIONS=.*/XKBOPTIONS=""/' /etc/default/keyboard
 setupcon --force
 
+title2 "User sbancal"
+sudo groupadd sbancal
+sudo useradd -m -c "Bancal Samuel" -g sbancal -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,netdev -s /bin/bash sbancal
+usermod --password ${SBANCAL_SHADOW} sbancal
+
 title2 "SSH authorized keys"
-mkdir -p /root/.ssh
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu6bEzrBrGzoxdbgaAFhd2fPy6zhanEOMrS9TnOK9tct2HvvxCFNcEbc5XAl9mwXdDKU22BqOJHVCgSL7iURALSVVm76jeJO1bK5NAY+37KvtNwl3BwTebeKUdwr0Rq3QCVSbryuge3KOY+EtfSRweCbTe5llE1qu2kra+7FUgd00IC/uqsp9j8P7bzfOEFDDdHuNgXhNPB/B1fZs8lfdbaUa7oGZhoyG4A7tvfRxq4DaLnWL7C60Kqkay37E8p2GV5QayAH4BaHS8/3atT55UxzrTxlIcno3+Ge4XXxvDIuMqBHLmKFjapG0oMyWjnInton0e239QMhI6bYmseoMjw== Samuel.Bancal@epfl.ch' >> /root/.ssh/authorized_keys
+mkdir -p /home/sbancal/.ssh
+echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu6bEzrBrGzoxdbgaAFhd2fPy6zhanEOMrS9TnOK9tct2HvvxCFNcEbc5XAl9mwXdDKU22BqOJHVCgSL7iURALSVVm76jeJO1bK5NAY+37KvtNwl3BwTebeKUdwr0Rq3QCVSbryuge3KOY+EtfSRweCbTe5llE1qu2kra+7FUgd00IC/uqsp9j8P7bzfOEFDDdHuNgXhNPB/B1fZs8lfdbaUa7oGZhoyG4A7tvfRxq4DaLnWL7C60Kqkay37E8p2GV5QayAH4BaHS8/3atT55UxzrTxlIcno3+Ge4XXxvDIuMqBHLmKFjapG0oMyWjnInton0e239QMhI6bYmseoMjw== Samuel.Bancal@epfl.ch' >> /home/sbancal/.ssh/authorized_keys
 
 title2 "Setup to use mirror.switch.ch"
 sed -i -e "s/http:\\/\\/archive.ubuntu.com/http:\\/\\/mirror.switch.ch\\/ftp\\/mirror\\/ubuntu/g" /etc/apt/sources.list
@@ -115,7 +120,7 @@ apache2ctl -t -D DUMP_MODULES | grep tequila
 
 title2 "Install Django"
 mkdir -p /django_app
-chown vagrant\: /django_app
+chown sbancal\: /django_app
 apt-get -q -y install python-virtualenv python-pip python3-dev
 apt-get -q -y install libldap2-dev libsasl2-dev
 apt-get -q -y install libapache2-mod-xsendfile
