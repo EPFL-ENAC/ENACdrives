@@ -146,6 +146,16 @@ def admin_staff_setup():
 
 
 @task
+def loadconfig():
+    sudo(sub("{python} {code_dir}/manage.py loaddata {code_dir}/tools/enacdrives_config.json"), user="www-data")
+
+
+@task
+def dumpconfig():
+    sudo(sub("{python} {code_dir}/manage.py dumpdata config > /tmp/enacdrives_config.json"), user="www-data")
+
+
+@task
 def deploy():
     rsync()
     apache_reload()
