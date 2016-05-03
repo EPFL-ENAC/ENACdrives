@@ -18,7 +18,7 @@ export PACKAGE=enacdrives
 export SOFT="ENACdrives"
 export SHORT_SOFT_VER=$(python tell_version.py)
 export SOFT_VER=$(python tell_version.py)
-export PACKAGE_VER=2
+export PACKAGE_VER=1
 
 # Build a package - Content
 # -------------------------

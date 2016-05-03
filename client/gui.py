@@ -62,16 +62,25 @@ class UI_Msg(QtGui.QWidget):
     def __init__(self, text, icon):
         super(UI_Msg, self).__init__()
 
-        hlayout = QtGui.QHBoxLayout()
-        icon_png = QtGui.QLabel()
-        icon_png.setGeometry(0, 0, 48, 48)
-        icon_png.setPixmap(QtGui.QPixmap(UI_Msg.ICONS.get(icon, "transp")))
-        label = QtGui.QLabel(text, openExternalLinks=True)
-        # label.setStyleSheet("QLabel {color : red;}")
-        hlayout.addWidget(icon_png)
-        hlayout.addWidget(label)
-        hlayout.addStretch(1)
-        self.setLayout(hlayout)
+        self.hlayout = QtGui.QHBoxLayout()
+        self.icon_png = QtGui.QLabel()
+        self.icon_png.setGeometry(0, 0, 48, 48)
+        self.icon_png.setPixmap(QtGui.QPixmap(UI_Msg.ICONS.get(icon, "transp")))
+        self.label = QtGui.QLabel(text, openExternalLinks=True)
+        self.hlayout.addWidget(self.icon_png)
+        self.hlayout.addWidget(self.label)
+        self.hlayout.addStretch(1)
+        self.setLayout(self.hlayout)
+
+    def destroy(self):
+        """
+            This Msg has to be deleted.
+            Happens when switching username.
+        """
+        self.icon_png.setParent(None)
+        self.label.setParent(None)
+        self.hlayout.setParent(None)
+        self.setParent(None)
 
 
 class UI_Username_Box(QtGui.QWidget):
@@ -294,6 +303,8 @@ class GUI(QtGui.QMainWindow):
         self.cfg = None  # set in load_config
         self.entries_layer = QtGui.QVBoxLayout()
         self.entries = []
+        self.msgs_layout = QtGui.QVBoxLayout()
+        self.msgs = []
         self.load_config()
 
         self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
@@ -301,8 +312,7 @@ class GUI(QtGui.QMainWindow):
         self.vbox_layout = QtGui.QVBoxLayout()
         if not validate_release_number():
             self.vbox_layout.addWidget(UI_Download_New_Release())
-        for msg in self.cfg["msg"]:
-            self.vbox_layout.addWidget(UI_Msg(self.cfg["msg"][msg]["text"], self.cfg["msg"][msg]["icon"]))
+        self.vbox_layout.addLayout(self.msgs_layout)
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())
         self.vbox_layout.addLayout(self.entries_layer)
@@ -409,6 +419,10 @@ class GUI(QtGui.QMainWindow):
             entry.destroy()
         self.entries = []
 
+        for msg in self.msgs:
+            msg.destroy()
+        self.msgs = []
+
         # Instanciate new config objects
         entries_added = []
         for entry_name in self.cfg["global"].get("entries_order", ()):
@@ -427,6 +441,11 @@ class GUI(QtGui.QMainWindow):
 
         for entry in self.entries:
             self.entries_layer.addLayout(entry)
+
+        for msg in self.cfg["msg"]:
+            msg_item = UI_Msg(self.cfg["msg"][msg]["text"], self.cfg["msg"][msg]["icon"])
+            self.msgs.append(msg_item)
+            self.msgs_layout.addWidget(msg_item)
 
     def set_tab_order(self):
         widgets_ordered = self.username_box.get_widgets_order()
