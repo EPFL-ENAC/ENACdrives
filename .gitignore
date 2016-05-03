@@ -15,6 +15,7 @@ deb_building/
 *.deb
 *.credentials
 .vagrant/
+Vagrant/etc/ssh/
 secrets.sh
 settings_enacit1sbtest4.py
 settings_enacit1vm1.py

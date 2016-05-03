@@ -45,6 +45,16 @@ echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAu6bEzrBrGzoxdbgaAFhd2fPy6zhanEOMrS9TnO
 title2 "Setup to use mirror.switch.ch"
 sed -i -e "s/http:\\/\\/archive.ubuntu.com/http:\\/\\/mirror.switch.ch\\/ftp\\/mirror\\/ubuntu/g" /etc/apt/sources.list
 
+title2 "SSH server keys"
+install -o root -g root -m 644 /vagrant/etc/ssh/ssh_host_dsa_key.pub /etc/ssh
+install -o root -g root -m 600 /vagrant/etc/ssh/ssh_host_dsa_key /etc/ssh
+install -o root -g root -m 644 /vagrant/etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh
+install -o root -g root -m 600 /vagrant/etc/ssh/ssh_host_ecdsa_key /etc/ssh
+install -o root -g root -m 644 /vagrant/etc/ssh/ssh_host_ed25519_key.pub /etc/ssh
+install -o root -g root -m 600 /vagrant/etc/ssh/ssh_host_ed25519_key /etc/ssh
+install -o root -g root -m 644 /vagrant/etc/ssh/ssh_host_rsa_key.pub /etc/ssh
+install -o root -g root -m 600 /vagrant/etc/ssh/ssh_host_rsa_key /etc/ssh
+
 title2 "update and dist-upgrade"
 apt-get -q -y update
 apt-get -q -y dist-upgrade
@@ -59,12 +69,12 @@ apt-get -q -y install build-essential python-dev python-pip
 
 title2 "Install Mail"
 apt-get -q -y install mailutils ssmtp
-install -b -o root -g root -m 644 /vagrant/etc/ssmtp/ssmtp.conf /etc/ssmtp
-install -b -o root -g root -m 644 /vagrant/etc/ssmtp/revaliases /etc/ssmtp
+install -o root -g root -m 644 /vagrant/etc/ssmtp/ssmtp.conf /etc/ssmtp
+install -o root -g root -m 644 /vagrant/etc/ssmtp/revaliases /etc/ssmtp
 
 title2 "Install NTP"
 apt-get -q -y install ntp
-install -b -o root -g root -m 644 /vagrant/etc/ntp.conf /etc
+install -o root -g root -m 644 /vagrant/etc/ntp.conf /etc
 /etc/init.d/ntp restart
 
 title2 "Setup UFW"
@@ -80,13 +90,13 @@ ufw status
 
 title2 "Install Apache2"
 apt-get -q -y install apache2 apache2-dev apache2-threaded-dev
-install -b -o root -g root -m 644 /vagrant/etc/apache2/conf-available/servername.conf /etc/apache2/conf-available
+install -o root -g root -m 644 /vagrant/etc/apache2/conf-available/servername.conf /etc/apache2/conf-available
 a2enconf servername
 service apache2 restart
 
 title2 "Install MySQL"
 apt-get -q -y install mysql-server mysql-client
-install -b -o root -g root -m 644 /vagrant/etc/mysql/conf.d/enacit.cnf /etc/mysql/conf.d/
+install -o root -g root -m 644 /vagrant/etc/mysql/conf.d/enacit.cnf /etc/mysql/conf.d/
 service mysql restart
 mysql -u root <<EOF
 create user 'enacdrives'@'localhost' identified by '${MYSQL_ENACDRIVES_PWD}';
@@ -110,8 +120,8 @@ make install
 popd
 
 title2 "Setup Tequila"
-install -b -o root -g root -m 644 /vagrant/etc/apache2/mods-available/tequila.load /etc/apache2/mods-available
-install -b -o root -g root -m 644 /vagrant/etc/apache2/mods-available/tequila.conf /etc/apache2/mods-available
+install -o root -g root -m 644 /vagrant/etc/apache2/mods-available/tequila.load /etc/apache2/mods-available
+install -o root -g root -m 644 /vagrant/etc/apache2/mods-available/tequila.conf /etc/apache2/mods-available
 mkdir -p /var/tequila
 chown www-data: /var/tequila
 a2enmod tequila
