@@ -34,14 +34,16 @@ def http_get(request):
         raise Http404
 
     username = ut.validate_input(request.GET.get, "username")
-    
+
     ranked_mount_names = []
     config_given = ""
     try:
         user_settings = get_user_settings(username)
-        
+
         # Config for all users
         for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_ALL).order_by("rank"):
+            if not ut.client_filter(conf, request):
+                continue
             data = conf.data.format(
                 username=username,
                 auth_domain=user_settings["auth_domain"],
@@ -61,6 +63,8 @@ def http_get(request):
 
         # Config for that user
         for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_USER, users__name=username).order_by("rank"):
+            if not ut.client_filter(conf, request):
+                continue
             data = conf.data.format(
                 username=username,
                 auth_domain=user_settings["auth_domain"],
@@ -83,6 +87,8 @@ def http_get(request):
         for unit in user_settings["epfl_units"]:
             unit_num += 1
             for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_EPFL_UNIT, epfl_units__name=unit).order_by("rank"):
+                if not ut.client_filter(conf, request):
+                    continue
                 data = conf.data.format(
                     username=username,
                     auth_domain=user_settings["auth_domain"],
@@ -97,7 +103,7 @@ def http_get(request):
                     LOCAL_GROUPNAME="{LOCAL_GROUPNAME}",
                 )
                 config_given += ut.conf_filter(data, unit_num) + "\n\n"
-                
+
                 mount_names = ut.grep_mount_names(data)
                 ranked_mount_names.extend(mount_names)
 
@@ -106,6 +112,8 @@ def http_get(request):
         for group in user_settings["ldap_groups"]:
             group_num += 1
             for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_LDAP_GROUP, ldap_groups__name=group).order_by("rank"):
+                if not ut.client_filter(conf, request):
+                    continue
                 data = conf.data.format(
                     username=username,
                     auth_domain=user_settings["auth_domain"],
@@ -120,10 +128,10 @@ def http_get(request):
                     LOCAL_GROUPNAME="{LOCAL_GROUPNAME}",
                 )
                 config_given += ut.conf_filter(data, group_num) + "\n\n"
-                
+
                 mount_names = ut.grep_mount_names(data)
                 ranked_mount_names.extend(mount_names)
-        
+
         # Rank *_mount entries
         if len(ranked_mount_names) != 0:
             config_given += "[global]\n"
@@ -133,16 +141,16 @@ def http_get(request):
         pass
     except ObjectDoesNotExist:
         pass
-    
+
     return HttpResponse(config_given + "\n", content_type="text/plain; charset=utf-8")
-    
+
 
 def http_ldap_settings(request):
     if request.method != "GET":
         raise Http404
 
     username = ut.validate_input(request.GET.get, "username")
-    
+
     output = ""
     try:
         user_settings = get_user_settings(username)
@@ -155,5 +163,5 @@ def http_ldap_settings(request):
         output += "ldap_groups = {0}\n".format(pprint.pformat(user_settings["ldap_groups"]))
     except UserNotFoundException:
         pass
-    
+
     return HttpResponse(output + "\n", content_type="text/plain; charset=utf-8")
