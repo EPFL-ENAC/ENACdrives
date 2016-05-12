@@ -37,6 +37,7 @@ def sub(s):
             pip="/django_app/venv/py3/bin/pip",
             installers_dir="/var/www/enacdrives.epfl.ch/installers",
             uploads_dir="/var/www/enacdrives.epfl.ch/uploads",
+            static_dir="/var/www/enacdrives.epfl.ch/static",
             logs_dir="/var/log/django-enacdrives",
             apache_vhost="django-enacdrives",
             apache_tequila_admins_conf="/etc/apache2/tequila_admins_rules.conf",
@@ -51,6 +52,7 @@ def sub(s):
             pip="/data/local/enacdrives/py3/bin/pip",
             installers_dir="/data/local/enacdrives/installers",
             uploads_dir="/data/local/enacdrives/uploads",
+            static_dir="/data/local/enacdrives/static",
             logs_dir="/var/log/django-enacdrives",
             apache_vhost="django-enacdrives",
             apache_tequila_admins_conf="/etc/apache2/enacdrives_tequila_admins_rules.conf",
@@ -90,6 +92,8 @@ def apache_setup():
     sudo(sub("chown www-data\\: {installers_dir}"))
     sudo(sub("mkdir -p {uploads_dir}"))
     sudo(sub("chown www-data\\: {uploads_dir}"))
+    sudo(sub("mkdir -p {static_dir}"))
+    sudo(sub("chown www-data\\: {static_dir}"))
     sudo(sub("mkdir -p {logs_dir}"))
     sudo(sub("chown www-data\\: {logs_dir}"))
     sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/{apache_vhost}.conf /etc/apache2/sites-available/{apache_vhost}.conf"))
@@ -154,10 +158,14 @@ def loadconfig():
 def dumpconfig():
     sudo(sub("{python} {code_dir}/manage.py dumpdata config > /tmp/enacdrives_config.json"), user="www-data")
 
+@task
+def collectstatic():
+    sudo(sub("{python} {code_dir}/manage.py collectstatic --noinput"), user="www-data")
 
 @task
 def deploy():
     rsync()
+    collectstatic()
     apache_reload()
 
 
@@ -170,5 +178,6 @@ def full_deploy():
     mod_wsgi_express_setup()
     apache_setup()
     migrate()
+    collectstatic()
     admin_staff_setup()
     apache_restart()

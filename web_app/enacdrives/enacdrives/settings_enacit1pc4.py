@@ -26,6 +26,7 @@ DATABASES = {
 
 APACHE_PRIVATE_DIR = "/var/www/enacdrives.epfl.ch/private"
 FILE_UPLOAD_TEMP_DIR = "/var/www/enacdrives.epfl.ch/upload"
+STATIC_ROOT = "/var/www/enacdrives.epfl.ch/static"
 
 # LOGGING = {
 #     'version': 1,
