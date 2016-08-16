@@ -26,7 +26,7 @@ class WIN_CONST():
 
 def os_check(ui):
     """
-    Check that OS has all pre-requisite functionalities 
+    Check that OS has all pre-requisite functionalities
     """
     if (CONST.OS_DISTRIB == "Microsoft" and
             CONST.OS_SYS == "Windows" and
@@ -50,7 +50,7 @@ def cifs_is_mounted(mount, cb):
         caption_end = lines[0].index(after_caption)
         providername_start = lines[0].index(providername)
         providername_end = lines[0].index(after_providername)
-        
+
         i_search = r"^\\{server_name}\{server_path}".format(**mount.settings)
         i_search = i_search.replace("\\", "\\\\")
         i_search = i_search.replace("$", r"\$")
@@ -69,7 +69,7 @@ def cifs_is_mounted(mount, cb):
             except IndexError:
                 pass
         cb(False)
-        
+
     cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
     NonBlockingQtProcess(cmd, _cb, cache=True)
 
@@ -91,7 +91,9 @@ def cifs_mount(mount):
         cifs_uncache_is_mounted(mount)
         return True
     except pywintypes.error as e:
-        if e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
+        if e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
+            pass
+        elif e.winerror == 86:  # (86, "WNetAddConnection2", "The specified network password is not correct.")
             pass
         elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
             pass
@@ -102,9 +104,6 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
-            mount.ui.notify_user(e.strerror)
-            return False
-        elif e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')

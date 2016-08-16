@@ -71,7 +71,7 @@ Test ...
 
 Make a zip (-> PortableApps)
 ~~~ bash
-export VERSION=$(PYTHONPATH=/usr/lib/python3/dist-packages python3 ~/Projects/enacdrives/client/tell_version.py); echo $VERSION
+export VERSION=$(/usr/bin/python3 ~/Projects/enacdrives/client/tell_version.py); echo $VERSION
 
 pushd ~/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/
 rm -rf ENACdrives-${VERSION} ENACdrives-${VERSION}.zip
