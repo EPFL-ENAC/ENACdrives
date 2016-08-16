@@ -97,16 +97,34 @@ def cifs_mount(mount):
             pass
         elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
             pass
-        elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+        elif e.winerror == 31:  # (31, 'WNetAddConnection2', 'A device attached to the system is not functioning.')
             mount.ui.notify_user(e.strerror)
             return False
-        elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+        elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 55:  # (55, 'WNetAddConnection2', 'The specified network resource or device is no longer available.')
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
             mount.ui.notify_user(e.strerror)
             return False
-        elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
+        elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1208:  # (1208, 'WNetAddConnection2', 'An extended error has occurred.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1219:  # (1219, 'WNetAddConnection2', 'Multiple connections to a server or shared resource by the same user, using more than one user name, are not allowed. Disconnect all previous connections to the server or shared resource and try again.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
             mount.ui.notify_user(e.strerror)
             return False
         else:
@@ -140,19 +158,37 @@ def cifs_mount(mount):
             elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
                 mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
                 wrong_password = True
-            elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+            elif e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
                 mount.ui.notify_user(e.strerror)
                 return False
-            elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+            elif e.winerror == 31:  # (31, 'WNetAddConnection2', 'A device attached to the system is not functioning.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 55:  # (55, 'WNetAddConnection2', 'The specified network resource or device is no longer available.')
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
                 mount.ui.notify_user(e.strerror)
                 return False
-            elif e.winerror == 5:  # (5, 'WNetAddConnection2', 'Access is denied.')
+            elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
                 mount.ui.notify_user(e.strerror)
                 return False
-            elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
+            elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1208:  # (1208, 'WNetAddConnection2', 'An extended error has occurred.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1219:  # (1219, 'WNetAddConnection2', 'Multiple connections to a server or shared resource by the same user, using more than one user name, are not allowed. Disconnect all previous connections to the server or shared resource and try again.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
                 mount.ui.notify_user(e.strerror)
                 return False
             else:
