@@ -9,7 +9,7 @@
 
 # # ! Copied to ~/Documents/projets/lucid_ssie/customize_lucid_ssie/resources/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Documents/projets/lucid_ssie/customize_lucid_ssie/build_customization_utilities.sh !
-# 
+#
 # # ! Copied to ~/Projects/precise_ssie/customize_precise_ssie/root/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Projects/precise_ssie/tools/build_precise_ssie_tarball.sh !
 
@@ -38,9 +38,9 @@ TEST = False
 
 SERVERNAME = "enacit1adm1.epfl.ch"
 if TEST:
-    SERVERURL = "http://%s/enacit1logs_test/xml_rpc" % SERVERNAME
+    SERVERURL = "https://%s/enacit1logs_test/xml_rpc" % SERVERNAME
 else:
-    SERVERURL = "http://%s/enacit1logs/xml_rpc" % SERVERNAME
+    SERVERURL = "https://%s/enacit1logs/xml_rpc" % SERVERNAME
 
 
 class SendLogException(Exception):

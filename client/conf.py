@@ -5,7 +5,7 @@
 # Offers get_config() which
 #  + parse config from
 #    + default values (hard coded in source)
-#    + http://enacdrives.epfl.ch/config?username=xxx
+#    + https://enacdrives.epfl.ch/config/get?username=xxx
 #    + System's config
 #    + User's config
 #  + merge them
