@@ -1,21 +1,22 @@
 # Bancal Samuel
-# 2015-06-03
 
-# Check that prod config is matching the shares available on NAS2/NAS3
+# Check that prod config is matching the shares available on NAS3
 
 # Requirement :
-# sudo vi /etc/samba/smb.conf
-# snip
-# [global]
-#   workgroup = INTRANET
-# snap
+# ./enacmoni.cred
+
+# # pip install pysmb
 
 
 import os
 import re
 import sys
 import subprocess
-
+# import pickle
+# from smb.SMBConnection import SMBConnection
+# # from .util import getConnectionInfo
+# # from nose.tools import with_setup
+# from smb import smb_structs
 from django.core.wsgi import get_wsgi_application
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "enacdrives.settings"
@@ -23,66 +24,91 @@ my_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(my_path)
 application = get_wsgi_application()
 
+
+# my_path = '/home/sbancal/Projects/enacdrives/web_app/enacdrives'  # TODO REMOVE THIS
+
+# CRED_FILE = os.path.join(my_path, 'enacmoni.cred')
+# with open(CRED_FILE, 'rb') as f:
+#     USER = pickle.load(f)
+#
+#
+# smb_structs.SUPPORT_SMB2 = True
+# conn = SMBConnection(USER['username'], USER['password'], 'LOCAL-PC', 'enac1files.epfl.ch', USER['domain'], use_ntlm_v2=True, sign_options=SMBConnection.SIGN_WHEN_SUPPORTED, is_direct_tcp=True)
+# connected = conn.connect('ENAC1FILES', 445)
+# conn.listShares(timeout=30)
+# conn.close()
+
+
+
+
 from config import models as mo
 
 
-CIFS_UNIT_CONFIG = (
-    {"server": "enacfiles1.epfl.ch",
-     "config name": "NAS2 Tier1"},
-    {"server": "enacfiles2.epfl.ch",
-     "config name": "NAS2 Tier2"},
-    {"server": "enacfiles4.epfl.ch",
-     "config name": "NAS2 Tier4"},
-    {"server": "enac1files.epfl.ch",
-     "config name": "NAS3 Files"},
+CIFS_UNIT_CONFIG = ({
+        "server": "enac1files.epfl.ch",
+        "config name": "NAS3 Files",
+        "shares_to_ignore": (
+            r'.*\$$',  # all shares finished by a "$"
+            r'proj-.*$',  # all proj- shares
+            r'si_topsolid_debug_files',
+            r'gestion-unites-enac',
+        ),
+        "units_to_ignore": (),
+    },{
+        "server": "enac1arch.epfl.ch",
+        "config name": "NAS3 Arch",
+        "shares_to_ignore": (
+            r'.*\$$',  # all shares finished by a "$"
+            r'oldlabs',
+        ),
+        "units_to_ignore": (),
+    },{
+        "server": "enac1raw.epfl.ch",
+        "config name": "NAS3 Raw",
+        "shares_to_ignore": (
+            r'.*\$$',  # all shares finished by a "$"
+        ),
+        "units_to_ignore": (),
+    },{
+        "server": "enac2raw.epfl.ch",
+        "config name": "NAS3 Raw2",
+        "shares_to_ignore": (
+            r'.*\$$',  # all shares finished by a "$"
+        ),
+        "units_to_ignore": (),
+    },
 )
 
-CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), "enacmoni.credentials")
-SMB_SHARES_FILTER_OUT = (
-    r'.*\$$',  # all shares finished by a "$"
-    r'enac-data.*-t.*',  # all shares like enac-data*-t*
-)
+CREDENTIALS_FILE = os.path.join(my_path, "enacmoni.cred")
 
 
-def list_smb_shares(servername):
+def list_smb_shares(cfg):
     shares = []
-    cmd = ["smbclient", "-A", CREDENTIALS_FILE, "-L", servername, "-W", "INTRANET"]
+    cmd = ["smbclient", "-A", CREDENTIALS_FILE, "-L", cfg["server"]]
     output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL).decode()
-    
+
     # parse output
     for line in output.split("\n"):
         match = re.match(r'\s*(\S+)\s+Disk\s.*$', line)
         if match:
             valid_share = True
-            share = match.group(1)
-            for filter_out in SMB_SHARES_FILTER_OUT:
+            share = match.group(1).lower()
+            for filter_out in cfg["shares_to_ignore"]:
                 if re.match(filter_out, share):
                     valid_share = False
-                # Special transition NAS2 -> NAS3
-                # NAS2 used to serve a share "cdt-enac" which should be named "cdt". Skip it.
-                if share.lower() == "cdt-enac":
-                    valid_share = False
             if valid_share:
-                shares.append(share.lower())
-    
+                shares.append(share)
+
     return set(shares)
 
 
 def check_config(cfg):
     Output.write("Checking {}: ".format(cfg["config name"]), end="")
-    shares = list_smb_shares(cfg["server"])
+    shares = list_smb_shares(cfg)
     cfg["shares"] = shares
     c = mo.Config.objects.get(name=cfg["config name"])
     c_units = set([u.name.lower() for u in c.epfl_units.all()])
-    # Special transition NAS2 -> NAS3 :
-    # remove all still existing NAS2 shares to found NAS3 shares (they are not migrated yet).
-    if cfg["config name"] == "NAS3 Files":
-        for s in CIFS_UNIT_CONFIG[0]["shares"]:
-            try:
-                shares.remove(s)
-            except KeyError:
-                pass
-    
+
     missing = shares - c_units
     too_much = c_units - shares
     if len(missing) != 0:
@@ -101,7 +127,7 @@ class Output():
         else:
             self.output = sys.stdout
         self.status = 0
-    
+
     def __enter__(self):
         Output.set_instance(self)
         return self
@@ -111,15 +137,15 @@ class Output():
 
     def do_write(self, msg):
         self.output.write(msg)
-    
+
     def do_warning(self, msg):
         self.output.write(msg)
         self.status = max(self.status, 1)
-    
+
     def do_error(self, msg):
         self.output.write(msg)
         self.status = max(self.status, 2)
-    
+
     def get_status(self):
         return self.status
 
