@@ -29,6 +29,7 @@ else:
 def sub(s):
     if env.host == "enacit1sbtest4":
         return s.format(
+            admin_username="sbancal",
             local_dir="/home/sbancal/Projects/enacdrives/web_app/enacdrives/",
             code_dir="/django_app/enacdrives",
             server_config_dir="/django_app/enacdrives/server_config/enacit1sbtest4",
@@ -44,6 +45,7 @@ def sub(s):
         )
     elif env.host == "enacit1vm1":
         return s.format(
+            admin_username="enacit1",
             local_dir="/home/sbancal/Projects/enacdrives/web_app/enacdrives/",
             code_dir="/data/web/django-enacdrives",
             server_config_dir="/data/web/django-enacdrives/server_config/enacit1vm1",
@@ -61,8 +63,14 @@ def sub(s):
 
 # SETUP TASKS
 @task
+def mkdir():
+    sudo(sub("mkdir -p {code_dir}"))
+    sudo(sub("chown {admin_username}: {code_dir}"))
+
+@task
 def virtualenv_init():
-    run(sub("mkdir -p {virtualenv_dir}"))
+    sudo(sub("mkdir -p {virtualenv_dir}"))
+    sudo(sub("chown {admin_username}: {virtualenv_dir}"))
     # This will fail on active environments because Celery & Apache use the virtualenv
     # run(sub("pyvenv-3.4 {virtualenv_dir}")) # Fails with python3 packaged with Ubuntu14.04
     run(sub("virtualenv -p python3 {virtualenv_dir}"))
@@ -171,6 +179,7 @@ def deploy():
 
 @task
 def full_deploy():
+    mkdir()
     rsync()
     rm_pyc()
     virtualenv_init()
