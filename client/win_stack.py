@@ -212,6 +212,7 @@ def cifs_mount(mount):
             else:
                 Output.error("failed : {0}".format(e))
                 debug_send("mount with password:\n{0}".format(e))
+                mount.ui.notify_user(e.strerror)
         except CancelOperationException:
             Output.verbose("Operation cancelled.")
             return False
