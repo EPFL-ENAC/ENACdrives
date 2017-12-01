@@ -106,6 +106,9 @@ def cifs_mount(mount):
         elif e.winerror == 55:  # (55, 'WNetAddConnection2', 'The specified network resource or device is no longer available.')
             mount.ui.notify_user(e.strerror)
             return False
+        elif e.winerror == 64:  # (64, 'WNetAddConnection2', 'Le nom réseau spécifié n’est plus disponible.')
+            mount.ui.notify_user(e.strerror)
+            return False
         elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
             mount.ui.notify_user(e.strerror)
             return False
@@ -128,6 +131,9 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
             mount.ui.notify_user(e.strerror)
             return False
         else:
@@ -173,6 +179,9 @@ def cifs_mount(mount):
             elif e.winerror == 55:  # (55, 'WNetAddConnection2', 'The specified network resource or device is no longer available.')
                 mount.ui.notify_user(e.strerror)
                 return False
+            elif e.winerror == 64:  # (64, 'WNetAddConnection2', 'Le nom réseau spécifié n’est plus disponible.')
+                mount.ui.notify_user(e.strerror)
+                return False
             elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
                 mount.ui.notify_user(e.strerror)
                 return False
@@ -195,6 +204,9 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
                 mount.ui.notify_user(e.strerror)
                 return False
             else:
