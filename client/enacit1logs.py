@@ -13,15 +13,18 @@
 # # ! Copied to ~/Projects/precise_ssie/customize_precise_ssie/root/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Projects/precise_ssie/tools/build_precise_ssie_tarball.sh !
 
-# ! Copied to ~/Projects/trusty_ssie/customize_trusty_ssie/root/usr/local/bin/enacit1logs.py !
-# ! by        ~/Projects/trusty_ssie/tools/build_trusty_ssie_tarball.sh !
+# # ! Copied to ~/Projects/trusty_ssie/customize_trusty_ssie/root/usr/local/bin/enacit1logs.py !
+# # ! by        ~/Projects/trusty_ssie/tools/build_trusty_ssie_tarball.sh !
+
+# ! Copied to ~/Projects/xenial-ssie/customize_xenial-ssie/features/global/root/usr/local/bin/enacit1logs.py !
+# ! by        ~/Projects/xenial-ssie/tools/build_xenial-ssie_tarball.sh !
 
 # ! Copied to /usr/local/bin/enacit1logs.py !
 # ! Copied to /home/bancal/server_basics/usr/local/bin/enacit1logs.py !
 # ! By hand ;) !
 
 # ! Copied to ~/Projects/enacdrives/client/enacit1logs.py !
-# ! By hand ;) !
+# ! By hand ;) ... but 2to3 !
 
 
 # Implemented in :
@@ -36,11 +39,11 @@ import getopt
 
 TEST = False
 
-SERVERNAME = "enacit1adm1.epfl.ch"
+SERVERNAME = "enacit1logs.epfl.ch"
 if TEST:
-    SERVERURL = "https://%s/enacit1logs_test/xml_rpc" % SERVERNAME
+    SERVERURL = "http://%s/enacit1logs_test/xml_rpc" % SERVERNAME
 else:
-    SERVERURL = "https://%s/enacit1logs/xml_rpc" % SERVERNAME
+    SERVERURL = "http://%s/enacit1logs/xml_rpc" % SERVERNAME
 
 
 class SendLogException(Exception):
