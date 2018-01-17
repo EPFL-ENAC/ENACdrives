@@ -131,6 +131,7 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
+                                  # (1311, 'WNetAddConnection2', "We can't sign you in with this credential because your domain isn't available. Make sure your device is connected to your organization's network and try again. If you previously signed in on this device with another credential, you can sign in with that credential.")
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
@@ -204,6 +205,7 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
+                                      # (1311, 'WNetAddConnection2', "We can't sign you in with this credential because your domain isn't available. Make sure your device is connected to your organization's network and try again. If you previously signed in on this device with another credential, you can sign in with that credential.")
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
