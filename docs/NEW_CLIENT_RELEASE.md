@@ -35,6 +35,10 @@ reprepro -b enacrepo.epfl.ch/public/ list vivid
 reprepro -b enacrepo.epfl.ch/public/ list wily
 reprepro -b enacrepo.epfl.ch/public/ list xenial
 reprepro -b enacrepo.epfl.ch/public/ list yakkety
+reprepro -b enacrepo.epfl.ch/public/ list zesty
+reprepro -b enacrepo.epfl.ch/public/ list artful
+
+reprepro -b enacrepo.epfl.ch/public/ ls enacdrives
 
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives_i386.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb precise enacdrives_amd64.deb
@@ -50,6 +54,10 @@ reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb xenial enacdriv
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb xenial enacdrives_amd64.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb yakkety enacdrives_i386.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb yakkety enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb zesty enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb zesty enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb artful enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb artful enacdrives_amd64.deb
 ~~~
 
 
