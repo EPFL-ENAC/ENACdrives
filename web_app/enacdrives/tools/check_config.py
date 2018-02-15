@@ -39,45 +39,43 @@ application = get_wsgi_application()
 # conn.close()
 
 
-
-
 from config import models as mo
 
 
 CIFS_UNIT_CONFIG = ({
-        "server": "enac1files.epfl.ch",
-        "config name": "NAS3 Files",
-        "shares_to_ignore": (
-            r'.*\$$',  # all shares finished by a "$"
-            r'proj-.*$',  # all proj- shares
-            r'si_topsolid_debug_files',
-            r'gestion-unites-enac',
-        ),
-        "units_to_ignore": (),
-    },{
-        "server": "enac1arch.epfl.ch",
-        "config name": "NAS3 Arch",
-        "shares_to_ignore": (
-            r'.*\$$',  # all shares finished by a "$"
-            r'oldlabs',
-        ),
-        "units_to_ignore": (),
-    },{
-        "server": "enac1raw.epfl.ch",
-        "config name": "NAS3 Raw",
-        "shares_to_ignore": (
-            r'.*\$$',  # all shares finished by a "$"
-        ),
-        "units_to_ignore": (),
-    },{
-        "server": "enac2raw.epfl.ch",
-        "config name": "NAS3 Raw2",
-        "shares_to_ignore": (
-            r'.*\$$',  # all shares finished by a "$"
-        ),
-        "units_to_ignore": (),
-    },
-)
+    "server": "enac1files.epfl.ch",
+    "config name": "NAS3 Files",
+    "shares_to_ignore": (
+        r'.*\$$',  # all shares finished by a "$"
+        r'proj-.*$',  # all proj- shares
+        r'si_topsolid_debug_files',
+        r'gestion-unites-enac',
+    ),
+    "units_to_ignore": (),
+}, {
+    "server": "enac1arch.epfl.ch",
+    "config name": "NAS3 Arch",
+    "shares_to_ignore": (
+        r'.*\$$',  # all shares finished by a "$"
+        r'oldlabs',
+        r'enac-webcom',
+    ),
+    "units_to_ignore": (),
+}, {
+    "server": "enac1raw.epfl.ch",
+    "config name": "NAS3 Raw",
+    "shares_to_ignore": (
+        r'.*\$$',  # all shares finished by a "$"
+    ),
+    "units_to_ignore": (),
+}, {
+    "server": "enac2raw.epfl.ch",
+    "config name": "NAS3 Raw2",
+    "shares_to_ignore": (
+        r'.*\$$',  # all shares finished by a "$"
+    ),
+    "units_to_ignore": (),
+})
 
 CREDENTIALS_FILE = os.path.join(my_path, "enacmoni.cred")
 
@@ -116,7 +114,7 @@ def check_config(cfg):
     if len(too_much) != 0:
         Output.error("Error. Too much units: {}".format(list(too_much)))
     if len(missing) + len(too_much) == 0:
-        Output.write("Units for are correctly configured.")
+        Output.write("Units for this filer are correctly configured.")
     Output.write()
 
 
