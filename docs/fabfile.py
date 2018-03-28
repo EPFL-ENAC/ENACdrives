@@ -4,7 +4,7 @@
 # 2015-05-04
 
 # Usage :
-# fab deploy pandoc
+# /home/sbancal/py/2/bin/fab deploy pandoc
 
 
 import os

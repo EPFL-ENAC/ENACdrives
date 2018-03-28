@@ -50,6 +50,7 @@ CIFS_UNIT_CONFIG = ({
         r'proj-.*$',  # all proj- shares
         r'si_topsolid_debug_files',
         r'gestion-unites-enac',
+        r'enac-prom-acad',
     ),
     "units_to_ignore": (),
 }, {
