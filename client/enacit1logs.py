@@ -9,7 +9,7 @@
 
 # # ! Copied to ~/Documents/projets/lucid_ssie/customize_lucid_ssie/resources/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Documents/projets/lucid_ssie/customize_lucid_ssie/build_customization_utilities.sh !
-#
+# 
 # # ! Copied to ~/Projects/precise_ssie/customize_precise_ssie/root/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Projects/precise_ssie/tools/build_precise_ssie_tarball.sh !
 

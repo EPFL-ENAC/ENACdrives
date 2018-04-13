@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2017-12-01"
-    VERSION = "1.1.9"
+    VERSION_DATE = "2018-04-13"
+    VERSION = "1.1.10"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -124,8 +124,8 @@ class CONST():
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "https://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
-        DOWNLOAD_NEW_RELEASE_URL = "https://enacsoft.epfl.ch/enacdrives/"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = "You are not running the latest release.<br>Please upgrade the package enacdrives."
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
@@ -147,8 +147,8 @@ class CONST():
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "https://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
-        DOWNLOAD_NEW_RELEASE_URL = "https://enacsoft.epfl.ch/enacdrives/"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         if getattr(sys, 'frozen', False):
             RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
         NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
@@ -174,20 +174,20 @@ class CONST():
             USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
             USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
         SYSTEM_CONF_FILE = "C:\\ProgramData\\ENACdrives\\enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "https://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
-        DOWNLOAD_NEW_RELEASE_URL = "https://enacsoft.epfl.ch/enacdrives/"
+        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
+        DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
             "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
     else:
         OS_VERSION = "Error: OS not supported."
 
-    CONFIG_URL = "https://enacdrives.epfl.ch/config/get?username={username}&version={version}&os={os}&os_version={os_version}".format(
+    CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version={version}&os={os}&os_version={os_version}".format(
         username="{username}",
         version=VERSION,
         os=OS_DISTRIB + "-" + OS_SYS,
         os_version=OS_VERSION,
     )
-    VALIDATE_USERNAME_URL = "https://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
+    VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
     # use full ABSOLUTE path to the image, not relative
     ENACDRIVES_PNG = RESOURCES_DIR + "/enacdrives.png"
