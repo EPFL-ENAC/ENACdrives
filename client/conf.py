@@ -81,7 +81,7 @@ def get_config():
         try:
             with urllib.request.urlopen(config_url, timeout=CONST.URL_TIMEOUT) as response:
                 lines = [bytes_decode(l) for l in response.readlines()]
-                Output.debug("get_config {} : {}".format(config_url, lines))
+                # Output.debug("get_config {} : {}".format(config_url, lines))
                 s_io = io.StringIO("".join(lines))
                 enacdrives_config = read_config_source(s_io)
                 merge_configs(cfg, enacdrives_config)
