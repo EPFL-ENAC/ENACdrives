@@ -71,7 +71,7 @@ def bytes_decode(b):
 class CONST():
 
     VERSION_DATE = "2018-04-13"
-    VERSION = "1.1.11"
+    VERSION = "1.1.12"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -120,7 +120,7 @@ class CONST():
             DESKTOP_DIR = bytes_decode(subprocess.check_output(["xdg-user-dir", "DESKTOP"])).strip()
         except FileNotFoundException:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
-        DEFAULT_MNT_DIR = DESKTOP_DIR  # Should be overwritten from conf file
+        DEFAULT_MNT_DIR = HOME_DIR + "/ENACDrives"
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
@@ -143,7 +143,7 @@ class CONST():
             AD_DOMAIN = None
             AD_USERNAME = None
         DESKTOP_DIR = HOME_DIR + "/Desktop"
-        DEFAULT_MNT_DIR = DESKTOP_DIR
+        DEFAULT_MNT_DIR = HOME_DIR + "/ENACDrives"
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"

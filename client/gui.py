@@ -505,6 +505,7 @@ def main_GUI():
     Output.debug("HOME_DIR:" + CONST.HOME_DIR)
     Output.debug("USER_CONF_FILE:" + CONST.USER_CONF_FILE)
     Output.debug("RESOURCES_DIR:" + CONST.RESOURCES_DIR)
+    Output.debug("DEFAULT_MNT_DIR:" + CONST.DEFAULT_MNT_DIR + "\n")
     Output.br()
 
     app = QtGui.QApplication(sys.argv)

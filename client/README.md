@@ -12,26 +12,15 @@ sudo apt-get install python3-pyqt4
 ~~~
 
 
-2015.01.19 - SB ● Virtualenv + iPython
+2018-04-12 - SB ● Pipenv
 --------------------------------------------------------------------------------
 
-~~~ bash
-cd ~/Projects/enacdrives
-virtualenv -p python3.4 venv_py3
-ln -s venv_py3/bin/activate .
-. activate
-pip install ipython
-pip install pexpect
-~~~
-
-
-2015.01.19 - SB ● 1st Python Qt app test
---------------------------------------------------------------------------------
-
-~~~ bash
+```bash
+cd ~/Projects/enacdrives/client
+pipenv install --three
 export PYTHONPATH=/usr/lib/python3/dist-packages
-./client/test.py
-~~~
+pipenv run python enacdrives.py
+```
 
 
 2015.01.19 - SB ● Linux cx_Freeze (compile Python to executables)
@@ -54,9 +43,9 @@ Installing by hand (following patch described here <http://stackoverflow.com/a/2
 mkdir dependencies
 cd dependencies/
 wget https://pypi.python.org/packages/source/c/cx_Freeze/cx_Freeze-4.3.4.tar.gz#md5=5bd662af9aa36e5432e9144da51c6378
-tar -xf cx_Freeze-4.3.4.tar.gz 
+tar -xf cx_Freeze-4.3.4.tar.gz
 cd cx_Freeze-4.3.4/
-less README.txt 
+less README.txt
 . ../../venv_py3/bin/activate
 python setup.py build
 ~~~
@@ -205,7 +194,7 @@ Traceback (most recent call last):
 TypeError: dyld_find() got an unexpected keyword argument 'loader'
 
 Workaround :
-vi /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/dyld.py /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py 
+vi /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/dyld.py /Users/bancal/anaconda/lib/python3.4/site-packages/macholib/MachOGraph.py
 --- orig/MachOGraph.py	2015-03-24 15:41:05.320297546 +0100
 +++ modif/MachOGraph.py	2015-03-24 15:41:28.676297559 +0100
 @@ -46,7 +46,7 @@
@@ -294,7 +283,7 @@ pip install cx_Freeze
 ~~~
 
 ~~~ out
-python client/test_conf.py 
+python client/test_conf.py
 .............
 ----------------------------------------------------------------------
 Ran 13 tests in 0.003s
