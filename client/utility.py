@@ -120,7 +120,7 @@ class CONST():
             DESKTOP_DIR = bytes_decode(subprocess.check_output(["xdg-user-dir", "DESKTOP"])).strip()
         except FileNotFoundException:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
-        DEFAULT_MNT_DIR = HOME_DIR + "/ENACDrives"
+        DEFAULT_MNT_DIR = HOME_DIR + "/ENACdrives"
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
@@ -143,7 +143,7 @@ class CONST():
             AD_DOMAIN = None
             AD_USERNAME = None
         DESKTOP_DIR = HOME_DIR + "/Desktop"
-        DEFAULT_MNT_DIR = HOME_DIR + "/ENACDrives"
+        DEFAULT_MNT_DIR = HOME_DIR + "/ENACdrives"
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
