@@ -16,7 +16,7 @@ elif CONST.OS_SYS == "Windows":
     from win_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
 elif CONST.OS_SYS == "Darwin":
     from osx_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
-    
+
 
 class CIFS_Mount():
 
@@ -42,13 +42,13 @@ class CIFS_Mount():
         * Linux_mountcifs_options = options to use with mount.cifs method
         * Linux_gvfs_symlink = boolean
             Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
-            default : True
+            default : False
         * Windows_letter = letter
             Drive letter to use for the mount (only on Windows)
     """
 
     def __init__(self, ui, cfg, mount_name, key_chain):
-        
+
         def _cf(option, default=None):
             try:
                 if option == "realm_domain":
@@ -88,7 +88,7 @@ class CIFS_Mount():
             "Linux_gvfs_symlink": _cf("Linux_gvfs_symlink"),
             "Windows_letter": _cf("Windows_letter", ""),  # may be overwritten in "is_mounted"
         }
-        
+
         self.settings["local_path"] = self.settings["local_path"].format(
             MNT_DIR=CONST.DEFAULT_MNT_DIR,
             HOME_DIR=CONST.HOME_DIR,
@@ -110,7 +110,7 @@ class CIFS_Mount():
 
     def uncache_is_mounted(self):
         cifs_uncache_is_mounted(self)
-        
+
     def is_mounted(self, cb=None):
         """
             evaluate if this CIFS_mount is mounted
@@ -136,7 +136,7 @@ class CIFS_Mount():
             return is_m
         else:
             cifs_is_mounted(self, _cb)
-        
+
     def mount(self):
         # Output.br()
         return cifs_mount(self)

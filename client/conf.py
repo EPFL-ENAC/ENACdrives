@@ -38,7 +38,7 @@ def get_config():
     default_config = {
         'global': {
          'Linux_CIFS_method': 'gvfs',
-         'Linux_gvfs_symlink': True,
+         'Linux_gvfs_symlink': False,
          'Linux_mountcifs_dirmode': '0770',
          'Linux_mountcifs_filemode': '0770',
          'Linux_mountcifs_options': 'rw,nobrl,noserverino,iocharset=utf8,sec=ntlm'},
@@ -483,7 +483,7 @@ def read_config_source(src):
             Linux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
             Linux_gvfs_symlink = yes
             #    Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
-            #    default : True
+            #    default : False
             Windows_letter = Z:
             #    Drive letter to use for the mount
 
