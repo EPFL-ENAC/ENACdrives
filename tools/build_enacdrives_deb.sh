@@ -6,18 +6,20 @@
 
 # Pre-requisite :
 # sudo apt-get install chrpath
-
+if ! which chrpath > /dev/null; then
+  echo "Please install chrpath"
+  exit 1
+fi
 
 # Build a package - Definition
 # ----------------------------
 
 pushd ~/Projects/enacdrives/client
-. ../activate
 export PYTHONPATH=/usr/lib/python3/dist-packages
 export PACKAGE=enacdrives
 export SOFT="ENACdrives"
-export SHORT_SOFT_VER=$(python tell_version.py)
-export SOFT_VER=$(python tell_version.py)
+export SHORT_SOFT_VER=$(pipenv run python tell_version.py)
+export SOFT_VER=$(pipenv run python tell_version.py)
 export PACKAGE_VER=1
 
 # Build a package - Content
@@ -161,6 +163,10 @@ Description: EPFL, ENAC and units NAS directory
     fakeroot dpkg -b ${PACKAGE}_${arch}
     cp ${PACKAGE}_${arch}.deb ${PACKAGE}_${SHORT_SOFT_VER}-${PACKAGE_VER}_${arch}.deb
 }
+
+# Prepare Docker containers
+docker build -t build_enacdrives_amd64 ../docker/build_enacdrives_U12.04_amd64
+docker build -t build_enacdrives_i386 ../docker/build_enacdrives_U12.04_i386
 
 # Build
 build_deb i386
