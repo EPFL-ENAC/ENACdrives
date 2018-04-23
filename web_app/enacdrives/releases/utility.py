@@ -54,16 +54,16 @@ def parse_uploaded_file(filename):
         answer["os"] = mo.Arch.OS_WIN
     elif filename.endswith("deb"):
         answer["os"] = mo.Arch.OS_LIN
-    elif filename.endswith("dmg"):
+    elif filename.endswith("dmg") or filename.endswith("pkg"):
         answer["os"] = mo.Arch.OS_OSX
     else:
         raise Exception("Unrecognized OS in {}".format(filename))
-    
+
     # Release Number
     m = re.search(r"[-_]([0-9.]+)(-[0-9+])?[-_.][^0-9]", filename)
     if m:
         answer["release_number"] = m.groups()[0]
     else:
         raise Exception("Unrecognized release number in {}".format(filename))
-    
+
     return answer
