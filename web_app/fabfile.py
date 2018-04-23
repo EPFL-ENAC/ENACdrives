@@ -5,8 +5,8 @@
     Fabric file to deploy web_app enacdrives
     usage :
     $ pww
-    $ /home/sbancal/py/2/bin/fab -H enacit1sbtest4 --password=${PASS} full_deploy
-    $ /home/sbancal/py/2/bin/fab -H enacit1vm1 --password=${PASS} full_deploy
+    $ /home/sbancal/py/2/bin/fab -H enacit1sbtest4 --password=${PASS} deploy
+    $ /home/sbancal/py/2/bin/fab -H enacit1vm1 --password=${PASS} deploy
 """
 
 
@@ -177,16 +177,16 @@ def deploy():
     apache_reload()
 
 
-@task
-def full_deploy():
-    mkdir()
-    rsync()
-    rm_pyc()
-    virtualenv_init()
-    virtualenv_setup()
-    mod_wsgi_express_setup()
-    apache_setup()
-    migrate()
-    collectstatic()
-    admin_staff_setup()
-    apache_restart()
+# @task
+# def full_deploy():
+#     mkdir()
+#     rsync()
+#     rm_pyc()
+#     virtualenv_init()
+#     virtualenv_setup()
+#     mod_wsgi_express_setup()
+#     apache_setup()
+#     migrate()
+#     collectstatic()
+#     admin_staff_setup()
+#     apache_restart()
