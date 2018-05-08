@@ -168,6 +168,9 @@ Description: EPFL, ENAC and units NAS directory
 docker build -t build_enacdrives_amd64 ../docker/build_enacdrives_U12.04_amd64
 docker build -t build_enacdrives_i386 ../docker/build_enacdrives_U12.04_i386
 
+# Cleanup
+sudo rm -rf ~/Projects/enacdrives/client/build
+
 # Build
 build_deb i386
 build_deb amd64
