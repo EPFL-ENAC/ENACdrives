@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2018-04-17"
-    VERSION = "1.1.13"
+    VERSION_DATE = "2018-05-08"
+    VERSION = "1.1.14"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -694,6 +694,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
                 return
 
         if not NonBlockingQtProcess.register_process(name, self, cb):
+            # Output.debug("A process is already running. not running a new one.")
             return  # A process is already running. cb will be called
         self.finished.connect(self._finished)
         self.readyReadStandardOutput.connect(self._readyReadStandardOutput)
@@ -789,7 +790,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
                     output = cached["output"]
                     exit_code = cached["exit_code"]
             if found:
-                # print("answer_if_in_cache {} : found valid cache".format(name))
+                # Output.debug("answer_if_in_cache {} : found valid cache".format(name))
                 if instance.cb_extra_args is None:
                     cb(success, output, exit_code)
                 else:
@@ -797,7 +798,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
                 return True
         except KeyError:
             pass
-        # print("answer_if_in_cache {} : not found".format(name))
+        # Output.debug("answer_if_in_cache {} : not found".format(name))
         return False
 
     @classmethod
@@ -806,7 +807,9 @@ class NonBlockingQtProcess(QtCore.QProcess):
         with cls.lock:
             try:
                 del(cls.cache[name])
+                # Output.debug("invalidated cache of {}".format(name))
             except (KeyError, AttributeError):
+                # Output.debug("tried to invalidate cache of {} (but not found in cache)".format(name))
                 pass
 
 

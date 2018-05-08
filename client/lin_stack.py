@@ -27,38 +27,48 @@ class LIN_CONST():
     CMD_UMOUNT = which("umount")
 
     CMD_GVFS_MOUNT = which("gvfs-mount")
+    CMD_GIO_MOUNT = which ("gio")
     if CONST.OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
         GVFS_GENERATION = 1
         GVFS_DIR = os.path.join(CONST.HOME_DIR, ".gvfs")
     elif CONST.OS_VERSION in ("12.10", "13.04"):
         GVFS_GENERATION = 2
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_USERNAME)
-    else:
+    elif CONST.OS_VERSION in ("13.10", "14.04", "14.10", "15.04", "15.10", "16.04", "16.10", "17.04", "17.10"):
         GVFS_GENERATION = 3
+        GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
+    else:
+        GVFS_GENERATION = 4
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
 
 
 def os_check(ui):
     """
-    Check that OS has all pre-requisite functionalities 
+    Check that OS has all pre-requisite functionalities
     """
-    if ui.cfg["global"]["Linux_CIFS_method"] == "gvfs" and LIN_CONST.CMD_GVFS_MOUNT is None:
-        ui.notify_user("Warning: gvfs-bin is not installed and default config uses it.<br>"
-                       "Please switch to mount.cifs as described in documentation "
-                       "<a href='{doc}'>{doc}</a> "
-                       "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
+    if ui.cfg["global"]["Linux_CIFS_method"] == "gvfs":
+        if LIN_CONST.GVFS_GENERATION <= 3 and LIN_CONST.CMD_GVFS_MOUNT is None:
+            ui.notify_user("Warning: gvfs-bin is not installed and default config uses it.<br>"
+                           "Please install it or switch to mount.cifs as described in documentation "
+                           "<a href='{doc}'>{doc}</a> "
+                           "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
+        if LIN_CONST.GVFS_GENERATION >= 4 and LIN_CONST.CMD_GIO_MOUNT is None:
+            ui.notify_user("Warning: libglib2.0-bin is not installed and default config uses it.<br>"
+                           "Please install it or switch to mount.cifs as described in documentation "
+                           "<a href='{doc}'>{doc}</a> "
+                           "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
 
 
 def cifs_uncache_is_mounted(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
-        if mount.ui.UI_TYPE == "GUI":
-            NonBlockingQtProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
+        if LIN_CONST.GVFS_GENERATION <= 3:
+            cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
         else:
-            BlockingProcess.invalidate_cmd_cache(
-                [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
-            )
+            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", "-l"]
+        if mount.ui.UI_TYPE == "GUI":
+            NonBlockingQtProcess.invalidate_cmd_cache(cmd)
+        else:
+            BlockingProcess.invalidate_cmd_cache(cmd)
 
 
 def cifs_is_mounted(mount, cb=None):
@@ -77,7 +87,7 @@ def cifs_is_mounted(mount, cb=None):
             share_format1=share_format1, share_format2=share_format2, **mount.settings)
         for l in output.split("\n"):
             if re.search(i_search, l, flags=re.IGNORECASE):
-                Output.debug(l)
+                # Output.debug(l)
                 if cb is None:
                     return True
                 else:
@@ -87,16 +97,22 @@ def cifs_is_mounted(mount, cb=None):
             return False
         else:
             cb(False)
-    
+
     def _target_mountcifs():
         return os.path.ismount(mount.settings["local_path"])
-        
+
     # Output.debug("lin_stack.cifs_is_mounted")
     if mount.settings["Linux_CIFS_method"] == "gvfs":
-        if LIN_CONST.CMD_GVFS_MOUNT is None:
-            Output.error("'gvfs-mount' not installed.")
-            return _cb_gvfs(False, "'gvfs-mount' not installed.", 1)
-        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+        if LIN_CONST.GVFS_GENERATION <= 3:
+            if LIN_CONST.CMD_GVFS_MOUNT is None:
+                Output.error("'gvfs-mount' not installed.")
+                return _cb_gvfs(False, "'gvfs-mount' not installed.", 1)
+            cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-l"]
+        else:
+            if LIN_CONST.CMD_GIO_MOUNT is None:
+                Output.error("'gio' not installed.")
+                return _cb_gvfs(False, "'gio' not installed.", 1)
+            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", "-l"]
         # Output.debug("cmd: " + " ".join(cmd))
         if cb is None:
             return _cb_gvfs(**BlockingProcess.run(
@@ -138,7 +154,10 @@ def cifs_mount(mount):
 
         # 2) Mount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
-        cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+        if LIN_CONST.GVFS_GENERATION <= 3:
+            cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+        else:
+            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.verbose("cmd: " + " ".join(cmd))
         process_meta = {
             "was_cancelled": False,
@@ -178,7 +197,7 @@ def cifs_mount(mount):
         if LIN_CONST.CMD_MOUNT_CIFS is None:
             mount.ui.notify_user("Error missing binary <b>mount.cifs</b>. On Ubuntu you can install it with <i>sudo apt-get install cifs-utils</i>")
             return False
-            
+
         # 1) Make mount dir (remove broken symlink if needed)
         if (os.path.lexists(mount.settings["local_path"]) and
            not os.path.exists(mount.settings["local_path"])):
@@ -300,12 +319,15 @@ def cifs_umount(mount):
 
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # gvfs umount apparently never locks on open files.
-        
+
         # 1) Umount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
-        cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+        if LIN_CONST.GVFS_GENERATION <= 3:
+            cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+        else:
+            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
         Output.verbose("cmd: " + " ".join(cmd))
-        
+
         if mount.ui.UI_TYPE == "GUI":
             NonBlockingQtProcess(
                 cmd,
@@ -385,7 +407,7 @@ def cifs_post_umount(mount):
 def open_file_manager(mount):
     def _cb(success, output, exit_code):
         pass
-    
+
     if (mount.settings["Linux_CIFS_method"] == "gvfs" and
        not mount.settings["Linux_gvfs_symlink"]):
         path = None
@@ -419,7 +441,7 @@ def pexpect_ask_password(values):
     """
         Interact with process when pexpect found a matching string for password question
         It may Ack previously entered password if several password are asked in the same run.
-        
+
         This is a mirror from osx_stack.pexpect_ask_password
     """
     process_question = values["child_result_list"][-1]
