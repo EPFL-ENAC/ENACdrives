@@ -9,6 +9,11 @@ from config import models as mo
 from config import utility as ut
 from config.ldap_epfl import get_user_settings, UserNotFoundException
 
+MINIMAL_RELEASES = {
+    "Ubuntu-Linux": ">=1.1.13",
+    "Apple-Darwin": ">=1.1.12",
+    "Microsoft-Windows": ">=1.0.0",
+}
 
 def http_validate_username(request):
     if request.method != "GET":
@@ -132,10 +137,20 @@ def http_get(request):
                 mount_names = ut.grep_mount_names(data)
                 ranked_mount_names.extend(mount_names)
 
-        # Rank *_mount entries
-        if len(ranked_mount_names) != 0:
-            config_given += "[global]\n"
-            config_given += "entries_order = {0}\n\n".format(", ".join(ranked_mount_names))
+        if ut.is_client_in_minimal_releases(MINIMAL_RELEASES, request):
+            # Rank *_mount entries
+            if len(ranked_mount_names) != 0:
+                config_given += "[global]\n"
+                config_given += "entries_order = {0}\n\n".format(", ".join(ranked_mount_names))
+        else:
+            # Client is too old. Removing all *_mount sections
+            config_given = ut.remove_all_mount(config_given)
+            config_given += """
+[msg]
+name = Deprecated
+text = This client version has been deprecated.<br>That's why nothing appears here below.
+icon = critical
+"""
 
     except UserNotFoundException:
         pass

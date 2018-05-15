@@ -103,94 +103,94 @@ def conf_filter(data, iteration_num):
 
     return "\n".join(result)
 
+def split_filter(st):
+    """
+        split filter into 2 elements :
+        + operator (=|<|<=|>|>=)
+        + string to be checked
+    """
+    m = re.match(r"^ *([=<>]+)? *['\"]?([^'\"]*)['\"]?$", st)
+    if m:
+        return m.groups()
+    else:
+        raise Exception("Unrecognized filter '{}' (1)".format(st))
+
+def get_list_versions(filter_version, version):
+    """
+        transform string into list of int for both filter_version and version
+        adapt length of verion's list to match length of filter.
+    """
+    l_filter_version = [int(s) for s in re.findall(r"\d+", filter_version)]
+    l_version = [int(s) for s in re.findall(r"\d+", version)]
+    for i in range(len(l_filter_version) - len(l_version)):
+        l_version.append(0)
+    for i in range(len(l_version) - len(l_filter_version)):
+        l_version.pop()
+    return l_filter_version, l_version
+
+def compare_versions(the_filter, value):
+    """
+        compare version from value with the_filter
+    """
+    op_filter, st_filter = split_filter(the_filter)
+    if op_filter is None:
+        return st_filter == value
+    else:
+        l_filter, l_value = get_list_versions(st_filter, value)
+        if op_filter == "=":
+            for i in range(len(l_filter)):
+                # Only browse the number of digit specified by the filter (10.10 will match 10.10.2 for instance)
+                if l_value[i] != l_filter[i]:
+                    return False
+            return True
+        if op_filter == "<":
+            smaller = False
+            for i in range(len(l_filter)):
+                if l_value[i] < l_filter[i]:
+                    smaller = True
+                    break
+                elif l_value[i] > l_filter[i]:
+                    smaller = False
+                    break
+            return smaller
+        if op_filter == "<=":
+            smaller_equal = True
+            for i in range(len(l_filter)):
+                if l_value[i] < l_filter[i]:
+                    smaller_equal = True
+                    break
+                elif l_value[i] > l_filter[i]:
+                    smaller_equal = False
+                    break
+            return smaller_equal
+        if op_filter == ">":
+            greater = False
+            for i in range(len(l_filter)):
+                if l_value[i] > l_filter[i]:
+                    greater = True
+                    break
+                elif l_value[i] < l_filter[i]:
+                    greater = False
+                    break
+            return greater
+        if op_filter == ">=":
+            greater_equal = True
+            for i in range(len(l_filter)):
+                if l_value[i] > l_filter[i]:
+                    greater_equal = True
+                    break
+                elif l_value[i] < l_filter[i]:
+                    greater_equal = False
+                    break
+            return greater_equal
+        else:
+            raise Exception("Unrecognized filter '{}' (2)".format(the_filter))
+
 def client_filter(conf, request):
     """
         return True if that conf is to be included for that client
         based on client_filter_os, client_filter_os_version and client_filter_version
     """
-
-    def split_filter(st):
-        """
-            split filter into 2 elements :
-            + operator (=|<|<=|>|>=)
-            + string to be checked
-        """
-        m = re.match(r"^ *([=<>]+)? *['\"]?([^'\"]*)['\"]?$", st)
-        if m:
-            return m.groups()
-        else:
-            raise Exception("Unrecognized filter '{}' (1)".format(st))
-
-    def get_list_versions(filter_version, version):
-        """
-            transform string into list of int for both filter_version and version
-            adapt length of verion's list to match length of filter.
-        """
-        l_filter_version = [int(s) for s in re.findall(r"\d+", filter_version)]
-        l_version = [int(s) for s in re.findall(r"\d+", version)]
-        for i in range(len(l_filter_version) - len(l_version)):
-            l_version.append(0)
-        for i in range(len(l_version) - len(l_filter_version)):
-            l_version.pop()
-        return l_filter_version, l_version
-
-    def compare_versions(the_filter, value):
-        """
-            compare version from value with the_filter
-        """
-        op_filter, st_filter = split_filter(the_filter)
-        if op_filter is None:
-            return st_filter == value
-        else:
-            l_filter, l_value = get_list_versions(st_filter, value)
-            if op_filter == "=":
-                for i in range(len(l_filter)):
-                    # Only browse the number of digit specified by the filter (10.10 will match 10.10.2 for instance)
-                    if l_value[i] != l_filter[i]:
-                        return False
-                return True
-            if op_filter == "<":
-                smaller = False
-                for i in range(len(l_filter)):
-                    if l_value[i] < l_filter[i]:
-                        smaller = True
-                        break
-                    elif l_value[i] > l_filter[i]:
-                        smaller = False
-                        break
-                return smaller
-            if op_filter == "<=":
-                smaller_equal = True
-                for i in range(len(l_filter)):
-                    if l_value[i] < l_filter[i]:
-                        smaller_equal = True
-                        break
-                    elif l_value[i] > l_filter[i]:
-                        smaller_equal = False
-                        break
-                return smaller_equal
-            if op_filter == ">":
-                greater = False
-                for i in range(len(l_filter)):
-                    if l_value[i] > l_filter[i]:
-                        greater = True
-                        break
-                    elif l_value[i] < l_filter[i]:
-                        greater = False
-                        break
-                return greater
-            if op_filter == ">=":
-                greater_equal = True
-                for i in range(len(l_filter)):
-                    if l_value[i] > l_filter[i]:
-                        greater_equal = True
-                        break
-                    elif l_value[i] < l_filter[i]:
-                        greater_equal = False
-                        break
-                return greater_equal
-            else:
-                raise Exception("Unrecognized filter '{}' (2)".format(the_filter))
 
     if conf.client_filter_os != "":
         op, st = split_filter(conf.client_filter_os)
@@ -207,3 +207,30 @@ def client_filter(conf, request):
             return False
 
     return True
+
+
+def is_client_in_minimal_releases(minimal_releases, request):
+    """
+        return True if the client's version matches minimal_releases expected
+    """
+    client_os = validate_input(request.GET.get, "os")
+    client_version = validate_input(request.GET.get, "version")
+    if client_os in minimal_releases:
+        if not compare_versions(minimal_releases[client_os], client_version):
+            return False
+    return True
+
+def remove_all_mount(original_config):
+    """
+        return config_given as original_config, without all [CIFS_mount] entries
+        useful for clients that are not supported anymore.
+    """
+    config_given = ""
+    current_section = ""
+    for line in original_config.split("\n"):
+        m = re.match(r"^\[(.*)\]", line)
+        if m:
+            current_section = m.group(1).lower()
+        if current_section != "cifs_mount":
+            config_given += line + "\n"
+    return config_given
