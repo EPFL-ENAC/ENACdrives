@@ -112,6 +112,9 @@ def cifs_mount(mount):
         elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
             mount.ui.notify_user(e.strerror)
             return False
+        elif e.winerror == 71:  # (71, 'WNetAddConnection2', 'No more connections can be made to this remote computer at this time because there are already as many connections as the computer can accept.')
+            mount.ui.notify_user(e.strerror)
+            return False
         elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
             mount.ui.notify_user(e.strerror)
             return False
@@ -127,7 +130,7 @@ def cifs_mount(mount):
         elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
             mount.ui.notify_user(e.strerror)
             return False
-        elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
+        elif e.winerror == 1272:  # (1272, 'WNetAddConnection2', "You can't access this shared folder because your organization's security policies block unauthenticated guest access. These policies help protect your PC from unsafe or malicious devices on the network.")
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
@@ -135,6 +138,9 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
+            mount.ui.notify_user(e.strerror)
+            return False
+        elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
             mount.ui.notify_user(e.strerror)
             return False
         else:
@@ -186,6 +192,9 @@ def cifs_mount(mount):
             elif e.winerror == 67:  # (67, 'WNetAddConnection2', 'The network name cannot be found.')
                 mount.ui.notify_user(e.strerror)
                 return False
+            elif e.winerror == 71:  # (71, 'WNetAddConnection2', 'No more connections can be made to this remote computer at this time because there are already as many connections as the computer can accept.')
+                mount.ui.notify_user(e.strerror)
+                return False
             elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
                 mount.ui.notify_user(e.strerror)
                 return False
@@ -201,7 +210,7 @@ def cifs_mount(mount):
             elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
                 mount.ui.notify_user(e.strerror)
                 return False
-            elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
+            elif e.winerror == 1272:  # (1272, 'WNetAddConnection2', "You can't access this shared folder because your organization's security policies block unauthenticated guest access. These policies help protect your PC from unsafe or malicious devices on the network.")
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1311:  # (1311, 'WNetAddConnection2', 'There are currently no logon servers available to service the logon request.')
@@ -209,6 +218,9 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1331:  # (1331, 'WNetAddConnection2', "This user can't sign in because this account is currently disabled.")
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
                 mount.ui.notify_user(e.strerror)
                 return False
             else:
