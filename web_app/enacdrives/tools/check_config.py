@@ -60,6 +60,7 @@ CIFS_UNIT_CONFIG = ({
         r'.*\$$',  # all shares finished by a "$"
         r'oldlabs',
         r'enac-webcom',
+        r'ssie-winprofiles',
     ),
     "units_to_ignore": (),
 }, {
