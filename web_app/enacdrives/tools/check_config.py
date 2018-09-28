@@ -51,6 +51,7 @@ CIFS_UNIT_CONFIG = ({
         r'si_topsolid_debug_files',
         r'gestion-unites-enac',
         r'enac-prom-acad',
+        r'camipro-2018',
     ),
     "units_to_ignore": (),
 }, {
