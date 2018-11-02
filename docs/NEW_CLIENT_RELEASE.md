@@ -38,6 +38,7 @@ reprepro -b enacrepo.epfl.ch/public/ list yakkety
 reprepro -b enacrepo.epfl.ch/public/ list zesty
 reprepro -b enacrepo.epfl.ch/public/ list artful
 reprepro -b enacrepo.epfl.ch/public/ list bionic
+reprepro -b enacrepo.epfl.ch/public/ list cosmic
 
 reprepro -b enacrepo.epfl.ch/public/ ls enacdrives
 
@@ -61,6 +62,8 @@ reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb artful enacdriv
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb artful enacdrives_amd64.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb bionic enacdrives_i386.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb bionic enacdrives_amd64.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb cosmic enacdrives_i386.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase includedeb cosmic enacdrives_amd64.deb
 ~~~
 
 
