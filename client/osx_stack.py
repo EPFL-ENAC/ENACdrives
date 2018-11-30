@@ -20,14 +20,14 @@ from utility import Output, which, CancelOperationException, NonBlockingQtThread
 
 class OSX_CONST():
     CMD_OPEN = which("open") + " -a Finder {path}"
-    
+
     CMD_MOUNT_SMBFS = which("mount_smbfs")
     CMD_UMOUNT = which("umount")
 
 
 def os_check(ui):
     """
-    Check that OS has all pre-requisite functionalities 
+    Check that OS has all pre-requisite functionalities
     """
     pass
 
@@ -83,7 +83,7 @@ def cifs_mount(mount):
                 },
                 env=dict(os.environ, LANG="C", LC_ALL="C"),
                 withexitstatus=True,
-                timeout=5,
+                timeout=CONST.MOUNT_TIMEOUT,
             )
         except pexpect.ExceptionPexpect as e:
             raise Exception("Error while mounting : %s" % e.value)
@@ -159,7 +159,7 @@ def pexpect_ask_password(values):
     """
         Interact with process when pexpect found a matching string for password question
         It may Ack previously entered password if several password are asked in the same run.
-        
+
         This is a mirror from lin_stack.pexpect_ask_password
     """
     process_question = values["child_result_list"][-1]

@@ -55,7 +55,7 @@ Windows
 client test :
 -------------
 
-* low bandwidth (timeout)
+* low bandwidth / high latency (timeout)
 
 
 Users to notify

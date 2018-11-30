@@ -177,7 +177,7 @@ def cifs_mount(mount):
                 },
                 env=dict(os.environ, LANG="C", LC_ALL="C"),
                 withexitstatus=True,
-                timeout=5,
+                timeout=CONST.MOUNT_TIMEOUT,
             )
         except pexpect.ExceptionPexpect as exc:
             mount.ui.notify_user("Error while mounting :<br>{}".format(exc.value))
@@ -248,7 +248,7 @@ def cifs_mount(mount):
             },
             env=dict(os.environ, LANG="C", LC_ALL="C"),
             withexitstatus=True,
-            timeout=5,
+            timeout=CONST.MOUNT_TIMEOUT,
         )
         if exit_status == 0:
             mount.key_chain.ack_password("sudo")
@@ -365,7 +365,7 @@ def cifs_umount(mount):
             },
             env=dict(os.environ, LANG="C", LC_ALL="C"),
             withexitstatus=True,
-            timeout=5,
+            timeout=CONST.UMOUNT_TIMEOUT,
         )
         if exit_status == 0:
             mount.key_chain.ack_password("sudo")

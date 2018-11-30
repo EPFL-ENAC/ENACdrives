@@ -70,8 +70,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2018-05-08"
-    VERSION = "1.1.14"
+    VERSION_DATE = "2018-11-30"
+    VERSION = "1.1.15"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -93,6 +93,8 @@ class CONST():
     URL_TIMEOUT = 2
     PROC_TIMEOUT = 2
     CIFS_TIMEOUT = 1
+    MOUNT_TIMEOUT = 10
+    UMOUNT_TIMEOUT = 10
 
     GUI_FOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=3)
     GUI_FOCUS_LOST_STILL_FULL_REFRESH = datetime.timedelta(seconds=30)
