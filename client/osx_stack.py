@@ -15,7 +15,7 @@ import os
 import re
 import pexpect
 import subprocess
-from utility import Output, which, CancelOperationException, NonBlockingQtThread, NonBlockingQtProcess
+from utility import CONST, Output, which, CancelOperationException, NonBlockingQtThread, NonBlockingQtProcess
 
 
 class OSX_CONST():

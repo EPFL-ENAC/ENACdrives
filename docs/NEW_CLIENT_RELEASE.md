@@ -129,6 +129,12 @@ Pour signer l'exe, l'envoyer via enacshare à codesigning@epfl.ch
 MACOSX
 ======
 
+On the Mac :
+
+```bash
+ssh -NR 22210:localhost:22 sbancal@salsa.epfl.ch
+```
+
 ~~~ bash
 alias to_macp="rsync -e ssh -avH --exclude venv_py3 --exclude __pycache__  ~/Projects/enacdrives/client/ bancal@enac1mac2-NR:enacdrives_client/"
 to_macp
