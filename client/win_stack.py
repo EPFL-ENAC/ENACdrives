@@ -127,6 +127,9 @@ def cifs_mount(mount):
         elif e.winerror == 1219:  # (1219, 'WNetAddConnection2', 'Multiple connections to a server or shared resource by the same user, using more than one user name, are not allowed. Disconnect all previous connections to the server or shared resource and try again.')
             mount.ui.notify_user(e.strerror)
             return False
+        elif e.winerror == 1222:  # (1222, 'WNetAddConnection2', 'The network is not present or not started.')
+            mount.ui.notify_user(e.strerror)
+            return False
         elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
             mount.ui.notify_user(e.strerror)
             return False
@@ -205,6 +208,9 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1219:  # (1219, 'WNetAddConnection2', 'Multiple connections to a server or shared resource by the same user, using more than one user name, are not allowed. Disconnect all previous connections to the server or shared resource and try again.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 1222:  # (1222, 'WNetAddConnection2', 'The network is not present or not started.')
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1265:  # (1265, 'WNetAddConnection2', 'The system detected a possible attempt to compromise security. Please ensure that you can contact the server that authenticated you.')
