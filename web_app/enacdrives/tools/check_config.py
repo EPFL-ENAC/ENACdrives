@@ -48,6 +48,8 @@ CIFS_UNIT_CONFIG = ({
     "shares_to_ignore": (
         r'.*\$$',  # all shares finished by a "$"
         r'proj-.*$',  # all proj- shares
+        r'technologie_du_bati_2',
+        r'technologie_du_bati_4',
         r'si_topsolid_debug_files',
         r'gestion-unites-enac',
         r'enac-prom-acad',
