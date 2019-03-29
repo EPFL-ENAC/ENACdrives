@@ -118,6 +118,9 @@ def cifs_mount(mount):
         elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
             mount.ui.notify_user(e.strerror)
             return False
+        elif e.winerror == 121:  # (121, 'WNetAddConnection2', 'The semaphore timeout period has expired.')
+            mount.ui.notify_user(e.strerror)
+            return False
         elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
             mount.ui.notify_user(e.strerror)
             return False
@@ -199,6 +202,9 @@ def cifs_mount(mount):
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 85:  # (85, 'WNetAddConnection2', 'The local device name is already in use.')
+                mount.ui.notify_user(e.strerror)
+                return False
+            elif e.winerror == 121:  # (121, 'WNetAddConnection2', 'The semaphore timeout period has expired.')
                 mount.ui.notify_user(e.strerror)
                 return False
             elif e.winerror == 1202:  # (1202, 'WNetAddConnection2', 'The local device name has a remembered connection to another network resource.')
