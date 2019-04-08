@@ -19,7 +19,7 @@ from utility import CONST, Output, which, CancelOperationException, NonBlockingQ
 
 
 class OSX_CONST():
-    CMD_OPEN = which("open") + " -a Finder {path}"
+    CMD_OPEN = which("open") + " -a Finder \"{path}\""
 
     CMD_MOUNT_SMBFS = which("mount_smbfs")
     CMD_UMOUNT = which("umount")
@@ -61,7 +61,8 @@ def cifs_mount(mount):
     s_path = re.sub(r" ", r"%20", mount.settings["server_path"])
     cmd = [
         OSX_CONST.CMD_MOUNT_SMBFS,
-        r"//{realm_domain}\;{realm_username}@{server_name}/{s_path} {local_path}".format(s_path=s_path, **mount.settings)
+        r"//{realm_domain}\;{realm_username}@{server_name}/{s_path}".format(s_path=s_path, **mount.settings),
+        "\"{local_path}\"".format(**mount.settings)
     ]
     Output.verbose("cmd: " + " ".join(cmd))
     for _ in range(3):  # 3 attempts (for passwords mistyped)
@@ -121,7 +122,10 @@ def cifs_umount(mount):
         if not success:
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
 
-    cmd = [OSX_CONST.CMD_UMOUNT, mount.settings["local_path"]]
+    cmd = [
+        OSX_CONST.CMD_UMOUNT,
+        "\"{local_path}\"".format(**mount.settings)
+    ]
     Output.verbose("cmd: " + " ".join(cmd))
     NonBlockingQtProcess(
         cmd,
