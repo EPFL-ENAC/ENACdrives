@@ -142,14 +142,18 @@ to_macp
 
 ~~~ bash
 ssh enac1mac2-NR
-cd ~/enacdrives_client/
-rm -rf dist/*
-mv enacdrives.py ENACdrives.py
-python setup_osx.py py2app
-cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
-cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
-cp /Users/bancal/anaconda/lib/libpng16.16.dylib dist/ENACdrives.app/Contents/Resources/lib/
-cp /Users/bancal/anaconda/lib/libpng.dylib dist/ENACdrives.app/Contents/Resources/lib/
+build_enacdrives_osx () {
+  cd ~/enacdrives_client/
+  rm -rf dist/*
+  mv enacdrives.py ENACdrives.py
+  python setup_osx.py py2app
+  cp /Users/bancal/anaconda/lib/libQtCore.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
+  cp /Users/bancal/anaconda/lib/libQtGui.4.dylib dist/ENACdrives.app/Contents/Resources/lib/
+  cp /Users/bancal/anaconda/lib/libpng16.16.dylib dist/ENACdrives.app/Contents/Resources/lib/
+  cp /Users/bancal/anaconda/lib/libpng.dylib dist/ENACdrives.app/Contents/Resources/lib/
+}
+
+build_enacdrives_osx
 ~~~
 
 Test ... and give it to IT3 for Packaging via http://enacshare.epfl.ch (with Safari ... so that app is sent without preparing a zip)
