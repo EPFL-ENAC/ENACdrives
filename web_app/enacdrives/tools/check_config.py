@@ -65,6 +65,7 @@ CIFS_UNIT_CONFIG = ({
         r'oldlabs',
         r'enac-webcom',
         r'ssie-winprofiles',
+        r'sgc-winprofiles',
         r'sar-winprofiles',
     ),
     "units_to_ignore": (),
