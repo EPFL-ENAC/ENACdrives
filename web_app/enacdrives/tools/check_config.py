@@ -55,6 +55,7 @@ CIFS_UNIT_CONFIG = ({
         r'enac-prom-acad',
         r'camipro-2018',
         r'infra-sculpture',
+        r'ecombine',
     ),
     "units_to_ignore": (),
 }, {
