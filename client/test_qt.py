@@ -36,7 +36,7 @@ class MyQProcess(QtCore.QProcess):
     
 
 def main():  
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     qProcess = MyQProcess()
     
     qProcess.setProcessChannelMode(QtCore.QProcess.MergedChannels)    

@@ -9,6 +9,7 @@ import gc
 import sys
 import time
 import socket
+import distro
 import getpass
 import tempfile
 import datetime
@@ -17,7 +18,7 @@ import threading
 import subprocess
 import urllib.error
 import urllib.request
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 try:
     import grp
@@ -70,8 +71,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2019-04-08"
-    VERSION = "1.1.17"
+    VERSION_DATE = "2020-05-11"
+    VERSION = "1.2.0"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -109,7 +110,7 @@ class CONST():
         RESOURCES_DIR = os.path.dirname(__file__)
 
     if OS_SYS == "Linux":
-        OS_DISTRIB, OS_VERSION = platform.linux_distribution()[:2]
+        OS_DISTRIB, OS_VERSION = distro.linux_distribution()[:2]
         try:
             LOCAL_GROUPNAME = grp.getgrgid(pwd.getpwnam(LOCAL_USERNAME).pw_gid).gr_name
         except KeyError:

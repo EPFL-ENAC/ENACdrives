@@ -8,7 +8,7 @@ import sys
 import pprint
 import datetime
 import webbrowser
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
 from cifs_mount import CIFS_Mount
 import conf
@@ -20,14 +20,14 @@ elif CONST.OS_SYS == "Darwin":
     from osx_stack import os_check
 
 
-class Unsupported_OS(QtGui.QHBoxLayout):
+class Unsupported_OS(QtWidgets.QHBoxLayout):
 
     def __init__(self, os):
         super(Unsupported_OS, self).__init__()
-        error_png = QtGui.QLabel()
+        error_png = QtWidgets.QLabel()
         error_png.setGeometry(0, 0, 48, 48)
         error_png.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG_48))
-        label = QtGui.QLabel(
+        label = QtWidgets.QLabel(
             "We're sorry but ENACdrives is not supported on {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
             openExternalLinks=True)
         self.addWidget(error_png)
@@ -35,23 +35,23 @@ class Unsupported_OS(QtGui.QHBoxLayout):
         self.addStretch(1)
 
 
-class UI_Download_New_Release(QtGui.QWidget):
+class UI_Download_New_Release(QtWidgets.QWidget):
 
     def __init__(self):
         super(UI_Download_New_Release, self).__init__()
 
-        hlayout = QtGui.QHBoxLayout()
-        warning_png = QtGui.QLabel()
+        hlayout = QtWidgets.QHBoxLayout()
+        warning_png = QtWidgets.QLabel()
         warning_png.setGeometry(0, 0, 48, 48)
         warning_png.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG_48))
-        label = QtGui.QLabel(CONST.NEED_TO_UPDATE_MSG, openExternalLinks=True)
+        label = QtWidgets.QLabel(CONST.NEED_TO_UPDATE_MSG, openExternalLinks=True)
         # label.setStyleSheet("QLabel {color : red;}")
         hlayout.addWidget(warning_png)
         hlayout.addWidget(label)
         hlayout.addStretch(1)
         self.setLayout(hlayout)
 
-class UI_Msg(QtGui.QWidget):
+class UI_Msg(QtWidgets.QWidget):
 
     ICONS = {
         "none": CONST.MSG_PNG_48,
@@ -62,11 +62,11 @@ class UI_Msg(QtGui.QWidget):
     def __init__(self, text, icon):
         super(UI_Msg, self).__init__()
 
-        self.hlayout = QtGui.QHBoxLayout()
-        self.icon_png = QtGui.QLabel()
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.icon_png = QtWidgets.QLabel()
         self.icon_png.setGeometry(0, 0, 48, 48)
         self.icon_png.setPixmap(QtGui.QPixmap(UI_Msg.ICONS.get(icon, "transp")))
-        self.label = QtGui.QLabel(text, openExternalLinks=True)
+        self.label = QtWidgets.QLabel(text, openExternalLinks=True)
         self.hlayout.addWidget(self.icon_png)
         self.hlayout.addWidget(self.label)
         self.hlayout.addStretch(1)
@@ -83,7 +83,7 @@ class UI_Msg(QtGui.QWidget):
         self.setParent(None)
 
 
-class UI_Username_Box(QtGui.QWidget):
+class UI_Username_Box(QtWidgets.QWidget):
 
     def __init__(self, ui, username=None):
         super(UI_Username_Box, self).__init__()
@@ -91,9 +91,9 @@ class UI_Username_Box(QtGui.QWidget):
         self.ui = ui
 
         # Identified Layout
-        identified_hlayout = QtGui.QHBoxLayout()
-        self.identified_label = QtGui.QLabel()
-        self.bt_change_username = QtGui.QPushButton("Define user")
+        identified_hlayout = QtWidgets.QHBoxLayout()
+        self.identified_label = QtWidgets.QLabel()
+        self.bt_change_username = QtWidgets.QPushButton("Define user")
         self.bt_change_username.clicked.connect(self._bt_change_username)
         identified_hlayout.addWidget(self.identified_label)
         identified_hlayout.addStretch(1)
@@ -120,7 +120,7 @@ class UI_Username_Box(QtGui.QWidget):
     def _bt_change_username(self):
         msg = "Type your EPFL username :"
         while True:
-            username, ok = QtGui.QInputDialog.getText(
+            username, ok = QtWidgets.QInputDialog.getText(
                 self,
                 "Define your EPFL username",
                 msg,
@@ -137,14 +137,14 @@ class UI_Username_Box(QtGui.QWidget):
                 break
 
 
-class HLine(QtGui.QFrame):
+class HLine(QtWidgets.QFrame):
     def __init__(self):
         super(HLine, self).__init__()
-        self.setFrameShape(QtGui.QFrame.HLine)
-        self.setFrameShadow(QtGui.QFrame.Sunken)
+        self.setFrameShape(QtWidgets.QFrame.HLine)
+        self.setFrameShadow(QtWidgets.QFrame.Sunken)
 
 
-class UI_Mount_Entry(QtGui.QHBoxLayout):
+class UI_Mount_Entry(QtWidgets.QHBoxLayout):
 
     def __init__(self, ui, mount_instance):
         super(UI_Mount_Entry, self).__init__()
@@ -153,32 +153,32 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.mount_instance = mount_instance
         self.settings = mount_instance.settings
 
-        self.bt_bookmark = QtGui.QPushButton()
+        self.bt_bookmark = QtWidgets.QPushButton()
         self.bt_bookmark.setGeometry(0, 0, 15, 15)
         self.bt_bookmark.clicked.connect(self.toggle_bookmark)
         self.update_bookmark()
 
-        self.label_status = QtGui.QLabel()
+        self.label_status = QtWidgets.QLabel()
         self.label_status.setGeometry(0, 0, 15, 15)
 
-        self.label = QtGui.QLabel(self.settings["label"])
+        self.label = QtWidgets.QLabel(self.settings["label"])
 
         # Windows Letters : Z: -> A:
         if CONST.OS_SYS == "Windows":
             self.possible_win_letters = ["{}:".format(chr(i)) for i in range(90, 64, -1)]
             self.possible_win_letters.insert(0, "")
-            self.win_letter = QtGui.QComboBox()
+            self.win_letter = QtWidgets.QComboBox()
             for l in self.possible_win_letters:
                 self.win_letter.addItem(l)
             self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
             self.win_letter.currentIndexChanged.connect(self.win_letter_changed)
             self.ui.windows_letter_manager.add_mount_entry(self)
 
-        self.bt_mount = QtGui.QPushButton("Mount", self.ui)
+        self.bt_mount = QtWidgets.QPushButton("Mount", self.ui)
         self.bt_mount.clicked.connect(self.toggle_mount)
         if CONST.OS_SYS == "Windows" and self.win_letter.currentText() == "":
             self.bt_mount.setEnabled(False)
-        self.bt_open = QtGui.QPushButton("Open", self.ui)
+        self.bt_open = QtWidgets.QPushButton("Open", self.ui)
         self.bt_open.clicked.connect(self.mount_instance.open_file_manager)
         self.addWidget(self.bt_bookmark)
         self.addWidget(self.label_status)
@@ -287,7 +287,7 @@ class UI_Mount_Entry(QtGui.QHBoxLayout):
         self.setParent(None)
 
 
-class GUI(QtGui.QMainWindow):
+class GUI(QtWidgets.QMainWindow):
     UI_TYPE = "GUI"
 
     def __init__(self):
@@ -301,15 +301,15 @@ class GUI(QtGui.QMainWindow):
 
         self.networks_check = None  # set in load_config
         self.cfg = None  # set in load_config
-        self.entries_layer = QtGui.QVBoxLayout()
+        self.entries_layer = QtWidgets.QVBoxLayout()
         self.entries = []
-        self.msgs_layout = QtGui.QVBoxLayout()
+        self.msgs_layout = QtWidgets.QVBoxLayout()
         self.msgs = []
         self.load_config()
 
         self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
 
-        self.vbox_layout = QtGui.QVBoxLayout()
+        self.vbox_layout = QtWidgets.QVBoxLayout()
         if not validate_release_number():
             self.vbox_layout.addWidget(UI_Download_New_Release())
         self.vbox_layout.addLayout(self.msgs_layout)
@@ -318,17 +318,17 @@ class GUI(QtGui.QMainWindow):
         self.vbox_layout.addLayout(self.entries_layer)
 
         # File > Quit
-        quit_action = QtGui.QAction("&Quit", self)
+        quit_action = QtWidgets.QAction("&Quit", self)
         quit_action.setShortcut("Ctrl+Q")
         quit_action.setStatusTip("Quit ENACdrives")
-        quit_action.triggered.connect(QtGui.qApp.quit)
+        quit_action.triggered.connect(QtWidgets.qApp.quit)
         # Help > About
-        about_action = QtGui.QAction("&About", self)
+        about_action = QtWidgets.QAction("&About", self)
         about_action.setShortcut("Ctrl+?")
         about_action.setStatusTip("About ENACdrives")
         about_action.triggered.connect(self.show_about)
         # Help > Documentation
-        doc_action = QtGui.QAction("Web &documentation", self)
+        doc_action = QtWidgets.QAction("Web &documentation", self)
         # doc_action.setShortcut("Ctrl+?")
         doc_action.setStatusTip("ENACdrives web documentation")
         doc_action.triggered.connect(self.show_web_documentation)
@@ -340,7 +340,7 @@ class GUI(QtGui.QMainWindow):
         help_menu.addAction(about_action)
         help_menu.addAction(doc_action)
 
-        central_widget = QtGui.QWidget()
+        central_widget = QtWidgets.QWidget()
         central_widget.setLayout(self.vbox_layout)
         self.setCentralWidget(central_widget)
         self.set_tab_order()
@@ -365,7 +365,7 @@ class GUI(QtGui.QMainWindow):
 
     def notify_user(self, msg):
         Output.normal("Notified User: " + msg)
-        msgBox = QtGui.QMessageBox()
+        msgBox = QtWidgets.QMessageBox()
         msgBox.setText(msg)
         msgBox.exec_()
 
@@ -374,11 +374,11 @@ class GUI(QtGui.QMainWindow):
             msg = "Password was mistyped, try again.<br>Give your <b>{}</b> password".format(realm)
         else:
             msg = "Give your <b>{}</b> password".format(realm)
-        password, ok = QtGui.QInputDialog.getText(
+        password, ok = QtWidgets.QInputDialog.getText(
             self,
             "Please enter a password",
             msg,
-            QtGui.QLineEdit.Password,
+            QtWidgets.QLineEdit.Password,
         )
 
         if ok:
@@ -466,28 +466,37 @@ class GUI(QtGui.QMainWindow):
 
     def show_about(self):
         msg = """\
-ENACdrives version : <b>{}</b> ({})
-<br><br>
-Project team : ENAC-IT
+<h2> ENACdrives version : <b>{}</b> ({}) </h2>
+
+<div>
+A project developped and brought to you by ENAC-IT @ EPFL
+</div>
+
+<h3> Project team : </h3>
 <ul>
-<li>Samuel Bancal</li>
-<li>Jean-Daniel Bonjour</li>
-<li>Paulo De Jesus</li>
-<li>Nicolas Dubois</li>
-<li>Stefano Nepa</li>
+    <li>Samuel Bancal</li>
+    <li>Paulo De Jesus</li>
+    <li>Nicolas Dubois</li>
 </ul>
 
-Technologies used :
+<h3> Fellow team members : </h3>
 <ul>
-<li>client side: Python3, PyQt4, pexpect</li>
+    <li>Jean-Daniel Bonjour</li>
+    <li>Stefano Nepa</li>
+</ul>
+
+<h3> Technologies used : </h3>
+<ul>
+<li>client side: Python3, PyQt5, pexpect</li>
 <li>server side: Python3, Django</li>
 </ul>
 
 License : pending ...
 """.format(CONST.VERSION, CONST.VERSION_DATE)
-        about_box = QtGui.QMessageBox()
+        about_box = QtWidgets.QMessageBox()
         about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))
         about_box.setText(msg)
+        about_box.setStyleSheet("width: 800px;")
         about_box.exec_()
 
     def show_web_documentation(self):
@@ -508,6 +517,6 @@ def main_GUI():
     Output.debug("DEFAULT_MNT_DIR:" + CONST.DEFAULT_MNT_DIR + "\n")
     Output.br()
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ui = GUI()
     sys.exit(app.exec_())
