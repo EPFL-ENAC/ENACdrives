@@ -11,43 +11,30 @@
 # docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_amd64 python3 setup.py build
 
 
-FROM ubuntu:12.04
+FROM ubuntu:16.04
 MAINTAINER Samuel.Bancal@epfl.ch
 
-ENV update_date 2015-06-25
+ENV update_date 2020-05-12
 RUN apt-get update
 RUN apt-get install -y vim ncurses-dev wget build-essential ca-certificates
 
-# Python 3.4.3 from source
-RUN apt-get install -y libssl-dev
-RUN wget http://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
-RUN tar -xf Python-3.4.3.tar.xz
-RUN cd Python-3.4.3/; ./configure --prefix=/opt/python3.4; make; make test; make install
-ENV PATH /opt/python3.4/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Python 3.8.2 from source
+RUN apt-get install -y libssl-dev libffi-dev libglib2.0-0
+RUN wget https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
+RUN tar -xf Python-3.8.2.tar.xz
+RUN cd Python-3.8.2/; \
+    ./configure --prefix=/opt/python3.8; \
+    make; \
+    make test; \
+    make install
+ENV PATH /opt/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 RUN pip3 install --upgrade pip
-ADD platform.py /opt/python3.4/lib/python3.4/platform.py
 
-# cx_Freeze
-RUN wget https://pypi.python.org/packages/source/c/cx_Freeze/cx_Freeze-4.3.4.tar.gz#md5=5bd662af9aa36e5432e9144da51c6378
-RUN tar -xf cx_Freeze-4.3.4.tar.gz
-# Patched version 2015-06-18 with Dominique Quatravaux
-ADD setup.py cx_Freeze-4.3.4/setup.py
-RUN cd cx_Freeze-4.3.4/; python3.4 setup.py install
-
-# SIP (dependency for PyQt4)
-RUN wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.16.8/sip-4.16.8.tar.gz
-RUN tar -xf sip-4.16.8.tar.gz
-RUN cd sip-4.16.8; python3 configure.py; make; make install
-
-# PyQt4
-RUN apt-get install -y qt4-qmake qt4-dev-tools
-# RUN apt-get install -y python-pip python2.7-dev libxext-dev python-qt4 qt4-dev-tools build-essential
-RUN wget http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz
-RUN tar -xf PyQt-x11-gpl-4.11.4.tar.gz
-RUN cd PyQt-x11-gpl-4.11.4; python3 configure.py --confirm-license; make; make install
-
-# pexpect
-RUN pip install pexpect
+RUN python3 --version
+RUN pip3 install pexpect
+RUN pip3 install pyqt5
+RUN pip3 install distro
+RUN pip3 install cx_Freeze
 
 # Build env
 WORKDIR /enacdrives/client

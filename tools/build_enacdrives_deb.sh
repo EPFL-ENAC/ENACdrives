@@ -14,7 +14,9 @@ fi
 # Build a package - Definition
 # ----------------------------
 
-pushd ~/Projects/enacdrives/client
+export ENACDRIVES_PROJECT=~/Projects/enacdrives
+
+pushd ${ENACDRIVES_PROJECT}/client
 export PYTHONPATH=/usr/lib/python3/dist-packages
 export PACKAGE=enacdrives
 export SOFT="ENACdrives"
@@ -30,7 +32,7 @@ build_deb (){
     arch=${1-amd64}
 
     # Working folder
-    export DIR_DEB_CREATION=~/Projects/enacdrives/deb_building/${PACKAGE}_${arch}
+    export DIR_DEB_CREATION=${ENACDRIVES_PROJECT}/deb_building/${PACKAGE}_${arch}
     echo
     echo "Now Building ${PACKAGE}_${SHORT_SOFT_VER}-${PACKAGE_VER}_${arch}.deb in ${DIR_DEB_CREATION}"
     echo "------------"
@@ -41,7 +43,7 @@ build_deb (){
     mkdir -p ${DIR_DEB_CREATION}
 
     # Content - Compile
-    docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_${arch} python3 setup.py install --prefix=/enacdrives/deb_building/${PACKAGE}_${arch}/usr
+    docker run -v ${ENACDRIVES_PROJECT}:/enacdrives build_enacdrives_${arch} python3 setup.py install --prefix=/enacdrives/deb_building/${PACKAGE}_${arch}/usr
     sudo chown -R sbancal\: ${DIR_DEB_CREATION}
 
     # Content - permissions
@@ -58,7 +60,7 @@ build_deb (){
     # Content - /usr/share/pixmaps/enacdrives.svg
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/pixmaps/
-    cp ~/Projects/enacdrives/graphics/enacdrives.svg ${DIR_DEB_CREATION}/usr/share/pixmaps/
+    cp ${ENACDRIVES_PROJECT}/graphics/enacdrives.svg ${DIR_DEB_CREATION}/usr/share/pixmaps/
 
     # Content - /usr/share/applications/enacdrives.desktop
     mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/applications
@@ -77,44 +79,36 @@ Categories=GNOME;GTK;System;
     chmod 644 ${DIR_DEB_CREATION}/usr/share/applications/enacdrives.desktop
 
     # Content - /usr/share/doc/enacdrives/copyright
-    mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/
-    mkdir -m 755 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}
-    cat > ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright << %%%EOF%%%
-This package was packaged by Samuel Bancal <Samuel.Bancal@epfl.ch> on
-%%%EOF%%%
-    date >> ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright
-    cat >> ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright << %%%EOF%%%
-
-Copyright 2015 Samuel Bancal <Samuel.Bancal@epfl.ch>
-
-Project team : enacit.epfl.ch
- Samuel Bancal <Samuel.Bancal@epfl.ch>
- Jean-Daniel Bonjour <Jean-Daniel.Bonjour@epfl.ch>
- Paulo De Jesus <Paulo.DeJesus@epfl.ch>
- Nicolas Dubois <Nicolas.Dubois@epfl.ch>
- Stefano Nepa <Stefano.Nepa@epfl.ch>
-
-Technologies used :
- client side: Python3, PyQt4, pexpect
- server side: Python3, Django
-
-Term of License:
- pending...
-
-%%%EOF%%%
+    mkdir -p -m 755 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}
+    cat ${ENACDRIVES_PROJECT}/client/usr_share_doc_enacdrives/copyright | sed "s/{DATETIME}/$(date)/g" > ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright
     chmod 644 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/copyright
+
+    gzip -9 ${ENACDRIVES_PROJECT}/client/usr_share_doc_enacdrives/changelog.Debian \
+      -c > ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/changelog.Debian.gz
+    chmod 644 ${DIR_DEB_CREATION}/usr/share/doc/${PACKAGE}/changelog.Debian.gz
 
     # FIX unstripped-binary-or-object
     # https://lintian.debian.org/tags/unstripped-binary-or-object.html
     # https://github.com/vbatts/SlackBuilds/blob/master/cx_Freeze/cx_Freeze.SlackBuild
     find ${DIR_DEB_CREATION} -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-    # FIX binary-or-shlib-defines-rpath on
-    # + usr/lib/ENACdrives-1.0.23/PyQt4.QtCore.so
-    # + usr/lib/ENACdrives-1.0.23/PyQt4.QtGui.so
-    # https://lintian.debian.org/tags/binary-or-shlib-defines-rpath.html
-    # http://linux.die.net/man/1/chrpath
-    find ${DIR_DEB_CREATION} -name 'PyQt4.Qt*.so' | xargs chrpath -d
+    # # FIX binary-or-shlib-defines-rpath on
+    # # + usr/lib/ENACdrives-1.2.0/lib/PyQt5/Qt/lib/libicudata.so.56 /home/qt/icu_install/lib
+    # # + usr/lib/ENACdrives-1.2.0/lib/PyQt5/Qt/lib/libicui18n.so.56 /home/qt/icu_install/lib
+    # # + usr/lib/ENACdrives-1.2.0/lib/PyQt5/Qt/lib/libicuuc.so.56 /home/qt/icu_install/lib
+    # # https://lintian.debian.org/tags/binary-or-shlib-defines-rpath.html
+    # # http://linux.die.net/man/1/chrpath
+    find ${DIR_DEB_CREATION} -name libicudata.so.56 \
+      -o -name libicui18n.so.56 -o -name libicuuc.so.56 | xargs chrpath -d
+
+    # # FIX package-installs-python-bytecode
+    # # https://lintian.debian.org/tags/package-installs-python-bytecode.html
+    # find ${DIR_DEB_CREATION} -name '*.pyc' -exec rm -f \{\} \;
+
+    # FIX shlib-with-executable-bit
+    # https://lintian.debian.org/tags/shlib-with-executable-bit.html
+    find ${DIR_DEB_CREATION}/usr/lib -type f -perm /+x -exec chmod 0644 \{\} \;
+    chmod 755 ${DIR_DEB_CREATION}/usr/lib/${SOFT}-${SOFT_VER}/enacdrives
 
     # Content - size
     ESTIMATE_INSTALLED_SIZE=0
@@ -131,7 +125,7 @@ Version: ${SOFT_VER}-${PACKAGE_VER}
 Architecture: ${arch}
 Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
 Installed-Size: ${ESTIMATE_INSTALLED_SIZE}
-Depends: libc6 (>= 2.15), cifs-utils, libqtcore4, libqtgui4, gvfs-bin
+Depends: libc6 (>= 2.15), cifs-utils, gvfs-bin
 Replaces: mountfilers
 Section: misc
 Priority: optional
@@ -164,24 +158,30 @@ Description: EPFL, ENAC and units NAS directory
     cp ${PACKAGE}_${arch}.deb ${PACKAGE}_${SHORT_SOFT_VER}-${PACKAGE_VER}_${arch}.deb
 }
 
+lint (){
+  # arch = amd64 | i386
+  arch=${1-amd64}
+
+  echo
+  echo lintian ${PACKAGE}_${arch}.deb
+  lintian ${PACKAGE}_${arch}.deb
+}
+
+
+# Edit changelog.Debian and copyright
+vi ${ENACDRIVES_PROJECT}/client/usr_share_doc_enacdrives/changelog.Debian
+vi ${ENACDRIVES_PROJECT}/client/usr_share_doc_enacdrives/copyright
+
 # Prepare Docker containers
 docker build -t build_enacdrives_amd64 ../docker/build_enacdrives_U12.04_amd64
-docker build -t build_enacdrives_i386 ../docker/build_enacdrives_U12.04_i386
 
 # Cleanup
-sudo rm -rf ~/Projects/enacdrives/client/build
+sudo rm -rf ${ENACDRIVES_PROJECT}/client/build
 
 # Build
-build_deb i386
 build_deb amd64
 
 # Lint
-echo
-echo lintian ${PACKAGE}_i386.deb
-lintian ${PACKAGE}_i386.deb
-
-echo
-echo lintian ${PACKAGE}_amd64.deb
-lintian ${PACKAGE}_amd64.deb
+lint amd64
 
 popd

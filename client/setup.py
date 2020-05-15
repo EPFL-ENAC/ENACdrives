@@ -15,6 +15,8 @@ buildOptions = dict(
         "bookmark_off.png", "warning.png", "warning_48.png", "critical_48.png",
         "info_48.png", "msg_48.png"],
     include_msvcr=True  # skip error msvcr100.dll missing
+    # zip_include_packages="*",
+    # zip_exclude_packages=""
 )
 
 
@@ -38,7 +40,7 @@ setup(
         # targetDir = target_dir,
         # targetName = "enacdrives.exe",
         base=base,
-        compress=True,
+        # compress=True, unexpected keyword argument 2020-05-13
         icon="enacdrives.ico"
         # copyDependentFiles = False,
         # appendScriptToExe = False,
