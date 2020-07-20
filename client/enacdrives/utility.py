@@ -103,11 +103,18 @@ class CONST():
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
+        print("it's frozen...")
         # The application is frozen (applies to Linux and Windows)
         RESOURCES_DIR = os.path.dirname(os.path.realpath(sys.executable))
+        if OS_SYS == "Linux":
+            IMAGES_DIR = "/usr/share/pixmaps/enacdrives"
+        else:
+            IMAGES_DIR = RESOURCES_DIR
     else:
         # The application is not frozen
+        print("it's NOT frozen...")
         RESOURCES_DIR = os.path.dirname(__file__)
+        IMAGES_DIR = os.path.join(RESOURCES_DIR, "pixmaps")
 
     if OS_SYS == "Linux":
         OS_DISTRIB, OS_VERSION = distro.linux_distribution()[:2]
@@ -193,16 +200,16 @@ class CONST():
     VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
 
     # use full ABSOLUTE path to the image, not relative
-    ENACDRIVES_PNG = RESOURCES_DIR + "/enacdrives.png"
-    MOUNTED_PNG = RESOURCES_DIR + "/mounted.png"
-    UMOUNTED_PNG = RESOURCES_DIR + "/umounted.png"
-    BOOKMARK_ON_PNG = RESOURCES_DIR + "/bookmark_on.png"
-    BOOKMARK_OFF_PNG = RESOURCES_DIR + "/bookmark_off.png"
-    WARNING_PNG = RESOURCES_DIR + "/warning.png"
-    MSG_PNG_48 = RESOURCES_DIR + "/msg_48.png"
-    INFO_PNG_48 = RESOURCES_DIR + "/info_48.png"
-    WARNING_PNG_48 = RESOURCES_DIR + "/warning_48.png"
-    CRITICAL_PNG_48 = RESOURCES_DIR + "/critical_48.png"
+    ENACDRIVES_PNG = IMAGES_DIR + "/enacdrives.png"
+    MOUNTED_PNG = IMAGES_DIR + "/mounted.png"
+    UMOUNTED_PNG = IMAGES_DIR + "/umounted.png"
+    BOOKMARK_ON_PNG = IMAGES_DIR + "/bookmark_on.png"
+    BOOKMARK_OFF_PNG = IMAGES_DIR + "/bookmark_off.png"
+    WARNING_PNG = IMAGES_DIR + "/warning.png"
+    MSG_PNG_48 = IMAGES_DIR + "/msg_48.png"
+    INFO_PNG_48 = IMAGES_DIR + "/info_48.png"
+    WARNING_PNG_48 = IMAGES_DIR + "/warning_48.png"
+    CRITICAL_PNG_48 = IMAGES_DIR + "/critical_48.png"
 
 
 class Output():

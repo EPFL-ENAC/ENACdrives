@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.2
+Name=1.2
+Comment=Application to automate access to EPFL, ENAC and units NAS
+Keywords=EPFL;ENAC;NAS;filers;Drives;mount;CIFS;SMB
+Exec=/usr/bin/enacdrives
+Icon=/usr/share/pixmaps/enacdrives.svg
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;System;
