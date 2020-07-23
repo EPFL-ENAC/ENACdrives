@@ -25,6 +25,7 @@ setup(
              'pixmaps/enacdrives.icns',
              'pixmaps/enacdrives.ico',
              'pixmaps/enacdrives.png',
+             'pixmaps/enacdrives.svg',
              'pixmaps/info_48.png',
              'pixmaps/mounted.png',
              'pixmaps/msg_48.png',

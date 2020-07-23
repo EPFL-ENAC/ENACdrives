@@ -1,6 +1,6 @@
 [Desktop Entry]
 Version=1.2
-Name=1.2
+Name=ENACdrives
 Comment=Application to automate access to EPFL, ENAC and units NAS
 Keywords=EPFL;ENAC;NAS;filers;Drives;mount;CIFS;SMB
 Exec=/usr/bin/enacdrives
