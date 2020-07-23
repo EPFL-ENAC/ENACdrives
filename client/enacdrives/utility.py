@@ -104,12 +104,9 @@ class CONST():
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
         print("it's frozen...")
-        # The application is frozen (applies to Linux and Windows)
+        # The application is frozen (applies to Windows)
         RESOURCES_DIR = os.path.dirname(os.path.realpath(sys.executable))
-        if OS_SYS == "Linux":
-            IMAGES_DIR = "/usr/share/pixmaps/enacdrives"
-        else:
-            IMAGES_DIR = RESOURCES_DIR
+        IMAGES_DIR = RESOURCES_DIR
     else:
         # The application is not frozen
         print("it's NOT frozen...")
@@ -137,6 +134,8 @@ class CONST():
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = "You are not running the latest release.<br>Please upgrade the package enacdrives."
+        BIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
+        IMAGES_DIR = os.path.realpath(os.path.join(BIN_DIR, '../share/pixmaps/enacdrives'))
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
