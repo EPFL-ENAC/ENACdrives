@@ -27,7 +27,7 @@ except ImportError:  # Windows
     pass
 
 # ENACIT1LOGS
-import enacit1logs
+from enacdrives import enacit1logs
 # /ENACIT1LOGS
 
 

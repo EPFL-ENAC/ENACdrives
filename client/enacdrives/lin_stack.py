@@ -14,7 +14,7 @@
 import os
 import re
 import pexpect
-from utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingQtProcess, NonBlockingQtThread
+from enacdrives.utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingQtProcess, NonBlockingQtThread
 
 
 class LIN_CONST():

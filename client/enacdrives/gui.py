@@ -9,15 +9,15 @@ import pprint
 import datetime
 import webbrowser
 from PyQt5 import QtGui, QtCore, QtWidgets
-from utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
-from cifs_mount import CIFS_Mount
-import conf
+from enacdrives.utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
+from enacdrives.cifs_mount import CIFS_Mount
+from enacdrives import conf
 if CONST.OS_SYS == "Linux":
-    from lin_stack import os_check
+    from enacdrives.lin_stack import os_check
 elif CONST.OS_SYS == "Windows":
-    from win_stack import WindowsLettersManager, os_check
+    from enacdrives.win_stack import WindowsLettersManager, os_check
 elif CONST.OS_SYS == "Darwin":
-    from osx_stack import os_check
+    from enacdrives.osx_stack import os_check
 
 
 class Unsupported_OS(QtWidgets.QHBoxLayout):

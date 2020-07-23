@@ -6,9 +6,9 @@
 # used for Windows, Linux & Mac OSX
 
 import argparse
-from cli import main_CLI
-from gui import main_GUI
-from utility import CONST, Output
+from enacdrives.cli import main_CLI
+from enacdrives.gui import main_GUI
+from enacdrives.utility import CONST, Output
 
 
 if __name__ == '__main__':

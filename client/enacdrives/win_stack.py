@@ -17,7 +17,7 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
-from utility import CONST, Output, CancelOperationException, debug_send, NonBlockingQtProcess
+from enacdrives.utility import CONST, Output, CancelOperationException, debug_send, NonBlockingQtProcess
 
 
 class WIN_CONST():

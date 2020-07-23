@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Bancal Samuel
 
-import utility
+from enacdrives import utility
 from distutils.core import setup
 
 setup(
@@ -13,8 +13,9 @@ setup(
     author_email='Samuel.Bancal@epfl.ch',
     url='https://enacit.epfl.ch/enacdrives/',
     packages=['enacdrives'],
-    package_dir={'enacdrives': 'enacdrives'},
-    scripts=['enacdrives/enacdrives.py'],
+    scripts=[
+        'bin/enacdrives',
+    ],
     data_files=[
         ('share/applications', ['meta/enacdrives.desktop']),
         ('share/pixmaps',

@@ -19,7 +19,7 @@ import socket
 import hashlib
 import urllib.error
 import urllib.request
-from utility import Output, CONST, bytes_decode
+from enacdrives.utility import Output, CONST, bytes_decode
 
 
 FileNotFoundException = getattr(__builtins__, 'FileNotFoundError', IOError)
