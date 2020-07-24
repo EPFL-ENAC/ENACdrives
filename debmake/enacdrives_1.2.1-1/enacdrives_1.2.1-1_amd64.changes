@@ -1,0 +1,35 @@
+Format: 1.8
+Date: Fri, 24 Jul 2020 11:47:59 +0200
+Source: enacdrives
+Binary: enacdrives
+Architecture: source all
+Version: 1.2.1-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
+Changed-By: Samuel Bancal <>
+Description:
+ enacdrives - EPFL, ENAC and units NAS directory
+Changes:
+ enacdrives (1.2.1-1) UNRELEASED; urgency=low
+ .
+   * Initial release. Closes: #nnnn
+     <nnnn is the bug number of your ITP>
+Checksums-Sha1:
+ 3d55f31dd0f02f522635c2e2a405b591369ae20a 871 enacdrives_1.2.1-1.dsc
+ 6ddf2699308c9ee312bd2c509ca558c1b100ff30 300559 enacdrives_1.2.1.orig.tar.gz
+ fd8cfc458ca046af524a71d3eb083c94ac664d6f 1940 enacdrives_1.2.1-1.debian.tar.xz
+ bfa312bc2a5cc3ec295baa4fa7e43fd07a0bf624 244956 enacdrives_1.2.1-1_all.deb
+ 0b0a0cf8fabb96f82f3e0d7daa1ac6a2e7b57ccb 6073 enacdrives_1.2.1-1_amd64.buildinfo
+Checksums-Sha256:
+ 897ce7ad2b67aca52b3255515fac733dbd46d20c842db20233f3e419f6c89f8a 871 enacdrives_1.2.1-1.dsc
+ 75a5170982b6cbd9792a7cba618d5317d1885700e47b2b31876633ded09d596b 300559 enacdrives_1.2.1.orig.tar.gz
+ ac3b77fa645fd6562f02c524ff9c0e48466f20e9334d14f3139ac3027524a800 1940 enacdrives_1.2.1-1.debian.tar.xz
+ 8197fb5cd0bad7081a75d8e3b42787e22e4f7980b432c9a1456ea41d752e79e1 244956 enacdrives_1.2.1-1_all.deb
+ 9b0cab48c6a88fde88451b5f772aab89899556ee5b6437d8489353a33f646306 6073 enacdrives_1.2.1-1_amd64.buildinfo
+Files:
+ 0189bccdce9f981824624c4a0cac4bf7 871 misc optional enacdrives_1.2.1-1.dsc
+ 9041b06029f7e4c0ec42000cbf395574 300559 misc optional enacdrives_1.2.1.orig.tar.gz
+ 81fc81c23ff873c07a3b6eedc6b08f03 1940 misc optional enacdrives_1.2.1-1.debian.tar.xz
+ 5b63682fcd779c87bd7b067a34ec605b 244956 misc optional enacdrives_1.2.1-1_all.deb
+ 416de624bf56bfe059bc24f3a7cd8223 6073 misc optional enacdrives_1.2.1-1_amd64.buildinfo

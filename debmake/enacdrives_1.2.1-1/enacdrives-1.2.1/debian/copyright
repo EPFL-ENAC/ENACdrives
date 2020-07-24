@@ -1,0 +1,76 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: enacdrives
+Source: <url://example.com>
+#
+# Please double check copyright with the licensecheck(1) command.
+
+Files:     MANIFEST.in
+           Pipfile
+           Pipfile.lock
+           README.md
+           bin/enacdrives
+           enacdrives/__init__.py
+           enacdrives/__pycache__/__init__.cpython-38.pyc
+           enacdrives/__pycache__/enacit1logs.cpython-38.pyc
+           enacdrives/__pycache__/utility.cpython-38.pyc
+           enacdrives/cifs_mount.py
+           enacdrives/cli.py
+           enacdrives/conf.py
+           enacdrives/enacit1logs.py
+           enacdrives/gui.py
+           enacdrives/lin_stack.py
+           enacdrives/osx_stack.py
+           enacdrives/setup_osx.py
+           enacdrives/utility.py
+           enacdrives/win_stack.py
+           etc/enacdrives.conf
+           meta/enacdrives.desktop
+           setup.py
+           share/pixmaps/enacdrives/bookmark_off.png
+           share/pixmaps/enacdrives/bookmark_on.png
+           share/pixmaps/enacdrives/critical_48.png
+           share/pixmaps/enacdrives/enacdrives.icns
+           share/pixmaps/enacdrives/enacdrives.ico
+           share/pixmaps/enacdrives/enacdrives.png
+           share/pixmaps/enacdrives/info_48.png
+           share/pixmaps/enacdrives/mounted.png
+           share/pixmaps/enacdrives/msg_48.png
+           share/pixmaps/enacdrives/umounted.png
+           share/pixmaps/enacdrives/warning.png
+           share/pixmaps/enacdrives/warning_48.png
+           usr_share_doc_enacdrives/changelog.Debian
+Copyright: __NO_COPYRIGHT_NOR_LICENSE__
+License:   __NO_COPYRIGHT_NOR_LICENSE__
+
+Files:     usr_share_doc_enacdrives/copyright
+Copyright: 2015-2020 Samuel Bancal <Samuel.Bancal@epfl.ch>
+License:   __UNKNOWN__
+ Project team : enacit.epfl.ch
+ Samuel Bancal <Samuel.Bancal@epfl.ch>
+ Paulo De Jesus <Paulo.DeJesus@epfl.ch>
+ Nicolas Dubois <Nicolas.Dubois@epfl.ch>
+ .
+ Fellow team members :
+ Jean-Daniel Bonjour
+ Stefano Nepa
+ .
+ Technologies used :
+ client side: Python3, PyQt5, pexpect
+ server side: Python3, Django
+ .
+ Term of License:
+ You are encouraged to use this software, freely, for your work at EPFL.
+
+#----------------------------------------------------------------------------
+# xml and html files (skipped):
+#         share/pixmaps/enacdrives/enacdrives.svg
+
+#----------------------------------------------------------------------------
+# Files marked as NO_LICENSE_TEXT_FOUND may be covered by the following
+# license/copyright files.
+
+#----------------------------------------------------------------------------
+# License file: LICENSE
+ LICENSE TO BE DEFINED
+ .
+ You are encouraged to use this software, freely, for your work at EPFL.

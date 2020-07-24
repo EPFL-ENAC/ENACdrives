@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+name = "pypi"
+verify_ssl = true
+
+[packages]
+pexpect = "*"
+pyqt5 = "*"
+distro = "*"
+
+[dev-packages]
+jupyterlab = "*"
+jupyter-console = "*"
+
+[requires]
+python_version = "3.8"

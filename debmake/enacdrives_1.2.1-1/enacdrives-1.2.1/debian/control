@@ -1,0 +1,17 @@
+Source: enacdrives
+Section: misc
+Priority: optional
+Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
+Build-Depends: debhelper (>=11~), dh-python, python3-all
+Standards-Version: 4.1.4
+Homepage: https://enacit.epfl.ch/enacdrives/
+X-Python3-Version: >= 3.2
+
+Package: enacdrives
+Architecture: all
+Multi-Arch: foreign
+Depends: libc6 (>= 2.15), cifs-utils, gvfs-bin, python3-pyqt5, , 
+Description: EPFL, ENAC and units NAS directory
+ An application that let the user know which NAS he has access to and
+ mount/umount them. It can be used with the graphical interface
+ (Linux/Windows/MacOSX) and the command line (Linux only).
