@@ -17,6 +17,7 @@ setup(
         'bin/enacdrives',
     ],
     data_files=[
+        ('/etc', ['etc/enacdrives.conf']),
         ('share/applications', ['meta/enacdrives.desktop']),
         ('share/pixmaps/enacdrives',
             ['share/pixmaps/enacdrives/bookmark_off.png',
