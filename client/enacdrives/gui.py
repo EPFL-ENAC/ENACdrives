@@ -51,6 +51,21 @@ class UI_Download_New_Release(QtWidgets.QWidget):
         hlayout.addStretch(1)
         self.setLayout(hlayout)
 
+class UI_Download_Newer_Than_Prod_Release(QtWidgets.QWidget):
+
+    def __init__(self):
+        super(UI_Download_Newer_Than_Prod_Release, self).__init__()
+
+        hlayout = QtWidgets.QHBoxLayout()
+        info_png = QtWidgets.QLabel()
+        info_png.setGeometry(0, 0, 48, 48)
+        info_png.setPixmap(QtGui.QPixmap(CONST.INFO_PNG_48))
+        label = QtWidgets.QLabel(CONST.NEWER_THAN_PROD_MSG, openExternalLinks=True)
+        hlayout.addWidget(info_png)
+        hlayout.addWidget(label)
+        hlayout.addStretch(1)
+        self.setLayout(hlayout)
+
 class UI_Msg(QtWidgets.QWidget):
 
     ICONS = {
@@ -310,8 +325,12 @@ class GUI(QtWidgets.QMainWindow):
         self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
 
         self.vbox_layout = QtWidgets.QVBoxLayout()
-        if not validate_release_number():
+        release_number_validation = validate_release_number()
+        if release_number_validation == 'too old':
             self.vbox_layout.addWidget(UI_Download_New_Release())
+        elif release_number_validation == 'newer':
+            self.vbox_layout.addWidget(UI_Download_Newer_Than_Prod_Release())
+
         self.vbox_layout.addLayout(self.msgs_layout)
         self.vbox_layout.addWidget(self.username_box)
         self.vbox_layout.addWidget(HLine())

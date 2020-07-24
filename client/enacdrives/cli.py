@@ -275,8 +275,11 @@ def main_CLI(args):
     Output.debug("IMAGES_DIR:" + CONST.IMAGES_DIR + "\n")
     Output.debug("DEFAULT_MNT_DIR:" + CONST.DEFAULT_MNT_DIR + "\n")
 
-    if not validate_release_number():
+    release_number_validation = validate_release_number()
+    if release_number_validation == 'too old':
         Output.warning(CONST.NEED_TO_UPDATE_MSG)
+    elif release_number_validation == 'newer':
+        Output.normal(CONST.NEWER_THAN_PROD_MSG)
     if args.version:
         Output.cli("ENACdrives " + CONST.FULL_VERSION)
         sys.exit(0)

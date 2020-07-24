@@ -5,6 +5,7 @@
 # Offers general facility utilities
 
 import os
+import re
 import gc
 import sys
 import time
@@ -71,8 +72,8 @@ def bytes_decode(b):
 
 class CONST():
 
-    VERSION_DATE = "2020-05-11"
-    VERSION = "1.2.0"
+    VERSION_DATE = "2020-07-24"
+    VERSION = "1.2.1"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://enacit.epfl.ch/enacdrives"
@@ -103,13 +104,13 @@ class CONST():
 
     # RESOURCES_DIR is used to get files like app's icon
     if getattr(sys, 'frozen', False):
-        print("it's frozen...")
+        # print("it's frozen...")
         # The application is frozen (applies to Windows)
         RESOURCES_DIR = os.path.dirname(os.path.realpath(sys.executable))
         IMAGES_DIR = RESOURCES_DIR
     else:
         # The application is not frozen
-        print("it's NOT frozen...")
+        # print("it's NOT frozen...")
         RESOURCES_DIR = os.path.dirname(__file__)
         IMAGES_DIR = os.path.join(RESOURCES_DIR, "pixmaps")
 
@@ -134,6 +135,7 @@ class CONST():
         LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = "You are not running the latest release.<br>Please upgrade the package enacdrives."
+        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
         BIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
         IMAGES_DIR = os.path.realpath(os.path.join(BIN_DIR, '../share/pixmaps/enacdrives'))
     elif OS_SYS == "Darwin":
@@ -162,6 +164,7 @@ class CONST():
             RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
         NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
             "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
+        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -187,6 +190,7 @@ class CONST():
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
             "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
+        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
     else:
         OS_VERSION = "Error: OS not supported."
 
@@ -595,26 +599,50 @@ class Networks_Check():
 def validate_username(username):
     validate_url = CONST.VALIDATE_USERNAME_URL.format(username=username)
     try:
-        with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) as response:
+        with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) \
+             as response:
             lines = [bytes_decode(l) for l in response.readlines()]
-            Output.debug("validate_username {} : {}".format(validate_url, lines))
+            Output.debug(
+                "validate_username {} : {}".format(validate_url, lines))
             return lines[0]
     except (socket.timeout, urllib.error.URLError) as e:
-        Output.warning("Could not load validate url. ({})".format(validate_url))
+        Output.warning(
+            "Could not load validate url. ({})".format(validate_url))
         Output.warning("Got error : {}".format(e))
         return "Error, could not contact config server."
 
 
 def validate_release_number():
+    '''
+    Check latest official release on server and returns
+    'too old' | 'newer' | 'ok'
+    '''
+    def extract_version_tuple(str_version):
+        '''
+            Convert a version string like '1.2.0' to a tuple like (1, 2, 0)
+        '''
+        return tuple([int(num) for num in re.findall(r'\d+', str_version)])
+
     try:
-        with urllib.request.urlopen(CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) as response:
+        with urllib.request.urlopen(
+             CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) \
+             as response:
             lines = [bytes_decode(l) for l in response.readlines()]
-            Output.debug("validate_release_number {} : {}".format(CONST.LATEST_RELEASE_NUMBER_URL, lines))
-            return CONST.VERSION == lines[0]
+            Output.debug("validate_release_number {} : {}".format(
+                CONST.LATEST_RELEASE_NUMBER_URL, lines))
+            my_version = extract_version_tuple(CONST.VERSION)
+            latest_version = extract_version_tuple(lines[0])
+            for mine, latest in zip(my_version, latest_version):
+                if mine < latest:
+                    return 'too old'
+                elif mine > latest:
+                    return 'newer'
+            return 'ok'
     except (socket.timeout, urllib.error.URLError) as e:
-        Output.warning("Could not validate release number. ({})".format(CONST.LATEST_RELEASE_NUMBER_URL))
+        Output.warning("Could not validate release number. ({})".format(
+            CONST.LATEST_RELEASE_NUMBER_URL))
         Output.warning("Got error : {}".format(e))
-        return True
+        return 'ok'
 
 
 class BlockingProcess():
