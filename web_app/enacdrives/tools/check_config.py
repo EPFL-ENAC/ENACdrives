@@ -56,6 +56,8 @@ CIFS_UNIT_CONFIG = ({
         r'camipro-2018',
         r'infra-sculpture',
         r'ecombine',
+        r'biomining',
+        r'lablysi',
     ),
     "units_to_ignore": (),
 }, {
