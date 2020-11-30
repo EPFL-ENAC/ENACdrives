@@ -58,6 +58,9 @@ CIFS_UNIT_CONFIG = ({
         r'ecombine',
         r'biomining',
         r'lablysi',
+        r'sar-web',
+        r'uhna',
+        r'wanhabitats',
     ),
     "units_to_ignore": (),
 }, {
