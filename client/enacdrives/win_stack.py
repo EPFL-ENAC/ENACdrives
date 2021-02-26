@@ -98,8 +98,7 @@ def cifs_mount(mount):
         elif e.winerror == 1326:  # (1326, "WNetAddConnection2", "Logon failure: unknown user name or bad password.")
             pass
         elif e.winerror == 31:  # (31, 'WNetAddConnection2', 'A device attached to the system is not functioning.')
-            mount.ui.notify_user(e.strerror)
-            return False
+            pass
         elif e.winerror == 53:  # (53, 'WNetAddConnection2', 'The network path was not found.')
             mount.ui.notify_user(e.strerror)
             return False
