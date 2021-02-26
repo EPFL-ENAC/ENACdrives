@@ -19,7 +19,8 @@ Compile & Package
 -----------------
 
 ```bash
-~/Projects/enacdrives/tools/build_enacdrives_deb.sh
+cd tools
+pipenv run bash build_enacdrives_deb.sh
 ```
 
 

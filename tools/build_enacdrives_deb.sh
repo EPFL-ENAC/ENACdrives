@@ -26,6 +26,7 @@ if [ ! -d ${PACKAGE}-${SOFT_VER} ]; then
   ln -s client ${PACKAGE}-${SOFT_VER}
 fi
 tar -chvzf ${BUILD_DIR}/${PACKAGE}-${SOFT_VER}.tar.gz ${PACKAGE}-${SOFT_VER}
+rm ${PACKAGE}-${SOFT_VER}
 cd ${BUILD_DIR}
 tar -xzf ${PACKAGE}-${SOFT_VER}.tar.gz
 cd ${PACKAGE}-${SOFT_VER}
