@@ -146,8 +146,7 @@ def cifs_mount(mount):
             mount.ui.notify_user(e.strerror)
             return False
         elif e.winerror == 1907:  # (1907, 'WNetAddConnection2', "The user's password must be changed before signing in.")
-            mount.ui.notify_user(e.strerror)
-            return False
+            pass
         else:
             Output.error("failed : {0}".format(e))
             debug_send("mount without password:\n{0}".format(e))
