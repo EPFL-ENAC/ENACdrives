@@ -64,7 +64,7 @@ def cifs_is_mounted(mount, cb):
             i_search = i_search.replace("\\", "\\\\")
             i_search = i_search.replace("$", r"\$")
             i_search += "$"
-            Output.debug("i_search='{0}'".format(i_search))
+            # Output.debug("i_search='{0}'".format(i_search))
             for l in lines[1:]:
                 try:
                     drive_letter = l[caption_start:caption_end].strip()
