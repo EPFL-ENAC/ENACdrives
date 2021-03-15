@@ -51,23 +51,32 @@ def cifs_is_mounted(mount, cb):
         providername_start = lines[0].index(providername)
         providername_end = lines[0].index(after_providername)
 
-        i_search = r"^\\{server_name}\{server_path}".format(**mount.settings)
-        i_search = i_search.replace("\\", "\\\\")
-        i_search = i_search.replace("$", r"\$")
-        i_search += "$"
-        # Output.debug("i_search='{0}'".format(i_search))
-        for l in lines[1:]:
-            try:
-                drive_letter = l[caption_start:caption_end].strip()
-                provider = l[providername_start:providername_end].strip()
-                # Output.debug("{} <- {}".format(drive_letter, provider))
-                if re.search(i_search, provider, flags=re.IGNORECASE):
-                    mount.settings["Windows_letter"] = drive_letter
-                    # Output.debug("MATCH!")
-                    cb(True)
-                    return
-            except IndexError:
-                pass
+        # Look for 'server' and for 'server.domain.name'
+        server_names = [
+            mount.settings["server_name"],
+            re.findall(r'[^.]+', mount.settings["server_name"])[0],
+        ]
+        for server_name in server_names:
+            i_search = r"^\\{server_name}\{server_path}".format(
+                server_name=server_name,
+                server_path=mount.settings['server_path'],
+            )
+            i_search = i_search.replace("\\", "\\\\")
+            i_search = i_search.replace("$", r"\$")
+            i_search += "$"
+            Output.debug("i_search='{0}'".format(i_search))
+            for l in lines[1:]:
+                try:
+                    drive_letter = l[caption_start:caption_end].strip()
+                    provider = l[providername_start:providername_end].strip()
+                    # Output.debug("{} <- {}".format(drive_letter, provider))
+                    if re.search(i_search, provider, flags=re.IGNORECASE):
+                        mount.settings["Windows_letter"] = drive_letter
+                        # Output.debug("MATCH!")
+                        cb(True)
+                        return
+                except IndexError:
+                    pass
         cb(False)
 
     cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
