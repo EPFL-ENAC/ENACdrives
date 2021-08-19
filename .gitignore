@@ -1,3 +1,4 @@
+.vscode
 *.sqlite
 *.sqlite3
 *.pyc
