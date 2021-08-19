@@ -61,6 +61,7 @@ CIFS_UNIT_CONFIG = ({
         r'sar-web',
         r'uhna',
         r'wanhabitats',
+        r'phlebicite',
     ),
     "units_to_ignore": (),
 }, {
