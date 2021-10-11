@@ -62,6 +62,7 @@ CIFS_UNIT_CONFIG = ({
         r'uhna',
         r'wanhabitats',
         r'phlebicite',
+        r'antfr-ge',
     ),
     "units_to_ignore": (),
 }, {
