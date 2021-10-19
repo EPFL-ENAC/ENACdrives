@@ -63,6 +63,7 @@ CIFS_UNIT_CONFIG = ({
         r'wanhabitats',
         r'phlebicite',
         r'antfr-ge',
+        r'digiwalls-ibois-eesd',
     ),
     "units_to_ignore": (),
 }, {
