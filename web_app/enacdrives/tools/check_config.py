@@ -64,6 +64,7 @@ CIFS_UNIT_CONFIG = ({
         r'phlebicite',
         r'antfr-ge',
         r'digiwalls-ibois-eesd',
+        r's_pine',
     ),
     "units_to_ignore": (),
 }, {
