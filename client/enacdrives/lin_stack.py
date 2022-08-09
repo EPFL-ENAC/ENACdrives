@@ -14,10 +14,18 @@
 import os
 import re
 import pexpect
-from enacdrives.utility import CONST, Output, which, CancelOperationException, BlockingProcess, NonBlockingQtProcess, NonBlockingQtThread
+from enacdrives.utility import (
+    CONST,
+    Output,
+    which,
+    CancelOperationException,
+    BlockingProcess,
+    NonBlockingQtProcess,
+    NonBlockingQtThread,
+)
 
 
-class LIN_CONST():
+class LIN_CONST:
     try:
         CMD_OPEN = which("xdg-open") + " {path}"
     except TypeError:  # TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
@@ -27,14 +35,24 @@ class LIN_CONST():
     CMD_UMOUNT = which("umount")
 
     CMD_GVFS_MOUNT = which("gvfs-mount")
-    CMD_GIO_MOUNT = which ("gio")
+    CMD_GIO_MOUNT = which("gio")
     if CONST.OS_VERSION in ("10.04", "10.10", "11.04", "11.10", "12.04"):
         GVFS_GENERATION = 1
         GVFS_DIR = os.path.join(CONST.HOME_DIR, ".gvfs")
     elif CONST.OS_VERSION in ("12.10", "13.04"):
         GVFS_GENERATION = 2
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_USERNAME)
-    elif CONST.OS_VERSION in ("13.10", "14.04", "14.10", "15.04", "15.10", "16.04", "16.10", "17.04", "17.10"):
+    elif CONST.OS_VERSION in (
+        "13.10",
+        "14.04",
+        "14.10",
+        "15.04",
+        "15.10",
+        "16.04",
+        "16.10",
+        "17.04",
+        "17.10",
+    ):
         GVFS_GENERATION = 3
         GVFS_DIR = "/run/user/{0}/gvfs".format(CONST.LOCAL_UID)
     else:
@@ -48,15 +66,23 @@ def os_check(ui):
     """
     if ui.cfg["global"]["Linux_CIFS_method"] == "gvfs":
         if LIN_CONST.GVFS_GENERATION <= 3 and LIN_CONST.CMD_GVFS_MOUNT is None:
-            ui.notify_user("Warning: gvfs-bin is not installed and default config uses it.<br>"
-                           "Please install it or switch to mount.cifs as described in documentation "
-                           "<a href='{doc}'>{doc}</a> "
-                           "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
+            ui.notify_user(
+                "Warning: gvfs-bin is not installed and default config uses it.<br>"
+                "Please install it or switch to mount.cifs as described in documentation "
+                "<a href='{doc}'>{doc}</a> "
+                'Chapter <b>4.4.4</b> "Changer de méthode de montage sous Linux/Ubuntu"'.format(
+                    doc=CONST.DOC_URL
+                )
+            )
         if LIN_CONST.GVFS_GENERATION >= 4 and LIN_CONST.CMD_GIO_MOUNT is None:
-            ui.notify_user("Warning: libglib2.0-bin is not installed and default config uses it.<br>"
-                           "Please install it or switch to mount.cifs as described in documentation "
-                           "<a href='{doc}'>{doc}</a> "
-                           "Chapter <b>4.4.4</b> \"Changer de méthode de montage sous Linux/Ubuntu\"".format(doc=CONST.DOC_URL))
+            ui.notify_user(
+                "Warning: libglib2.0-bin is not installed and default config uses it.<br>"
+                "Please install it or switch to mount.cifs as described in documentation "
+                "<a href='{doc}'>{doc}</a> "
+                'Chapter <b>4.4.4</b> "Changer de méthode de montage sous Linux/Ubuntu"'.format(
+                    doc=CONST.DOC_URL
+                )
+            )
 
 
 def cifs_uncache_is_mounted(mount):
@@ -73,10 +99,11 @@ def cifs_uncache_is_mounted(mount):
 
 def cifs_is_mounted(mount, cb=None):
     """
-        evaluate if this mount is mounted
-        if cb is None make it synchronously (CLI)
-        else make it asynchronously (GUI)
+    evaluate if this mount is mounted
+    if cb is None make it synchronously (CLI)
+    else make it asynchronously (GUI)
     """
+
     def _cb_gvfs(success, output, exit_code):
         # Output.debug("lin_stack._cb_gvfs")
         # Output.debug("-> gvfs-mount -l : \n{0}\n\n".format(output))
@@ -84,7 +111,8 @@ def cifs_is_mounted(mount, cb=None):
         share_format2 = re.sub(r" ", r"%20", mount.settings["server_share"])
         share_format2 = re.sub(r"\$", r"\\$", share_format2)
         i_search = r"{share_format1} .+ {server_name} -> smb://{realm_domain};{realm_username}@{server_name}/{share_format2}".format(
-            share_format1=share_format1, share_format2=share_format2, **mount.settings)
+            share_format1=share_format1, share_format2=share_format2, **mount.settings
+        )
         for l in output.split("\n"):
             if re.search(i_search, l, flags=re.IGNORECASE):
                 # Output.debug(l)
@@ -115,11 +143,13 @@ def cifs_is_mounted(mount, cb=None):
             cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", "-l"]
         # Output.debug("cmd: " + " ".join(cmd))
         if cb is None:
-            return _cb_gvfs(**BlockingProcess.run(
-                cmd,
-                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
-                cache=True,
-            ))
+            return _cb_gvfs(
+                **BlockingProcess.run(
+                    cmd,
+                    env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+                    cache=True,
+                )
+            )
         else:
             NonBlockingQtProcess(
                 cmd,
@@ -134,7 +164,7 @@ def cifs_is_mounted(mount, cb=None):
             NonBlockingQtThread(
                 "os.path.ismounted.{}".format(mount.settings["local_path"]),
                 _target_mountcifs,
-                cb
+                cb,
             )
 
 
@@ -142,22 +172,40 @@ def cifs_mount(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # 1) Remove broken symlink or empty dir
         if mount.settings["Linux_gvfs_symlink"]:
-            if (os.path.lexists(mount.settings["local_path"]) and
-               not os.path.exists(mount.settings["local_path"])):
+            if os.path.lexists(mount.settings["local_path"]) and not os.path.exists(
+                mount.settings["local_path"]
+            ):
                 os.unlink(mount.settings["local_path"])
-            if (os.path.isdir(mount.settings["local_path"]) and
-               os.listdir(mount.settings["local_path"]) == []):
+            if (
+                os.path.isdir(mount.settings["local_path"])
+                and os.listdir(mount.settings["local_path"]) == []
+            ):
                 os.rmdir(mount.settings["local_path"])
             if os.path.exists(mount.settings["local_path"]):
-                mount.ui.notify_user("Error : Path {} already exists".format(mount.settings["local_path"]))
+                mount.ui.notify_user(
+                    "Error : Path {} already exists".format(
+                        mount.settings["local_path"]
+                    )
+                )
                 return False
 
         # 2) Mount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
         if LIN_CONST.GVFS_GENERATION <= 3:
-            cmd = [LIN_CONST.CMD_GVFS_MOUNT, r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+            cmd = [
+                LIN_CONST.CMD_GVFS_MOUNT,
+                r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(
+                    share=share, **mount.settings
+                ),
+            ]
         else:
-            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+            cmd = [
+                LIN_CONST.CMD_GIO_MOUNT,
+                "mount",
+                r"smb://{realm_domain}\;{realm_username}@{server_name}/{share}".format(
+                    share=share, **mount.settings
+                ),
+            ]
         Output.verbose("cmd: " + " ".join(cmd))
         process_meta = {
             "was_cancelled": False,
@@ -169,9 +217,7 @@ def cifs_mount(mount):
                     "Password:": pexpect_ask_password,
                 },
                 extra_args={
-                    "auth_realms": [
-                        (r"Password:", mount.settings["realm"])
-                    ],
+                    "auth_realms": [(r"Password:", mount.settings["realm"])],
                     "key_chain": mount.key_chain,
                     "process_meta": process_meta,
                 },
@@ -195,21 +241,27 @@ def cifs_mount(mount):
 
     else:  # "mount.cifs"
         if LIN_CONST.CMD_MOUNT_CIFS is None:
-            mount.ui.notify_user("Error missing binary <b>mount.cifs</b>. On Ubuntu you can install it with <i>sudo apt-get install cifs-utils</i>")
+            mount.ui.notify_user(
+                "Error missing binary <b>mount.cifs</b>. On Ubuntu you can install it with <i>sudo apt-get install cifs-utils</i>"
+            )
             return False
 
         # 1) Make mount dir (remove broken symlink if needed)
-        if (os.path.lexists(mount.settings["local_path"]) and
-           not os.path.exists(mount.settings["local_path"])):
+        if os.path.lexists(mount.settings["local_path"]) and not os.path.exists(
+            mount.settings["local_path"]
+        ):
             os.unlink(mount.settings["local_path"])
         if not os.path.exists(mount.settings["local_path"]):
             try:
                 os.makedirs(mount.settings["local_path"])
             except OSError:
                 pass
-        if (os.path.islink(mount.settings["local_path"]) or
-           not os.path.isdir(mount.settings["local_path"])):
-            mount.ui.notify_user("Error while creating dir : %s" % mount.settings["local_path"])
+        if os.path.islink(mount.settings["local_path"]) or not os.path.isdir(
+            mount.settings["local_path"]
+        ):
+            mount.ui.notify_user(
+                "Error while creating dir : %s" % mount.settings["local_path"]
+            )
             return False
 
         # 2) Mount
@@ -223,7 +275,7 @@ def cifs_mount(mount):
             "uid={local_uid},gid={local_gid},"
             "file_mode={Linux_mountcifs_filemode},"
             "dir_mode={Linux_mountcifs_filemode},"
-            "{Linux_mountcifs_options}"
+            "{Linux_mountcifs_options}",
         ]
         if CONST.LOCAL_UID != 0:
             cmd.insert(0, "sudo")
@@ -241,7 +293,7 @@ def cifs_mount(mount):
             extra_args={
                 "auth_realms": [
                     (r"\[sudo\] password", "sudo"),
-                    (r"Password", mount.settings["realm"])
+                    (r"Password", mount.settings["realm"]),
                 ],
                 "key_chain": mount.key_chain,
                 "process_meta": process_meta,
@@ -257,8 +309,10 @@ def cifs_mount(mount):
             mount.key_chain.invalidate_if_no_ack_password("sudo")
             mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
             if process_meta["was_cancelled"]:
-                if (os.path.exists(mount.settings["local_path"]) and
-                   os.listdir(mount.settings["local_path"]) == []):
+                if (
+                    os.path.exists(mount.settings["local_path"])
+                    and os.listdir(mount.settings["local_path"]) == []
+                ):
                     try:
                         os.rmdir(mount.settings["local_path"])
                     except OSError as e:
@@ -286,14 +340,37 @@ def cifs_post_mount(mount):
                     share = re.sub(r"\$", r"\\$", share)
                 for f in os.listdir(LIN_CONST.GVFS_DIR):
                     if LIN_CONST.GVFS_GENERATION == 1:
-                        if re.match(r"{share} \S+ {server_name}".format(share=share, **mount.settings), f, flags=re.IGNORECASE):
+                        if re.match(
+                            r"{share} \S+ {server_name}".format(
+                                share=share, **mount.settings
+                            ),
+                            f,
+                            flags=re.IGNORECASE,
+                        ):
                             mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
                     else:
-                        if (re.match(r"^smb-share:", f) and
-                           re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
-                           re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
-                           re.search(r"share={share}(,|$)".format(share=share, **mount.settings), f, flags=re.IGNORECASE) and
-                           re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
+                        if (
+                            re.match(r"^smb-share:", f)
+                            and re.search(
+                                r"domain={realm_domain}(,|$)".format(**mount.settings),
+                                f,
+                                flags=re.IGNORECASE,
+                            )
+                            and re.search(
+                                r"server={server_name}(,|$)".format(**mount.settings), f
+                            )
+                            and re.search(
+                                r"share={share}(,|$)".format(
+                                    share=share, **mount.settings
+                                ),
+                                f,
+                                flags=re.IGNORECASE,
+                            )
+                            and re.search(
+                                r"user={realm_username}(,|$)".format(**mount.settings),
+                                f,
+                            )
+                        ):
                             mount_point = os.path.join(LIN_CONST.GVFS_DIR, f)
 
                 if mount_point is None:
@@ -305,7 +382,10 @@ def cifs_post_mount(mount):
                 except OSError as e:
                     raise Exception("Could not create symbolic link : %s" % e.args[1])
                 if not os.path.islink(mount.settings["local_path"]):
-                    raise Exception("Could not create symbolic link : %s <- %s" % (target, mount.settings["local_path"]))
+                    raise Exception(
+                        "Could not create symbolic link : %s <- %s"
+                        % (target, mount.settings["local_path"])
+                    )
 
     else:  # "mount.cifs"
         pass
@@ -323,9 +403,22 @@ def cifs_umount(mount):
         # 1) Umount
         share = re.sub(r" ", r"%20", mount.settings["server_share"])
         if LIN_CONST.GVFS_GENERATION <= 3:
-            cmd = [LIN_CONST.CMD_GVFS_MOUNT, "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+            cmd = [
+                LIN_CONST.CMD_GVFS_MOUNT,
+                "-u",
+                r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(
+                    share=share, **mount.settings
+                ),
+            ]
         else:
-            cmd = [LIN_CONST.CMD_GIO_MOUNT, "mount", "-u", r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(share=share, **mount.settings)]
+            cmd = [
+                LIN_CONST.CMD_GIO_MOUNT,
+                "mount",
+                "-u",
+                r"smb://{realm_domain};{realm_username}@{server_name}/{share}".format(
+                    share=share, **mount.settings
+                ),
+            ]
         Output.verbose("cmd: " + " ".join(cmd))
 
         if mount.ui.UI_TYPE == "GUI":
@@ -335,10 +428,12 @@ def cifs_umount(mount):
                 env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
             )
         else:
-            _cb_gvfs(**BlockingProcess.run(
-                cmd,
-                env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
-            ))
+            _cb_gvfs(
+                **BlockingProcess.run(
+                    cmd,
+                    env=dict(os.environ, LANG="C", LC_ALL="C", LANGUAGE="C"),
+                )
+            )
 
     else:  # "mount.cifs"
         # 1) uMount
@@ -390,15 +485,18 @@ def cifs_post_umount(mount):
     if mount.settings["Linux_CIFS_method"] == "gvfs":
         # 2) Remove symlink
         if mount.settings["Linux_gvfs_symlink"]:
-            if (os.path.lexists(mount.settings["local_path"]) and
-               not os.path.exists(mount.settings["local_path"])):
+            if os.path.lexists(mount.settings["local_path"]) and not os.path.exists(
+                mount.settings["local_path"]
+            ):
                 os.unlink(mount.settings["local_path"])
 
     else:  # "mount.cifs"
         # 2) Remove mount dir
         try:
-            if (os.path.exists(mount.settings["local_path"]) and
-               os.listdir(mount.settings["local_path"]) == []):
+            if (
+                os.path.exists(mount.settings["local_path"])
+                and os.listdir(mount.settings["local_path"]) == []
+            ):
                 os.rmdir(mount.settings["local_path"])
         except OSError as e:
             Output.warning("Could not rmdir : {0}".format(e))
@@ -408,20 +506,40 @@ def open_file_manager(mount):
     def _cb(success, output, exit_code):
         pass
 
-    if (mount.settings["Linux_CIFS_method"] == "gvfs" and
-       not mount.settings["Linux_gvfs_symlink"]):
+    if (
+        mount.settings["Linux_CIFS_method"] == "gvfs"
+        and not mount.settings["Linux_gvfs_symlink"]
+    ):
         path = None
         for f in os.listdir(LIN_CONST.GVFS_DIR):
             if LIN_CONST.GVFS_GENERATION == 1:
-                if re.match(r"{server_share} \S+ {server_name}".format(**mount.settings), f):
-                    path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
+                if re.match(
+                    r"{server_share} \S+ {server_name}".format(**mount.settings), f
+                ):
+                    path = os.path.join(
+                        LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"]
+                    )
             else:
-                if (re.match(r"^smb-share:", f) and
-                   re.search(r"domain={realm_domain}(,|$)".format(**mount.settings), f, flags=re.IGNORECASE) and
-                   re.search(r"server={server_name}(,|$)".format(**mount.settings), f) and
-                   re.search(r"share={server_share}(,|$)".format(**mount.settings), f) and
-                   re.search(r"user={realm_username}(,|$)".format(**mount.settings), f)):
-                    path = os.path.join(LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"])
+                if (
+                    re.match(r"^smb-share:", f)
+                    and re.search(
+                        r"domain={realm_domain}(,|$)".format(**mount.settings),
+                        f,
+                        flags=re.IGNORECASE,
+                    )
+                    and re.search(
+                        r"server={server_name}(,|$)".format(**mount.settings), f
+                    )
+                    and re.search(
+                        r"share={server_share}(,|$)".format(**mount.settings), f
+                    )
+                    and re.search(
+                        r"user={realm_username}(,|$)".format(**mount.settings), f
+                    )
+                ):
+                    path = os.path.join(
+                        LIN_CONST.GVFS_DIR, f, mount.settings["server_subdir"]
+                    )
         if path is None:
             raise Exception("Error: Could not find the GVFS mountpoint.")
     else:
@@ -439,24 +557,39 @@ def open_file_manager(mount):
 
 def pexpect_ask_password(values):
     """
-        Interact with process when pexpect found a matching string for password question
-        It may Ack previously entered password if several password are asked in the same run.
+    Interact with process when pexpect found a matching string for password question
+    It may Ack previously entered password if several password are asked in the same run.
 
-        This is a mirror from osx_stack.pexpect_ask_password
+    This is a mirror from osx_stack.pexpect_ask_password
     """
     process_question = values["child_result_list"][-1]
     try:
         for pattern, auth_realm in values["extra_args"]["auth_realms"]:
             if re.search(pattern, process_question):
-                if values["extra_args"]["process_meta"].setdefault("previous_auth_realm", None) == None:
+                if (
+                    values["extra_args"]["process_meta"].setdefault(
+                        "previous_auth_realm", None
+                    )
+                    == None
+                ):
                     password_mistyped = False
-                elif values["extra_args"]["process_meta"]["previous_auth_realm"] != auth_realm:
-                    values["extra_args"]["key_chain"].ack_password(values["extra_args"]["process_meta"]["previous_auth_realm"])
+                elif (
+                    values["extra_args"]["process_meta"]["previous_auth_realm"]
+                    != auth_realm
+                ):
+                    values["extra_args"]["key_chain"].ack_password(
+                        values["extra_args"]["process_meta"]["previous_auth_realm"]
+                    )
                     password_mistyped = False
                 else:
                     password_mistyped = True
                 values["extra_args"]["process_meta"]["previous_auth_realm"] = auth_realm
-                return values["extra_args"]["key_chain"].get_password(auth_realm, password_mistyped) + "\n"
+                return (
+                    values["extra_args"]["key_chain"].get_password(
+                        auth_realm, password_mistyped
+                    )
+                    + "\n"
+                )
     except CancelOperationException:
         Output.verbose("Operation cancelled.")
         values["extra_args"]["process_meta"]["was_cancelled"] = True

@@ -2,6 +2,7 @@ import pprint
 
 # from django.shortcuts import render
 from django.http import HttpResponse, Http404
+
 # from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
@@ -14,6 +15,7 @@ MINIMAL_RELEASES = {
     "Apple-Darwin": ">=1.1.12",
     "Microsoft-Windows": ">=1.0.0",
 }
+
 
 def http_validate_username(request):
     if request.method != "GET":
@@ -46,7 +48,9 @@ def http_get(request):
         user_settings = get_user_settings(username)
 
         # Config for all users
-        for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_ALL).order_by("rank"):
+        for conf in mo.Config.objects.filter(
+            enabled=True, category=mo.Config.CAT_ALL
+        ).order_by("rank"):
             if not ut.client_filter(conf, request):
                 continue
             data = conf.data.format(
@@ -67,7 +71,9 @@ def http_get(request):
             ranked_mount_names.extend(mount_names)
 
         # Config for that user
-        for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_USER, users__name=username).order_by("rank"):
+        for conf in mo.Config.objects.filter(
+            enabled=True, category=mo.Config.CAT_USER, users__name=username
+        ).order_by("rank"):
             if not ut.client_filter(conf, request):
                 continue
             data = conf.data.format(
@@ -91,7 +97,9 @@ def http_get(request):
         unit_num = -1
         for unit in user_settings["epfl_units"]:
             unit_num += 1
-            for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_EPFL_UNIT, epfl_units__name=unit).order_by("rank"):
+            for conf in mo.Config.objects.filter(
+                enabled=True, category=mo.Config.CAT_EPFL_UNIT, epfl_units__name=unit
+            ).order_by("rank"):
                 if not ut.client_filter(conf, request):
                     continue
                 data = conf.data.format(
@@ -116,7 +124,9 @@ def http_get(request):
         group_num = -1
         for group in user_settings["ldap_groups"]:
             group_num += 1
-            for conf in mo.Config.objects.filter(enabled=True, category=mo.Config.CAT_LDAP_GROUP, ldap_groups__name=group).order_by("rank"):
+            for conf in mo.Config.objects.filter(
+                enabled=True, category=mo.Config.CAT_LDAP_GROUP, ldap_groups__name=group
+            ).order_by("rank"):
                 if not ut.client_filter(conf, request):
                     continue
                 data = conf.data.format(
@@ -141,7 +151,9 @@ def http_get(request):
             # Rank *_mount entries
             if len(ranked_mount_names) != 0:
                 config_given += "[global]\n"
-                config_given += "entries_order = {0}\n\n".format(", ".join(ranked_mount_names))
+                config_given += "entries_order = {0}\n\n".format(
+                    ", ".join(ranked_mount_names)
+                )
         else:
             # Client is too old. Removing all *_mount sections
             config_given = ut.remove_all_mount(config_given)
@@ -174,8 +186,12 @@ def http_ldap_settings(request):
         output += "displayName = {0}\n".format(user_settings["displayName"])
         output += "last_sciper_digit = {0}\n".format(user_settings["last_sciper_digit"])
         output += "sciper = {0}\n".format(user_settings["sciper"])
-        output += "epfl_units = {0}\n".format(pprint.pformat(user_settings["epfl_units"]))
-        output += "ldap_groups = {0}\n".format(pprint.pformat(user_settings["ldap_groups"]))
+        output += "epfl_units = {0}\n".format(
+            pprint.pformat(user_settings["epfl_units"])
+        )
+        output += "ldap_groups = {0}\n".format(
+            pprint.pformat(user_settings["ldap_groups"])
+        )
     except UserNotFoundException:
         pass
 

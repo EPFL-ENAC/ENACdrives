@@ -10,9 +10,10 @@
 import os
 from fabric.api import run, env, task  # cd
 from fabric.contrib.project import rsync_project
+
 # from fabric.operations import sudo
 
-env.hosts = ['enacit1@enacit1-sysadmin']
+env.hosts = ["enacit1@enacit1-sysadmin"]
 
 LOCAL_DIR = "/home/sbancal/Projects/enacdrives/docs/"
 REMOTE_DIR = "/data/web/enacit1-sysadmin/ENACdrives/"
@@ -40,4 +41,7 @@ def deploy():
 @task
 def pandoc():
     for f in [os.path.join(REMOTE_DIR, f)[:-3] for f in MD_FILES]:
-        run("pandoc -s --self-contained --toc --toc-depth=2 -c %s -o %s.html %s.md" % (CSS, f, f))
+        run(
+            "pandoc -s --self-contained --toc --toc-depth=2 -c %s -o %s.html %s.md"
+            % (CSS, f, f)
+        )

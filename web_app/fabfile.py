@@ -17,14 +17,21 @@ from fabric.operations import sudo
 
 
 if env.hosts[0] == "enacit1sbtest4":
-    env.hosts = ["sbancal@enacit1sbtest4",]
+    env.hosts = [
+        "sbancal@enacit1sbtest4",
+    ]
 elif env.hosts[0] == "enacit1vm1":
-    env.hosts = ["enacit1@enacit1vm1",]
+    env.hosts = [
+        "enacit1@enacit1vm1",
+    ]
 else:
-    abort("Unknown host.",
-          "Supported hosts are :",
-          "+ 'enacit1vm1' for enacit1@enacit1vm1",
-          "+ 'enacit1sbtest4' for sbancal@enacit1sbtest4")
+    abort(
+        "Unknown host.",
+        "Supported hosts are :",
+        "+ 'enacit1vm1' for enacit1@enacit1vm1",
+        "+ 'enacit1sbtest4' for sbancal@enacit1sbtest4",
+    )
+
 
 def sub(s):
     if env.host == "enacit1sbtest4":
@@ -67,6 +74,7 @@ def mkdir():
     sudo(sub("mkdir -p {code_dir}"))
     sudo(sub("chown {admin_username}: {code_dir}"))
 
+
 @task
 def virtualenv_init():
     sudo(sub("mkdir -p {virtualenv_dir}"))
@@ -88,8 +96,16 @@ def virtualenv_setup():
 @task
 def mod_wsgi_express_setup():
     sudo(sub("{virtualenv_dir}/bin/mod_wsgi-express install-module"))
-    sudo(sub("cp {server_config_dir}/etc/apache2/mods-available/wsgi_express.load /etc/apache2/mods-available/wsgi_express.load"))
-    sudo(sub("cp {server_config_dir}/etc/apache2/mods-available/wsgi_express.conf /etc/apache2/mods-available/wsgi_express.conf"))
+    sudo(
+        sub(
+            "cp {server_config_dir}/etc/apache2/mods-available/wsgi_express.load /etc/apache2/mods-available/wsgi_express.load"
+        )
+    )
+    sudo(
+        sub(
+            "cp {server_config_dir}/etc/apache2/mods-available/wsgi_express.conf /etc/apache2/mods-available/wsgi_express.conf"
+        )
+    )
     sudo("a2enmod wsgi_express")
     apache_restart()
 
@@ -104,8 +120,16 @@ def apache_setup():
     sudo(sub("chown www-data\\: {static_dir}"))
     sudo(sub("mkdir -p {logs_dir}"))
     sudo(sub("chown www-data\\: {logs_dir}"))
-    sudo(sub("cp {server_config_dir}/etc/apache2/sites-available/{apache_vhost}.conf /etc/apache2/sites-available/{apache_vhost}.conf"))
-    sudo(sub("cp {server_config_dir}{apache_tequila_admins_conf} {apache_tequila_admins_conf}"))
+    sudo(
+        sub(
+            "cp {server_config_dir}/etc/apache2/sites-available/{apache_vhost}.conf /etc/apache2/sites-available/{apache_vhost}.conf"
+        )
+    )
+    sudo(
+        sub(
+            "cp {server_config_dir}{apache_tequila_admins_conf} {apache_tequila_admins_conf}"
+        )
+    )
     sudo(sub("a2ensite {apache_vhost}"))
     apache_reload()
 
@@ -143,7 +167,7 @@ def rsync_n():
         remote_dir=sub("{code_dir}"),
         exclude=("*.sqlite", "/static/*", "*.pyc", "venv3/"),
         delete=True,
-        extra_opts="-n"
+        extra_opts="-n",
     )
 
 
@@ -159,16 +183,28 @@ def admin_staff_setup():
 
 @task
 def loadconfig():
-    sudo(sub("{python} {code_dir}/manage.py loaddata {code_dir}/tools/enacdrives_config.json"), user="www-data")
+    sudo(
+        sub(
+            "{python} {code_dir}/manage.py loaddata {code_dir}/tools/enacdrives_config.json"
+        ),
+        user="www-data",
+    )
 
 
 @task
 def dumpconfig():
-    sudo(sub("{python} {code_dir}/manage.py dumpdata config > /tmp/enacdrives_config.json"), user="www-data")
+    sudo(
+        sub(
+            "{python} {code_dir}/manage.py dumpdata config > /tmp/enacdrives_config.json"
+        ),
+        user="www-data",
+    )
+
 
 @task
 def collectstatic():
     sudo(sub("{python} {code_dir}/manage.py collectstatic --noinput"), user="www-data")
+
 
 @task
 def deploy():

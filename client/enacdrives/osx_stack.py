@@ -15,11 +15,18 @@ import os
 import re
 import pexpect
 import subprocess
-from enacdrives.utility import CONST, Output, which, CancelOperationException, NonBlockingQtThread, NonBlockingQtProcess
+from enacdrives.utility import (
+    CONST,
+    Output,
+    which,
+    CancelOperationException,
+    NonBlockingQtThread,
+    NonBlockingQtProcess,
+)
 
 
-class OSX_CONST():
-    CMD_OPEN = which("open") + " -a Finder \"{path}\""
+class OSX_CONST:
+    CMD_OPEN = which("open") + ' -a Finder "{path}"'
 
     CMD_MOUNT_SMBFS = which("mount_smbfs")
     CMD_UMOUNT = which("umount")
@@ -43,7 +50,7 @@ def cifs_is_mounted(mount, cb):
     NonBlockingQtThread(
         "os.path.ismounted.{}".format(mount.settings["local_path"]),
         _target_mountcifs,
-        cb
+        cb,
     )
 
 
@@ -61,8 +68,10 @@ def cifs_mount(mount):
     s_path = re.sub(r" ", r"%20", mount.settings["server_path"])
     cmd = [
         OSX_CONST.CMD_MOUNT_SMBFS,
-        r"//{realm_domain}\;{realm_username}@{server_name}/{s_path}".format(s_path=s_path, **mount.settings),
-        "\"{local_path}\"".format(**mount.settings)
+        r"//{realm_domain}\;{realm_username}@{server_name}/{s_path}".format(
+            s_path=s_path, **mount.settings
+        ),
+        '"{local_path}"'.format(**mount.settings),
     ]
     Output.verbose("cmd: " + " ".join(cmd))
     for _ in range(3):  # 3 attempts (for passwords mistyped)
@@ -76,9 +85,7 @@ def cifs_mount(mount):
                     "(?i)password": pexpect_ask_password,
                 },
                 extra_args={
-                    "auth_realms": [
-                        (r"Password", mount.settings["realm"])
-                    ],
+                    "auth_realms": [(r"Password", mount.settings["realm"])],
                     "key_chain": mount.key_chain,
                     "process_meta": process_meta,
                 },
@@ -96,8 +103,10 @@ def cifs_mount(mount):
         else:
             mount.key_chain.invalidate_if_no_ack_password(mount.settings["realm"])
             if process_meta["was_cancelled"]:
-                if (os.path.isdir(mount.settings["local_path"]) and
-                   os.listdir(mount.settings["local_path"]) == []):
+                if (
+                    os.path.isdir(mount.settings["local_path"])
+                    and os.listdir(mount.settings["local_path"]) == []
+                ):
                     try:
                         os.rmdir(mount.settings["local_path"])
                     except OSError as e:
@@ -122,10 +131,7 @@ def cifs_umount(mount):
         if not success:
             mount.ui.notify_user("Umount failure :<br>{}".format(output))
 
-    cmd = [
-        OSX_CONST.CMD_UMOUNT,
-        "\"{local_path}\"".format(**mount.settings)
-    ]
+    cmd = [OSX_CONST.CMD_UMOUNT, '"{local_path}"'.format(**mount.settings)]
     Output.verbose("cmd: " + " ".join(cmd))
     NonBlockingQtProcess(
         cmd,
@@ -138,8 +144,10 @@ def cifs_post_umount(mount):
     Performs tasks when umount is done.
     May happen some seconds after cifs_umount is completed (OS)
     """
-    if (os.path.isdir(mount.settings["local_path"]) and
-       os.listdir(mount.settings["local_path"]) == []):
+    if (
+        os.path.isdir(mount.settings["local_path"])
+        and os.listdir(mount.settings["local_path"]) == []
+    ):
         try:
             os.rmdir(mount.settings["local_path"])
         except OSError as e:
@@ -161,24 +169,39 @@ def open_file_manager(mount):
 
 def pexpect_ask_password(values):
     """
-        Interact with process when pexpect found a matching string for password question
-        It may Ack previously entered password if several password are asked in the same run.
+    Interact with process when pexpect found a matching string for password question
+    It may Ack previously entered password if several password are asked in the same run.
 
-        This is a mirror from lin_stack.pexpect_ask_password
+    This is a mirror from lin_stack.pexpect_ask_password
     """
     process_question = values["child_result_list"][-1]
     try:
         for pattern, auth_realm in values["extra_args"]["auth_realms"]:
             if re.search(pattern, process_question):
-                if values["extra_args"]["process_meta"].setdefault("previous_auth_realm", None) == None:
+                if (
+                    values["extra_args"]["process_meta"].setdefault(
+                        "previous_auth_realm", None
+                    )
+                    == None
+                ):
                     password_mistyped = False
-                elif values["extra_args"]["process_meta"]["previous_auth_realm"] != auth_realm:
-                    values["extra_args"]["key_chain"].ack_password(values["extra_args"]["process_meta"]["previous_auth_realm"])
+                elif (
+                    values["extra_args"]["process_meta"]["previous_auth_realm"]
+                    != auth_realm
+                ):
+                    values["extra_args"]["key_chain"].ack_password(
+                        values["extra_args"]["process_meta"]["previous_auth_realm"]
+                    )
                     password_mistyped = False
                 else:
                     password_mistyped = True
                 values["extra_args"]["process_meta"]["previous_auth_realm"] = auth_realm
-                return values["extra_args"]["key_chain"].get_password(auth_realm, password_mistyped) + "\n"
+                return (
+                    values["extra_args"]["key_chain"].get_password(
+                        auth_realm, password_mistyped
+                    )
+                    + "\n"
+                )
     except CancelOperationException:
         Output.normal("Operation cancelled.")
         values["extra_args"]["process_meta"]["was_cancelled"] = True

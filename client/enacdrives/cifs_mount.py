@@ -11,44 +11,67 @@ import re
 from enacdrives.utility import CONST, Output
 
 if CONST.OS_SYS == "Linux":
-    from enacdrives.lin_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from enacdrives.lin_stack import (
+        cifs_uncache_is_mounted,
+        cifs_is_mounted,
+        cifs_mount,
+        cifs_post_mount,
+        cifs_umount,
+        cifs_post_umount,
+        open_file_manager,
+    )
 elif CONST.OS_SYS == "Windows":
-    from enacdrives.win_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from enacdrives.win_stack import (
+        cifs_uncache_is_mounted,
+        cifs_is_mounted,
+        cifs_mount,
+        cifs_post_mount,
+        cifs_umount,
+        cifs_post_umount,
+        open_file_manager,
+    )
 elif CONST.OS_SYS == "Darwin":
-    from enacdrives.osx_stack import cifs_uncache_is_mounted, cifs_is_mounted, cifs_mount, cifs_post_mount, cifs_umount, cifs_post_umount, open_file_manager
+    from enacdrives.osx_stack import (
+        cifs_uncache_is_mounted,
+        cifs_is_mounted,
+        cifs_mount,
+        cifs_post_mount,
+        cifs_umount,
+        cifs_post_umount,
+        open_file_manager,
+    )
 
 
-class CIFS_Mount():
+class CIFS_Mount:
 
     """
-        * name = mount's name
-        * label = Label displayed
-        * realm = CIFS_realm used
-        * server_name = server name
-        * server_path = path to be mounted (uncludes share and may include subdir)
-        * local_path = path where to mount. Substitutions available :
-            * {MNT_DIR}
-            * {HOME_DIR}
-            * {DESKTOP_DIR}
-            * {LOCAL_USERNAME}
-            * {LOCAL_GROUPNAME}
-        * bookmark = boolean
-            default : False
-        * Linux_CIFS_method = default method used for CIFS on Linux
-            * mount.cifs : Linux's mount.cifs (requires sudo ability)
-            * gvfs : Linux's gvfs-mount
-        * Linux_mountcifs_filemode = filemode setting to use with mount.cifs method
-        * Linux_mountcifs_dirmode  = dirmode setting to use with mount.cifs method
-        * Linux_mountcifs_options = options to use with mount.cifs method
-        * Linux_gvfs_symlink = boolean
-            Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
-            default : False
-        * Windows_letter = letter
-            Drive letter to use for the mount (only on Windows)
+    * name = mount's name
+    * label = Label displayed
+    * realm = CIFS_realm used
+    * server_name = server name
+    * server_path = path to be mounted (uncludes share and may include subdir)
+    * local_path = path where to mount. Substitutions available :
+        * {MNT_DIR}
+        * {HOME_DIR}
+        * {DESKTOP_DIR}
+        * {LOCAL_USERNAME}
+        * {LOCAL_GROUPNAME}
+    * bookmark = boolean
+        default : False
+    * Linux_CIFS_method = default method used for CIFS on Linux
+        * mount.cifs : Linux's mount.cifs (requires sudo ability)
+        * gvfs : Linux's gvfs-mount
+    * Linux_mountcifs_filemode = filemode setting to use with mount.cifs method
+    * Linux_mountcifs_dirmode  = dirmode setting to use with mount.cifs method
+    * Linux_mountcifs_options = options to use with mount.cifs method
+    * Linux_gvfs_symlink = boolean
+        Enables the creation of a symbolic link to "local_path" after mount with gvfs method.
+        default : False
+    * Windows_letter = letter
+        Drive letter to use for the mount (only on Windows)
     """
 
     def __init__(self, ui, cfg, mount_name, key_chain):
-
         def _cf(option, default=None):
             try:
                 if option == "realm_domain":
@@ -57,10 +80,15 @@ class CIFS_Mount():
                 elif option == "realm_username":
                     realm = _cf("realm")
                     return cfg["realm"][realm]["username"]
-                elif option in ("Linux_CIFS_method", "Linux_mountcifs_filemode",
-                                "Linux_mountcifs_dirmode",
-                                "Linux_mountcifs_options", "Linux_gvfs_symlink",
-                                "realm", "require_network"):
+                elif option in (
+                    "Linux_CIFS_method",
+                    "Linux_mountcifs_filemode",
+                    "Linux_mountcifs_dirmode",
+                    "Linux_mountcifs_options",
+                    "Linux_gvfs_symlink",
+                    "realm",
+                    "require_network",
+                ):
                     if option in cfg["CIFS_mount"][mount_name]:
                         return cfg["CIFS_mount"][mount_name][option]
                     else:
@@ -86,7 +114,9 @@ class CIFS_Mount():
             "Linux_mountcifs_dirmode": _cf("Linux_mountcifs_dirmode"),
             "Linux_mountcifs_options": _cf("Linux_mountcifs_options"),
             "Linux_gvfs_symlink": _cf("Linux_gvfs_symlink"),
-            "Windows_letter": _cf("Windows_letter", ""),  # may be overwritten in "is_mounted"
+            "Windows_letter": _cf(
+                "Windows_letter", ""
+            ),  # may be overwritten in "is_mounted"
         }
 
         self.settings["local_path"] = self.settings["local_path"].format(
@@ -96,9 +126,13 @@ class CIFS_Mount():
             LOCAL_USERNAME=CONST.LOCAL_USERNAME,
             LOCAL_GROUPNAME=CONST.LOCAL_GROUPNAME,
         )
-        self.settings["server_share"], self.settings["server_subdir"] = re.match(r"([^/]+)/?(.*)$", self.settings["server_path"]).groups()
+        self.settings["server_share"], self.settings["server_subdir"] = re.match(
+            r"([^/]+)/?(.*)$", self.settings["server_path"]
+        ).groups()
         if CONST.OS_SYS == "Windows":
-            self.settings["server_path"] = self.settings["server_path"].replace("/", "\\")
+            self.settings["server_path"] = self.settings["server_path"].replace(
+                "/", "\\"
+            )
             self.settings["local_path"] = self.settings["local_path"].replace("/", "\\")
         self.settings["local_uid"] = CONST.LOCAL_UID
         self.settings["local_gid"] = CONST.LOCAL_GID
@@ -113,14 +147,19 @@ class CIFS_Mount():
 
     def is_mounted(self, cb=None):
         """
-            evaluate if this CIFS_mount is mounted
-            if cb is None make it synchronously
-            else make it asynchronously
+        evaluate if this CIFS_mount is mounted
+        if cb is None make it synchronously
+        else make it asynchronously
         """
+
         def _cb(is_m):
             # Output.debug("cifs_mount._cb")
             if is_m != self._cache["is_mounted"]:
-                Output.normal("--> CIFS_mount {} : {} -> {}".format(self.settings["name"], self._cache["is_mounted"], is_m))
+                Output.normal(
+                    "--> CIFS_mount {} : {} -> {}".format(
+                        self.settings["name"], self._cache["is_mounted"], is_m
+                    )
+                )
                 if is_m:
                     cifs_post_mount(self)
                 else:

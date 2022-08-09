@@ -36,7 +36,9 @@ class Config(models.Model):
         (CAT_EPFL_UNIT, "to EPFL Unit"),
         (CAT_LDAP_GROUP, "to LDAP Group"),
     )
-    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, default=CAT_LDAP_GROUP)
+    category = models.CharField(
+        max_length=1, choices=CATEGORY_CHOICES, default=CAT_LDAP_GROUP
+    )
 
     name = models.CharField(max_length=256)
     users = models.ManyToManyField(User, blank=True)
@@ -51,28 +53,30 @@ class Config(models.Model):
         return str(self.id)
 
     def pformat(self):
-        return ("id: {id}\n" +
-                "rank: {rank}\n" +
-                "enabled: {enabled}\n" +
-                "category: {category}\n" +
-                "name: {name}\n" +
-                "users: {users}\n" +
-                "epfl_units: {epfl_units}\n" +
-                "ldap_groups: {ldap_groups}\n" +
-                "client_filter_version: {client_filter_version}\n" +
-                "client_filter_os: {client_filter_os}\n" +
-                "client_filter_os_version: {client_filter_os_version}\n" +
-                "data: {data}\n").format(
-                    id=self.id,
-                    rank=self.rank,
-                    enabled=self.enabled,
-                    category=self.category,
-                    name=self.name,
-                    users=", ".join(self.users.all()),
-                    epfl_units=", ".join(self.epfl_units.all()),
-                    ldap_groups=", ".join(self.ldap_groups.all()),
-                    client_filter_version=self.client_filter_version,
-                    client_filter_os=self.client_filter_os,
-                    client_filter_os_version=self.client_filter_os_version,
-                    data=self.data,
-                )
+        return (
+            "id: {id}\n"
+            + "rank: {rank}\n"
+            + "enabled: {enabled}\n"
+            + "category: {category}\n"
+            + "name: {name}\n"
+            + "users: {users}\n"
+            + "epfl_units: {epfl_units}\n"
+            + "ldap_groups: {ldap_groups}\n"
+            + "client_filter_version: {client_filter_version}\n"
+            + "client_filter_os: {client_filter_os}\n"
+            + "client_filter_os_version: {client_filter_os_version}\n"
+            + "data: {data}\n"
+        ).format(
+            id=self.id,
+            rank=self.rank,
+            enabled=self.enabled,
+            category=self.category,
+            name=self.name,
+            users=", ".join(self.users.all()),
+            epfl_units=", ".join(self.epfl_units.all()),
+            ldap_groups=", ".join(self.ldap_groups.all()),
+            client_filter_version=self.client_filter_version,
+            client_filter_os=self.client_filter_os,
+            client_filter_os_version=self.client_filter_os_version,
+            data=self.data,
+        )

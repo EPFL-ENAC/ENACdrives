@@ -9,7 +9,7 @@
 
 # # ! Copied to ~/Documents/projets/lucid_ssie/customize_lucid_ssie/resources/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Documents/projets/lucid_ssie/customize_lucid_ssie/build_customization_utilities.sh !
-# 
+#
 # # ! Copied to ~/Projects/precise_ssie/customize_precise_ssie/root/usr/local/bin/enacit1logs.py !
 # # ! by        ~/Projects/precise_ssie/tools/build_precise_ssie_tarball.sh !
 
@@ -53,11 +53,18 @@ class SendLogException(Exception):
 
 
 def usage():
-    print("""%s  -h|--help
+    print(
+        """%s  -h|--help
 %s [-n|--dryrun] [-t|--tag one_tag]* [-u|--user "username"] [-m|--message "one message"]
 %s                                                          [-f|--file one_file.txt]
-%s                                                          [-f|--file -] # Read from stdin""" % \
-        (sys.argv[0], " " * len(sys.argv[0]), " " * len(sys.argv[0]), " " * len(sys.argv[0])))
+%s                                                          [-f|--file -] # Read from stdin"""
+        % (
+            sys.argv[0],
+            " " * len(sys.argv[0]),
+            " " * len(sys.argv[0]),
+            " " * len(sys.argv[0]),
+        )
+    )
 
 
 def ping():
@@ -68,18 +75,23 @@ def ping():
         raise SendLogException("Server %s is not responding!\n%s" % (SERVERNAME, inst))
 
 
-def send(message, tags, user=''):
+def send(message, tags, user=""):
     try:
         rpc = xmlrpc.client.ServerProxy(SERVERURL)
         return rpc.post_log(message, tags, user)
     except (socket.error, xmlrpc.client.ProtocolError) as inst:
         raise SendLogException("Server %s is not responding!\n%s" % (SERVERNAME, inst))
 
+
 if __name__ == "__main__":
-    options = {"n": False, "t": [], "u": ''}
+    options = {"n": False, "t": [], "u": ""}
     # Read args
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hnt:u:m:f:", ["help", "dryrun", "tag=", "user=", "message=", "file="])
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            "hnt:u:m:f:",
+            ["help", "dryrun", "tag=", "user=", "message=", "file="],
+        )
     except getopt.GetoptError:
         usage()
         sys.exit(1)

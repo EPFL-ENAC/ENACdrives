@@ -29,23 +29,26 @@ except ImportError:  # Windows
 
 # ENACIT1LOGS
 from enacdrives import enacit1logs
+
 # /ENACIT1LOGS
 
 
-FileNotFoundException = getattr(__builtins__, 'FileNotFoundError', IOError)
+FileNotFoundException = getattr(__builtins__, "FileNotFoundError", IOError)
 
 
 class CancelOperationException(Exception):
     """
-        Raised when user want to abort an operation
+    Raised when user want to abort an operation
     """
+
     pass
 
 
 def which(program):
     """
-        from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+    from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
     """
+
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
@@ -70,7 +73,7 @@ def bytes_decode(b):
     return b.decode("utf-8", "replace")
 
 
-class CONST():
+class CONST:
 
     VERSION_DATE = "2021-03-15"
     VERSION = "1.2.4"
@@ -103,7 +106,7 @@ class CONST():
     GUI_NOFOCUS_REFRESH_INTERVAL = datetime.timedelta(seconds=30)
 
     # RESOURCES_DIR is used to get files like app's icon
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # print("it's frozen...")
         # The application is frozen (applies to Windows)
         RESOURCES_DIR = os.path.dirname(os.path.realpath(sys.executable))
@@ -125,19 +128,27 @@ class CONST():
         AD_DOMAIN = None
         AD_USERNAME = None
         try:
-            DESKTOP_DIR = bytes_decode(subprocess.check_output(["xdg-user-dir", "DESKTOP"])).strip()
+            DESKTOP_DIR = bytes_decode(
+                subprocess.check_output(["xdg-user-dir", "DESKTOP"])
+            ).strip()
         except FileNotFoundException:
             DESKTOP_DIR = HOME_DIR + "/Desktop"
         DEFAULT_MNT_DIR = HOME_DIR + "/ENACdrives"
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
+        LATEST_RELEASE_NUMBER_URL = (
+            "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Linux"
+        )
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
         NEED_TO_UPDATE_MSG = "You are not running the latest release.<br>Please upgrade the package enacdrives."
-        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
+        NEWER_THAN_PROD_MSG = (
+            "You are running a version that is newer than official release."
+        )
         BIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
-        IMAGES_DIR = os.path.realpath(os.path.join(BIN_DIR, '../share/pixmaps/enacdrives'))
+        IMAGES_DIR = os.path.realpath(
+            os.path.join(BIN_DIR, "../share/pixmaps/enacdrives")
+        )
     elif OS_SYS == "Darwin":
         OS_DISTRIB = "Apple"
         OS_VERSION = platform.mac_ver()[0]
@@ -147,7 +158,10 @@ class CONST():
             LOCAL_GROUPNAME = "Unknown"
         LOCAL_UID = pwd.getpwnam(LOCAL_USERNAME)[2]
         LOCAL_GID = pwd.getpwnam(LOCAL_USERNAME)[3]
-        if "LDAPv3" in bytes_decode(subprocess.check_output(["dscl"], input=b"ls\n")).strip():
+        if (
+            "LDAPv3"
+            in bytes_decode(subprocess.check_output(["dscl"], input=b"ls\n")).strip()
+        ):
             AD_DOMAIN = "Found LDAPv3"
             AD_USERNAME = os.environ.get("USER")
         else:
@@ -158,13 +172,23 @@ class CONST():
         USER_CACHE_DIR = HOME_DIR + "/.enacdrives.cache"
         USER_CONF_FILE = HOME_DIR + "/.enacdrives.conf"
         SYSTEM_CONF_FILE = "/etc/enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
+        LATEST_RELEASE_NUMBER_URL = (
+            "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=MacOSX"
+        )
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
-        if getattr(sys, 'frozen', False):
-            RESOURCES_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources"))
-        NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
-            "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
-        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
+        if getattr(sys, "frozen", False):
+            RESOURCES_DIR = os.path.abspath(
+                os.path.join(os.path.dirname(sys.executable), os.pardir, "Resources")
+            )
+        NEED_TO_UPDATE_MSG = (
+            "You are not running the latest release.<br>"
+            "Please download it from <a href='{}'>here</a>.".format(
+                DOWNLOAD_NEW_RELEASE_URL
+            )
+        )
+        NEWER_THAN_PROD_MSG = (
+            "You are running a version that is newer than official release."
+        )
     elif OS_SYS == "Windows":
         OS_DISTRIB = "Microsoft"
         OS_VERSION = platform.win32_ver()[0]
@@ -179,18 +203,28 @@ class CONST():
         DESKTOP_DIR = HOME_DIR + "/Desktop"  # TO DO
         DEFAULT_MNT_DIR = DESKTOP_DIR  # TO DO
         try:
-            APPDATA = os.environ["APPDATA"]  # Goes to AppData\Roaming like : C:\Users\<username>\AppData\Roaming
+            APPDATA = os.environ[
+                "APPDATA"
+            ]  # Goes to AppData\Roaming like : C:\Users\<username>\AppData\Roaming
             USER_CACHE_DIR = APPDATA + "\\ENACdrives\\enacdrives.cache"
             USER_CONF_FILE = APPDATA + "\\ENACdrives\\enacdrives.conf"
         except KeyError:
             USER_CACHE_DIR = RESOURCES_DIR + "\\enacdrives.cache"
             USER_CONF_FILE = RESOURCES_DIR + "\\enacdrives.conf"
         SYSTEM_CONF_FILE = "C:\\ProgramData\\ENACdrives\\enacdrives.conf"
-        LATEST_RELEASE_NUMBER_URL = "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
+        LATEST_RELEASE_NUMBER_URL = (
+            "http://enacdrives.epfl.ch/releases/api/latest_release_number?os=Windows"
+        )
         DOWNLOAD_NEW_RELEASE_URL = "http://enacsoft.epfl.ch/enacdrives/"
-        NEED_TO_UPDATE_MSG = ("You are not running the latest release.<br>"
-            "Please download it from <a href='{}'>here</a>.".format(DOWNLOAD_NEW_RELEASE_URL))
-        NEWER_THAN_PROD_MSG = "You are running a version that is newer than official release."
+        NEED_TO_UPDATE_MSG = (
+            "You are not running the latest release.<br>"
+            "Please download it from <a href='{}'>here</a>.".format(
+                DOWNLOAD_NEW_RELEASE_URL
+            )
+        )
+        NEWER_THAN_PROD_MSG = (
+            "You are running a version that is newer than official release."
+        )
     else:
         OS_VERSION = "Error: OS not supported."
 
@@ -200,7 +234,10 @@ class CONST():
         os=OS_DISTRIB + "-" + OS_SYS,
         os_version=OS_VERSION,
     )
-    VALIDATE_USERNAME_URL = "http://enacdrives.epfl.ch/config/validate_username?username={username}&version=" + VERSION
+    VALIDATE_USERNAME_URL = (
+        "http://enacdrives.epfl.ch/config/validate_username?username={username}&version="
+        + VERSION
+    )
 
     # use full ABSOLUTE path to the image, not relative
     ENACDRIVES_PNG = IMAGES_DIR + "/enacdrives.png"
@@ -215,7 +252,7 @@ class CONST():
     CRITICAL_PNG_48 = IMAGES_DIR + "/critical_48.png"
 
 
-class Output():
+class Output:
     LEVELS = {
         "debug": {"prefix": "DEBUG: ", "rank": 5},  # -vv default for Windows & OSX
         "verbose": {"prefix": "", "rank": 4},  # -v
@@ -235,16 +272,19 @@ class Output():
 
     def __enter__(self):
         Output.set_instance(self)
-        if (CONST.OS_SYS == "Windows" and
-           getattr(sys, 'frozen', False)):
+        if CONST.OS_SYS == "Windows" and getattr(sys, "frozen", False):
             # Windows frozen application
-            locations = [CONST.RESOURCES_DIR + "\\execution_output.txt",]
+            locations = [
+                CONST.RESOURCES_DIR + "\\execution_output.txt",
+            ]
             for env_var in ("LOCALAPPDATA", "APPDATA", "TEMP"):
                 # os.environ["LOCALAPPDATA"]  Goes to AppData\Local
                 # os.environ["APPDATA"]  Goes to AppData\Roaming
                 # os.environ["TEMP"]  Goes to AppData\Local\Temp
                 try:
-                    locations.append(os.environ[env_var] + "\\ENACdrives\\execution_output.txt")
+                    locations.append(
+                        os.environ[env_var] + "\\ENACdrives\\execution_output.txt"
+                    )
                 except KeyError:
                     # LOCALAPPDATA doesn't exist on Win XP
                     pass
@@ -261,8 +301,7 @@ class Output():
 
     def __exit__(self, typ, value, traceback):
         Output.del_instance()
-        if (CONST.OS_SYS == "Windows" and
-           getattr(sys, 'frozen', False)):
+        if CONST.OS_SYS == "Windows" and getattr(sys, "frozen", False):
             # Windows frozen application
             self.output.close()
 
@@ -325,7 +364,15 @@ def enacit1logs_notify(ui):
                 msg = "run ENACdrives CLI"
             enacit1logs.send(
                 message=msg,
-                tags=["ENACdrives-{}".format(CONST.VERSION), "{}-{}-{}-{}".format(CONST.OS_DISTRIB, CONST.OS_SYS, CONST.OS_VERSION, CONST.ARCH_BITS)]
+                tags=[
+                    "ENACdrives-{}".format(CONST.VERSION),
+                    "{}-{}-{}-{}".format(
+                        CONST.OS_DISTRIB,
+                        CONST.OS_SYS,
+                        CONST.OS_VERSION,
+                        CONST.ARCH_BITS,
+                    ),
+                ],
             )
         except enacit1logs.SendLogException as e:
             Output.warning("Could not notify enacit1logs")
@@ -355,15 +402,16 @@ def debug_send(msg, additional_tags=None):
     Output.debug("GONNA SEND MSG TO ENACIT1LOGS : " + msg)
     enacit1logs.send(
         message=str(msg),
-        tags=["ENACdrives_debug", "notify_bancal", CONST.VERSION] + additional_tags
+        tags=["ENACdrives_debug", "notify_bancal", CONST.VERSION] + additional_tags,
     )
+
 
 # /ENACIT1LOGS
 
 
-class Key_Chain():
+class Key_Chain:
     """
-        Holds the passwords entered diring the execution time.
+    Holds the passwords entered diring the execution time.
     """
 
     def __init__(self, ui):
@@ -395,21 +443,21 @@ class Key_Chain():
     def invalidate_if_no_ack_password(self, realm):
         if realm in self.keys:
             if not self.keys[realm]["ack"]:
-                del(self.keys[realm])
+                del self.keys[realm]
                 gc.collect()
 
     def invalidate_password(self, realm):
         if realm in self.keys:
-            del(self.keys[realm])
+            del self.keys[realm]
             gc.collect()
 
     def wipe_passwords(self):
-        del(self.keys)
+        del self.keys
         self.keys = {}
         gc.collect()
 
 
-class Networks_Check():
+class Networks_Check:
     MAX_NO_PING_SECONDS = datetime.timedelta(seconds=45)
 
     def __init__(self, cfg, ui):
@@ -438,19 +486,20 @@ class Networks_Check():
             }
             for h in cfg["network"][net].get("ping", []):
                 self.hosts_status["ping"][h] = {
-                        "dt": now,
-                        "status": default_status,
-                    }
+                    "dt": now,
+                    "status": default_status,
+                }
             for h in cfg["network"][net].get("cifs", []):
                 self.hosts_status["cifs"][h] = {
-                        "dt": now,
-                        "status": default_status,
-                    }
+                    "dt": now,
+                    "status": default_status,
+                }
 
     def scan(self):
         """
-            Scan all networks to check which are available and which are not.
+        Scan all networks to check which are available and which are not.
         """
+
         def _ping_finished(status, output, exit_code, host):
             # print("ping {} : {}".format(host, status))
             self.hosts_status["ping"][host]["dt"] = datetime.datetime.now()
@@ -458,7 +507,7 @@ class Networks_Check():
 
         def _ping_target(host):
             if CONST.OS_SYS == "Windows":
-                cmd = ["ping", host, "-n", '1']
+                cmd = ["ping", host, "-n", "1"]
             elif CONST.OS_SYS == "Linux":
                 cmd = ["ping", "-c1", "-w1", host]
             elif CONST.OS_SYS == "Darwin":
@@ -466,12 +515,18 @@ class Networks_Check():
             else:
                 raise Exception("Unknown OS {}".format(CONST.OS_SYS))
             try:
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                proc = subprocess.Popen(
+                    cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                )
             except FileNotFoundError:  #  FileNotFoundError: [Errno 2] No such file or directory: 'ping'
-                Output.error("Could not find 'ping' utility. Skipping and considering ping {} is ok.".format(host))
+                Output.error(
+                    "Could not find 'ping' utility. Skipping and considering ping {} is ok.".format(
+                        host
+                    )
+                )
                 return True
             try:
-                outs, errs = proc.communicate(timeout = CONST.PROC_TIMEOUT)
+                outs, errs = proc.communicate(timeout=CONST.PROC_TIMEOUT)
                 success = True
             except subprocess.TimeoutExpired:
                 proc.kill()
@@ -483,7 +538,6 @@ class Networks_Check():
             # print("ping {} : {}".format(host, answer))
             self.hosts_status["ping"][host]["dt"] = datetime.datetime.now()
             self.hosts_status["ping"][host]["status"] = answer
-
 
         def _cifs_target(host):
             port = 139
@@ -501,7 +555,7 @@ class Networks_Check():
 
         for h in self.hosts_status["ping"]:
             if CONST.OS_SYS == "Windows":
-                cmd = ["ping", h, "-n", '1']
+                cmd = ["ping", h, "-n", "1"]
             if CONST.OS_SYS == "Linux":
                 cmd = ["ping", "-c1", "-w1", h]
             if CONST.OS_SYS == "Darwin":
@@ -546,8 +600,8 @@ class Networks_Check():
 
     def get_status(self, net):
         """
-            returns tuple status, error_msg
-            if parent(s) are also of bad status, then returns error_msg from parent
+        returns tuple status, error_msg
+        if parent(s) are also of bad status, then returns error_msg from parent
         """
         dt_limit = datetime.datetime.now() - Networks_Check.MAX_NO_PING_SECONDS
         try:
@@ -557,20 +611,32 @@ class Networks_Check():
                     if self.hosts_status["cifs"][h]["status"] is None:
                         wait_for_answer = True
                         continue
-                    if (self.hosts_status["cifs"][h]["status"] and
-                       self.hosts_status["cifs"][h]["dt"] > dt_limit):
+                    if (
+                        self.hosts_status["cifs"][h]["status"]
+                        and self.hosts_status["cifs"][h]["dt"] > dt_limit
+                    ):
                         if self.networks[net]["last_state"] is not True:
-                            Output.normal("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                            Output.normal(
+                                "==> network {} : {} -> True".format(
+                                    net, self.networks[net]["last_state"]
+                                )
+                            )
                             self.networks[net]["last_state"] = True
                         return (True, "")
                 for h in self.networks[net]["ping"]:
                     if self.hosts_status["ping"][h]["status"] is None:
                         wait_for_answer = True
                         continue
-                    if (self.hosts_status["ping"][h]["status"] and
-                       self.hosts_status["ping"][h]["dt"] > dt_limit):
+                    if (
+                        self.hosts_status["ping"][h]["status"]
+                        and self.hosts_status["ping"][h]["dt"] > dt_limit
+                    ):
                         if self.networks[net]["last_state"] is not True:
-                            Output.normal("==> network {} : {} -> True".format(net, self.networks[net]["last_state"]))
+                            Output.normal(
+                                "==> network {} : {} -> True".format(
+                                    net, self.networks[net]["last_state"]
+                                )
+                            )
                             self.networks[net]["last_state"] = True
                         return (True, "")
                 if wait_for_answer:
@@ -582,7 +648,13 @@ class Networks_Check():
             return (True, "")
 
         if self.networks[net]["last_state"] is not False:
-            Output.normal("==> network {} : {} -> False ({})".format(net, self.networks[net]["last_state"], self.networks[net]["error_msg"]))
+            Output.normal(
+                "==> network {} : {} -> False ({})".format(
+                    net,
+                    self.networks[net]["last_state"],
+                    self.networks[net]["error_msg"],
+                )
+            )
             self.networks[net]["last_state"] = False
 
         # this network is unreachable -> check parent
@@ -599,53 +671,59 @@ class Networks_Check():
 def validate_username(username):
     validate_url = CONST.VALIDATE_USERNAME_URL.format(username=username)
     try:
-        with urllib.request.urlopen(validate_url, timeout=CONST.URL_TIMEOUT) \
-             as response:
+        with urllib.request.urlopen(
+            validate_url, timeout=CONST.URL_TIMEOUT
+        ) as response:
             lines = [bytes_decode(l) for l in response.readlines()]
-            Output.debug(
-                "validate_username {} : {}".format(validate_url, lines))
+            Output.debug("validate_username {} : {}".format(validate_url, lines))
             return lines[0]
     except (socket.timeout, urllib.error.URLError) as e:
-        Output.warning(
-            "Could not load validate url. ({})".format(validate_url))
+        Output.warning("Could not load validate url. ({})".format(validate_url))
         Output.warning("Got error : {}".format(e))
         return "Error, could not contact config server."
 
 
 def validate_release_number():
-    '''
+    """
     Check latest official release on server and returns
     'too old' | 'newer' | 'ok'
-    '''
+    """
+
     def extract_version_tuple(str_version):
-        '''
-            Convert a version string like '1.2.0' to a tuple like (1, 2, 0)
-        '''
-        return tuple([int(num) for num in re.findall(r'\d+', str_version)])
+        """
+        Convert a version string like '1.2.0' to a tuple like (1, 2, 0)
+        """
+        return tuple([int(num) for num in re.findall(r"\d+", str_version)])
 
     try:
         with urllib.request.urlopen(
-             CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT) \
-             as response:
+            CONST.LATEST_RELEASE_NUMBER_URL, timeout=CONST.URL_TIMEOUT
+        ) as response:
             lines = [bytes_decode(l) for l in response.readlines()]
-            Output.debug("validate_release_number {} : {}".format(
-                CONST.LATEST_RELEASE_NUMBER_URL, lines))
+            Output.debug(
+                "validate_release_number {} : {}".format(
+                    CONST.LATEST_RELEASE_NUMBER_URL, lines
+                )
+            )
             my_version = extract_version_tuple(CONST.VERSION)
             latest_version = extract_version_tuple(lines[0])
             for mine, latest in zip(my_version, latest_version):
                 if mine < latest:
-                    return 'too old'
+                    return "too old"
                 elif mine > latest:
-                    return 'newer'
-            return 'ok'
+                    return "newer"
+            return "ok"
     except (socket.timeout, urllib.error.URLError) as e:
-        Output.warning("Could not validate release number. ({})".format(
-            CONST.LATEST_RELEASE_NUMBER_URL))
+        Output.warning(
+            "Could not validate release number. ({})".format(
+                CONST.LATEST_RELEASE_NUMBER_URL
+            )
+        )
         Output.warning("Got error : {}".format(e))
-        return 'ok'
+        return "ok"
 
 
-class BlockingProcess():
+class BlockingProcess:
     CACHE_DURATION = datetime.timedelta(seconds=1)
 
     @classmethod
@@ -656,9 +734,11 @@ class BlockingProcess():
             if cached["found"]:
                 return cached["answer"]
 
-        proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
         try:
-            outs, errs = proc.communicate(timeout = CONST.PROC_TIMEOUT)
+            outs, errs = proc.communicate(timeout=CONST.PROC_TIMEOUT)
             success = True
         except subprocess.TimeoutExpired:
             proc.kill()
@@ -673,14 +753,16 @@ class BlockingProcess():
             BlockingProcess.save_in_cache(name, answer)
         return answer
 
-
     @classmethod
     def check_in_cache(cls, name):
         try:
             cls.cache
         except AttributeError:
             cls.cache = {}
-        if cls.cache.get(name) and cls.cache[name]["expire_dt"] > datetime.datetime.now():
+        if (
+            cls.cache.get(name)
+            and cls.cache[name]["expire_dt"] > datetime.datetime.now()
+        ):
             return {
                 "found": True,
                 "answer": cls.cache[name]["answer"],
@@ -708,10 +790,9 @@ class BlockingProcess():
             cls.cache = {}
         name = ".".join(cmd)
         try:
-            del(cls.cache[name])
+            del cls.cache[name]
         except (KeyError, AttributeError):
             pass
-
 
 
 class NonBlockingQtProcess(QtCore.QProcess):
@@ -751,7 +832,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
         self.output += out
 
     def _finished(self, exit_code, exit_status):
-        success = (exit_status == 0 and exit_code == 0)
+        success = exit_status == 0 and exit_code == 0
         out = self.readAll()
         out = bytes_decode(bytes(out))
         self.output += out
@@ -773,7 +854,9 @@ class NonBlockingQtProcess(QtCore.QProcess):
             else:
                 cls.process_names[name] = {
                     "instance": instance,
-                    "cb": [cb, ],
+                    "cb": [
+                        cb,
+                    ],
                     "launch_dt": datetime.datetime.now(),
                 }
                 return True
@@ -794,12 +877,13 @@ class NonBlockingQtProcess(QtCore.QProcess):
                 cb_extra_args = cls.process_names[name]["instance"].cb_extra_args
                 if cls.process_names[name]["instance"].cache:
                     cls.cache[name] = {
-                        "expire_dt": datetime.datetime.now() + NonBlockingQtProcess.CACHE_DURATION,
+                        "expire_dt": datetime.datetime.now()
+                        + NonBlockingQtProcess.CACHE_DURATION,
                         "success": success,
                         "output": output,
                         "exit_code": exit_code,
                     }
-                del(cls.process_names[name])
+                del cls.process_names[name]
             except KeyError:
                 all_cb = ()
         for cb in all_cb:
@@ -843,7 +927,7 @@ class NonBlockingQtProcess(QtCore.QProcess):
         name = ".".join(cmd)
         with cls.lock:
             try:
-                del(cls.cache[name])
+                del cls.cache[name]
                 # Output.debug("invalidated cache of {}".format(name))
             except (KeyError, AttributeError):
                 # Output.debug("tried to invalidate cache of {} (but not found in cache)".format(name))
@@ -887,7 +971,9 @@ class NonBlockingQtThread(QtCore.QThread):
             else:
                 cls.thread_names[name] = {
                     "instance": instance,
-                    "cb": [(cb, cb_extra_args), ],
+                    "cb": [
+                        (cb, cb_extra_args),
+                    ],
                 }
                 return True
 
@@ -917,7 +1003,7 @@ class NonBlockingQtThread(QtCore.QThread):
             try:
                 answer = cls.thread_names[name]["answer"]
                 all_cb = cls.thread_names[name]["cb"]
-                del(cls.thread_names[name])
+                del cls.thread_names[name]
             except KeyError:
                 all_cb = ()
         for cb, cb_extra_args in all_cb:
@@ -961,7 +1047,9 @@ class NonBlockingThread(threading.Thread):
             else:
                 cls.thread_names[name] = {
                     "instance": instance,
-                    "cb": [(cb, cb_extra_args), ],
+                    "cb": [
+                        (cb, cb_extra_args),
+                    ],
                 }
                 return True
 
@@ -991,7 +1079,7 @@ class NonBlockingThread(threading.Thread):
             try:
                 answer = cls.thread_names[name]["answer"]
                 all_cb = cls.thread_names[name]["cb"]
-                del(cls.thread_names[name])
+                del cls.thread_names[name]
             except KeyError:
                 all_cb = ()
         for cb, cb_extra_args in all_cb:
