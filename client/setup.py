@@ -11,7 +11,7 @@ setup(
     long_description="Access your Network Drives easily.",
     author="Samuel Bancal",
     author_email="Samuel.Bancal@epfl.ch",
-    url="https://enacit.epfl.ch/enacdrives/",
+    url="https://go.epfl.ch/KB0016347",
     packages=["enacdrives"],
     scripts=[
         "bin/enacdrives",

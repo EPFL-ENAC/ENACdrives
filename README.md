@@ -2,9 +2,9 @@
 
 ENACdrives is the interactive tool developed by ENAC-IT for enployees and students to facilitate access to storage services, including individual storage and collaborative/archive/raw services (NAS3 based). It replaces mount_filers and is now fully multi-platform (Windows, Mac OS X, Linux/Ubuntu).
 
-End-user documentation can be read at : http://enacit.epfl.ch/enacdrives/
+End-user documentation can be read at : https://go.epfl.ch/KB0016347
 
-End-user software can be downloaded from http://enacsoft.epfl.ch/enacdrives/
+End-user software can be downloaded from https://go.epfl.ch/KB0016347
 
 Settings administration page is located here : http://enacdrives.epfl.ch/admin/config/config/
 

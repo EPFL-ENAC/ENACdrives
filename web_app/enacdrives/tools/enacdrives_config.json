@@ -1506,7 +1506,7 @@
   {
     "fields": {
       "category": "b",
-      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
+      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"https://go.epfl.ch/KB0016347\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
       "enabled": false,
       "epfl_units": [],
       "ldap_groups": [],
@@ -1520,7 +1520,7 @@
   {
     "fields": {
       "category": "a",
-      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
+      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"https://go.epfl.ch/KB0016347\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
       "enabled": true,
       "epfl_units": [],
       "ldap_groups": [],

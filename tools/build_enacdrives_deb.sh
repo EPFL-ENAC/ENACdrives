@@ -39,7 +39,7 @@ Priority: optional
 Maintainer: Samuel Bancal <Samuel.Bancal@epfl.ch>
 Build-Depends: debhelper (>=11~), dh-python, python3-all
 Standards-Version: 4.1.4
-Homepage: https://enacit.epfl.ch/${PACKAGE}/
+Homepage: https://go.epfl.ch/KB0016347
 X-Python3-Version: >= 3.2
 
 Package: ${PACKAGE}

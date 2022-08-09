@@ -79,7 +79,7 @@ class CONST:
     VERSION = "1.2.4"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
-    DOC_URL = "https://enacit.epfl.ch/enacdrives"
+    DOC_URL = "https://go.epfl.ch/KB0016347"
 
     OS_SYS = platform.system()
     if sys.maxsize > 2**64:
