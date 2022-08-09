@@ -26,7 +26,7 @@ sys.path.append(my_path)
 application = get_wsgi_application()
 
 
-# my_path = '/home/sbancal/Projects/enacdrives/web_app/enacdrives'  # TODO REMOVE THIS
+# my_path = '/home/sbancal/Projects/ENACdrives/web_app/enacdrives'  # TODO REMOVE THIS
 
 # CRED_FILE = os.path.join(my_path, 'enacmoni.cred')
 # with open(CRED_FILE, 'rb') as f:

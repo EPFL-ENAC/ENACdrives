@@ -37,7 +37,7 @@ def sub(s):
     if env.host == "enacit1sbtest4":
         return s.format(
             admin_username="sbancal",
-            local_dir="/home/sbancal/Projects/enacdrives/web_app/enacdrives/",
+            local_dir="/home/sbancal/Projects/ENACdrives/web_app/enacdrives/",
             code_dir="/django_app/enacdrives",
             server_config_dir="/django_app/enacdrives/server_config/enacit1sbtest4",
             virtualenv_dir="/django_app/venv/py3",
@@ -53,7 +53,7 @@ def sub(s):
     elif env.host == "enacit1vm1":
         return s.format(
             admin_username="enacit1",
-            local_dir="/home/sbancal/Projects/enacdrives/web_app/enacdrives/",
+            local_dir="/home/sbancal/Projects/ENACdrives/web_app/enacdrives/",
             code_dir="/data/web/django-enacdrives",
             server_config_dir="/data/web/django-enacdrives/server_config/enacit1vm1",
             virtualenv_dir="/data/local/enacdrives/py3",

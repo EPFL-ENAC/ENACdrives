@@ -1,34 +1,26 @@
 % New client ENACdrives : Workflow
 % SB, ND, PDJ (ENAC-IT)
 
+# COMMON
 
-COMMON
-======
-
-* Project repo :
+- Project repo :
   git@github.com:EPFL-ENAC/ENACdrives.git
-* Release version :
+- Release version :
   set in client/enacdrives/utility.py (CONST.VERSION & CONST.VERSION_DATE)
 
+# LINUX
 
-LINUX
-=====
-
-
-Compile & Package
------------------
+## Compile & Package
 
 ```bash
 cd tools
 pipenv run bash build_enacdrives_deb.sh
 ```
 
-
-Send package to enacrepo.epfl.ch
---------------------------------
+## Send package to enacrepo.epfl.ch
 
 ```bash
-cd ~/Projects/enacdrives/deb_building/
+cd ~/Projects/ENACdrives/deb_building/
 sshfs enacit1@enacrepo:/data/web/enacrepo/ enacrepo.epfl.ch/
 
 reprepro -b enacrepo.epfl.ch/public/ list xenial
@@ -49,15 +41,13 @@ reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
   includedeb focal enacdrives_all.deb
 ```
 
-
-WINDOWS
-=======
+# WINDOWS
 
 <SB>
 
 ```bash
 enacdrives -n nas3_enac-it_files
-cp -R /home/sbancal/Projects/enacdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/
+cp -R /home/sbancal/Projects/ENACdrives/client/ /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/
 rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4
 ```
 
@@ -70,8 +60,9 @@ python setup.py build
 Test ...
 
 Make a zip (-> PortableApps)
+
 ```bash
-export VERSION=$(/usr/bin/python3 ~/Projects/enacdrives/client/tell_version.py); echo $VERSION
+export VERSION=$(/usr/bin/python3 ~/Projects/ENACdrives/client/tell_version.py); echo $VERSION
 
 pushd ~/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/
 rm -rf ENACdrives-${VERSION} ENACdrives-${VERSION}.zip
@@ -81,6 +72,7 @@ popd
 ```
 
 Give it to IT2 for Packaging
+
 ```bash
 rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built
 mv /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/src/client/build/exe.win32-3.4 /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/built
@@ -89,7 +81,7 @@ rm -rf /home/sbancal/Desktop/enac-it_on_enac1files/common/ENACdrives/Windows/bui
 
 <ND> contenu du fichier \\enac1files\enac-it\common\ENACdrives\Windows\readme.txt :
 
-Manuel  de création du fichier SetupENACdrives-version.exe
+Manuel de création du fichier SetupENACdrives-version.exe
 
 Installer Inno Setup à partir de http://www.jrsoftware.org/isinfo.php
 La version de base non-unicode sans package supplémentaire fonctionne très bien.
@@ -107,10 +99,7 @@ Si l'icône change, Visual Studio permet d'extraire le .ico du .exe
 
 Pour signer l'exe, l'envoyer via enacshare à codesigning@epfl.ch
 
-
-
-MACOSX
-======
+# MACOSX
 
 On the Mac :
 
@@ -119,7 +108,7 @@ ssh -NR 22210:localhost:22 sbancal@salsa.epfl.ch
 ```
 
 ```bash
-alias to_macp="rsync -e ssh -avH --exclude venv_py3 --exclude __pycache__  ~/Projects/enacdrives/client/ bancal@enac1mac2-NR:enacdrives_client/"
+alias to_macp="rsync -e ssh -avH --exclude venv_py3 --exclude __pycache__  ~/Projects/ENACdrives/client/ bancal@enac1mac2-NR:enacdrives_client/"
 to_macp
 ```
 

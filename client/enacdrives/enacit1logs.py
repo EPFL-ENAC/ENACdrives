@@ -23,7 +23,7 @@
 # ! Copied to /home/bancal/server_basics/usr/local/bin/enacit1logs.py !
 # ! By hand ;) !
 
-# ! Copied to ~/Projects/enacdrives/client/enacit1logs.py !
+# ! Copied to ~/Projects/ENACdrives/client/enacit1logs.py !
 # ! By hand ;) ... but 2to3 !
 
 

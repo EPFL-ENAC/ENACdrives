@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-export ENACDRIVES_PROJECT=~/Projects/enacdrives
+export ENACDRIVES_PROJECT=~/Projects/ENACdrives
 pushd ${ENACDRIVES_PROJECT}
 
 export PACKAGE=enacdrives

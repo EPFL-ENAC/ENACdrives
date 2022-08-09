@@ -137,7 +137,7 @@ apt-get -q -y install libapache2-mod-xsendfile
 cat <<EOF
 ... Now Deploy from salsa.epfl.ch
 ~~~ bash
-cd /home/sbancal/Projects/enacdrives/web_app
+cd /home/sbancal/Projects/ENACdrives/web_app
 # pww
 /home/sbancal/py/2/bin/fab -H enacit1sbtest4 full_deploy
 ~~~

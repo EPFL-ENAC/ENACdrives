@@ -15,7 +15,7 @@ from fabric.contrib.project import rsync_project
 
 env.hosts = ["enacit1@enacit1-sysadmin"]
 
-LOCAL_DIR = "/home/sbancal/Projects/enacdrives/docs/"
+LOCAL_DIR = "/home/sbancal/Projects/ENACdrives/docs/"
 REMOTE_DIR = "/data/web/enacit1-sysadmin/ENACdrives/"
 
 MD_FILES = ("NEW_CLIENT_RELEASE.md",)
