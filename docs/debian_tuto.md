@@ -2,61 +2,59 @@ https://wiki.debian.org/IntroDebianPackaging
 
 # 0. Pre-requisite
 
-~~~ bash
+```bash
 sudo apt-get install build-essential devscripts debhelper
 cd ~/tmp/pkg_deb
-~~~
-
+```
 
 # 0. Get upstream tarball
-~~~ bash
-wget http://code.liw.fi/hithere/hithere-1.0.tar.gz
-~~~
 
+```bash
+wget http://code.liw.fi/hithere/hithere-1.0.tar.gz
+```
 
 # 1. rename the upstream tarball
-~~~ bash
-mv hithere-1.0.tar.gz hithere_1.0.orig.tar.gz
-~~~
 
+```bash
+mv hithere-1.0.tar.gz hithere_1.0.orig.tar.gz
+```
 
 # 2. Unpack the upstram tarball
-~~~ bash
+
+```bash
 tar -xf hithere_1.0.orig.tar.gz
 cd hithere-1.0
-~~~
-
+```
 
 # 3. Add Debian packaging files
 
-~~~ bash
+```bash
 mkdir debian
-~~~
-
+```
 
 ## debian/changelog
 
-~~~ bash
+```bash
 dch --create -v 1.0-1 --package hithere
-~~~
+```
 
-~~~ snip
+```snip
 hithere (1.0-1) UNRELEASED; urgency=medium
 
   * Initial release.
 
  -- Bancal Samuel <sbancal@enacit1pc4>  Fri, 19 Jun 2015 11:18:33 +0200
-~~~
-
+```
 
 ## debian/compat
-~~~ snip
-9
-~~~
 
+```snip
+9
+```
 
 ## debian/control
-~~~ snip
+
+```snip
 Source: hithere
 Maintainer: Lars Wirzenius <liw@liw.fi>
 Section: misc
@@ -69,35 +67,35 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: greet user
  hithere greets the user, or the world.
-~~~
-
+```
 
 ## debian/copyright
-~~~ snip
-~~~
 
+```snip
+
+```
 
 ## debian/rules (tabbed)
-~~~ snip
+
+```snip
 #!/usr/bin/make -f
 %:
 	dh $@
-~~~
-
+```
 
 ## debian/source/format
-~~~ snip
-3.0 (quilt)
-~~~
 
+```snip
+3.0 (quilt)
+```
 
 # 4. Build the package
 
-~~~ bash
+```bash
 debuild -us -uc
-~~~
+```
 
-~~~ snip
+```snip
 make[1]: Entering directory `/home/sbancal/tmp/pkg_deb/hithere-1.0'
 install hithere /home/sbancal/tmp/pkg_deb/hithere-1.0/debian/hithere/usr/local/bin
 install: cannot create regular file ‘/home/sbancal/tmp/pkg_deb/hithere-1.0/debian/hithere/usr/local/bin’: No such file or directory
@@ -108,28 +106,28 @@ make: *** [binary] Error 2
 dpkg-buildpackage: error: fakeroot debian/rules binary gave error exit status 2
 debuild: fatal error at line 1364:
 dpkg-buildpackage -rfakeroot -D -us -uc failed
-~~~
+```
 
 FIX : tell make to install into /usr , not into /usr/local
 
 ## debian/rules (tabbed)
-~~~ snip
+
+```snip
 #!/usr/bin/make -f
 %:
         dh $@
 
 override_dh_auto_install:
         $(MAKE) DESTDIR=$$(pwd)/debian/hithere prefix=/usr install
-~~~
+```
 
+Try again :
 
-Try again : 
-
-~~~ bash
+```bash
 debuild -us -uc
-~~~
+```
 
-~~~ snip
+```snip
 make[1]: Entering directory `/home/sbancal/tmp/pkg_deb/hithere-1.0'
 /usr/bin/make DESTDIR=$(pwd)/debian/hithere prefix=/usr install
 make[2]: Entering directory `/home/sbancal/tmp/pkg_deb/hithere-1.0'
@@ -143,24 +141,24 @@ make: *** [binary] Error 2
 dpkg-buildpackage: error: fakeroot debian/rules binary gave error exit status 2
 debuild: fatal error at line 1364:
 dpkg-buildpackage -rfakeroot -D -us -uc failed
-~~~
+```
 
 FIX : Add missing dirs
 
 ## debian/hithere.dirs
-~~~ snip
+
+```snip
 usr/bin
 usr/share/man/man1
-~~~
+```
 
+Try again :
 
-Try again : 
-
-~~~ bash
+```bash
 debuild -us -uc
-~~~
+```
 
-~~~ snip
+```snip
 dpkg-deb: building package `hithere' in `../hithere_1.0-1_amd64.deb'.
  dpkg-genchanges  >../hithere_1.0-1_amd64.changes
 dpkg-genchanges: including full source code in upload
@@ -174,13 +172,13 @@ W: hithere: new-package-should-close-itp-bug
 W: hithere: copyright-without-copyright-notice
 W: hithere: zero-byte-file-in-doc-directory usr/share/doc/hithere/copyright
 Finished running lintian.
-~~~
+```
 
-~~~ bash
+```bash
 ls -l ..
-~~~
+```
 
-~~~ snip
+```snip
 drwxrwxr-x 3 sbancal sbancal 4096 Jun 22 10:08 hithere-1.0
 -rw-r--r-- 1 sbancal sbancal 2759 Jun 22 10:08 hithere_1.0-1_amd64.build
 -rw-r--r-- 1 sbancal sbancal 1371 Jun 22 10:08 hithere_1.0-1_amd64.changes
@@ -188,4 +186,4 @@ drwxrwxr-x 3 sbancal sbancal 4096 Jun 22 10:08 hithere-1.0
 -rw-r--r-- 1 sbancal sbancal  733 Jun 22 10:08 hithere_1.0-1.debian.tar.gz
 -rw-r--r-- 1 sbancal sbancal  732 Jun 22 10:08 hithere_1.0-1.dsc
 -rw-rw-r-- 1 sbancal sbancal  616 Jun 19 10:55 hithere_1.0.orig.tar.gz
-~~~
+```

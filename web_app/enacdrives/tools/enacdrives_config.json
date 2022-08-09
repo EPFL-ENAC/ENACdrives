@@ -1,1702 +1,1534 @@
 [
-    {
-        "fields": {
-            "name": "bancal"
-        },
-        "model": "config.user",
-        "pk": 1
-    },
-    {
-        "fields": {
-            "name": "bouffard"
-        },
-        "model": "config.user",
-        "pk": 2
-    },
-    {
-        "fields": {
-            "name": "bonjour"
-        },
-        "model": "config.user",
-        "pk": 3
-    },
-    {
-        "fields": {
-            "name": "enac-it"
-        },
-        "model": "config.epflunit",
-        "pk": 1
-    },
-    {
-        "fields": {
-            "name": "iie-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 2
-    },
-    {
-        "fields": {
-            "name": "ibeton"
-        },
-        "model": "config.epflunit",
-        "pk": 3
-    },
-    {
-        "fields": {
-            "name": "disal"
-        },
-        "model": "config.epflunit",
-        "pk": 4
-    },
-    {
-        "fields": {
-            "name": "acm"
-        },
-        "model": "config.epflunit",
-        "pk": 5
-    },
-    {
-        "fields": {
-            "name": "alice"
-        },
-        "model": "config.epflunit",
-        "pk": 6
-    },
-    {
-        "fields": {
-            "name": "aphys"
-        },
-        "model": "config.epflunit",
-        "pk": 7
-    },
-    {
-        "fields": {
-            "name": "aprl"
-        },
-        "model": "config.epflunit",
-        "pk": 8
-    },
-    {
-        "fields": {
-            "name": "archizoom"
-        },
-        "model": "config.epflunit",
-        "pk": 9
-    },
-    {
-        "fields": {
-            "name": "cclab"
-        },
-        "model": "config.epflunit",
-        "pk": 10
-    },
-    {
-        "fields": {
-            "name": "cdt"
-        },
-        "model": "config.epflunit",
-        "pk": 11
-    },
-    {
-        "fields": {
-            "name": "ceat"
-        },
-        "model": "config.epflunit",
-        "pk": 12
-    },
-    {
-        "fields": {
-            "name": "cnpa"
-        },
-        "model": "config.epflunit",
-        "pk": 13
-    },
-    {
-        "fields": {
-            "name": "cryos"
-        },
-        "model": "config.epflunit",
-        "pk": 14
-    },
-    {
-        "fields": {
-            "name": "east-co"
-        },
-        "model": "config.epflunit",
-        "pk": 15
-    },
-    {
-        "fields": {
-            "name": "echo"
-        },
-        "model": "config.epflunit",
-        "pk": 16
-    },
-    {
-        "fields": {
-            "name": "ecol"
-        },
-        "model": "config.epflunit",
-        "pk": 17
-    },
-    {
-        "fields": {
-            "name": "ecos"
-        },
-        "model": "config.epflunit",
-        "pk": 18
-    },
-    {
-        "fields": {
-            "name": "eesd"
-        },
-        "model": "config.epflunit",
-        "pk": 19
-    },
-    {
-        "fields": {
-            "name": "eflum"
-        },
-        "model": "config.epflunit",
-        "pk": 20
-    },
-    {
-        "fields": {
-            "name": "eml"
-        },
-        "model": "config.epflunit",
-        "pk": 21
-    },
-    {
-        "fields": {
-            "name": "enac-do"
-        },
-        "model": "config.epflunit",
-        "pk": 22
-    },
-    {
-        "fields": {
-            "name": "enac-oc"
-        },
-        "model": "config.epflunit",
-        "pk": 23
-    },
-    {
-        "fields": {
-            "name": "form"
-        },
-        "model": "config.epflunit",
-        "pk": 24
-    },
-    {
-        "fields": {
-            "name": "gis-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 25
-    },
-    {
-        "fields": {
-            "name": "gr-cel"
-        },
-        "model": "config.epflunit",
-        "pk": 26
-    },
-    {
-        "fields": {
-            "name": "gr-gn"
-        },
-        "model": "config.epflunit",
-        "pk": 27
-    },
-    {
-        "fields": {
-            "name": "gr-lud"
-        },
-        "model": "config.epflunit",
-        "pk": 28
-    },
-    {
-        "fields": {
-            "name": "gr-per"
-        },
-        "model": "config.epflunit",
-        "pk": 29
-    },
-    {
-        "fields": {
-            "name": "gr-tz"
-        },
-        "model": "config.epflunit",
-        "pk": 30
-    },
-    {
-        "fields": {
-            "name": "ia-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 31
-    },
-    {
-        "fields": {
-            "name": "ibois"
-        },
-        "model": "config.epflunit",
-        "pk": 32
-    },
-    {
-        "fields": {
-            "name": "icom"
-        },
-        "model": "config.epflunit",
-        "pk": 33
-    },
-    {
-        "fields": {
-            "name": "iic-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 34
-    },
-    {
-        "fields": {
-            "name": "imac"
-        },
-        "model": "config.epflunit",
-        "pk": 35
-    },
-    {
-        "fields": {
-            "name": "inter-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 36
-    },
-    {
-        "fields": {
-            "name": "lab-u"
-        },
-        "model": "config.epflunit",
-        "pk": 37
-    },
-    {
-        "fields": {
-            "name": "laba"
-        },
-        "model": "config.epflunit",
-        "pk": 38
-    },
-    {
-        "fields": {
-            "name": "labex"
-        },
-        "model": "config.epflunit",
-        "pk": 39
-    },
-    {
-        "fields": {
-            "name": "labex-co"
-        },
-        "model": "config.epflunit",
-        "pk": 40
-    },
-    {
-        "fields": {
-            "name": "lac"
-        },
-        "model": "config.epflunit",
-        "pk": 41
-    },
-    {
-        "fields": {
-            "name": "lamu"
-        },
-        "model": "config.epflunit",
-        "pk": 42
-    },
-    {
-        "fields": {
-            "name": "lapis"
-        },
-        "model": "config.epflunit",
-        "pk": 43
-    },
-    {
-        "fields": {
-            "name": "lasig"
-        },
-        "model": "config.epflunit",
-        "pk": 44
-    },
-    {
-        "fields": {
-            "name": "last"
-        },
-        "model": "config.epflunit",
-        "pk": 45
-    },
-    {
-        "fields": {
-            "name": "lasur"
-        },
-        "model": "config.epflunit",
-        "pk": 46
-    },
-    {
-        "fields": {
-            "name": "laure"
-        },
-        "model": "config.epflunit",
-        "pk": 47
-    },
-    {
-        "fields": {
-            "name": "lavoc"
-        },
-        "model": "config.epflunit",
-        "pk": 48
-    },
-    {
-        "fields": {
-            "name": "lbe"
-        },
-        "model": "config.epflunit",
-        "pk": 49
-    },
-    {
-        "fields": {
-            "name": "lcc"
-        },
-        "model": "config.epflunit",
-        "pk": 50
-    },
-    {
-        "fields": {
-            "name": "lce"
-        },
-        "model": "config.epflunit",
-        "pk": 51
-    },
-    {
-        "fields": {
-            "name": "lch"
-        },
-        "model": "config.epflunit",
-        "pk": 52
-    },
-    {
-        "fields": {
-            "name": "leso-pb"
-        },
-        "model": "config.epflunit",
-        "pk": 53
-    },
-    {
-        "fields": {
-            "name": "leure"
-        },
-        "model": "config.epflunit",
-        "pk": 54
-    },
-    {
-        "fields": {
-            "name": "lgb"
-        },
-        "model": "config.epflunit",
-        "pk": 55
-    },
-    {
-        "fields": {
-            "name": "lhe"
-        },
-        "model": "config.epflunit",
-        "pk": 56
-    },
-    {
-        "fields": {
-            "name": "lipid"
-        },
-        "model": "config.epflunit",
-        "pk": 57
-    },
-    {
-        "fields": {
-            "name": "liv"
-        },
-        "model": "config.epflunit",
-        "pk": 58
-    },
-    {
-        "fields": {
-            "name": "lmce"
-        },
-        "model": "config.epflunit",
-        "pk": 59
-    },
-    {
-        "fields": {
-            "name": "lmr"
-        },
-        "model": "config.epflunit",
-        "pk": 60
-    },
-    {
-        "fields": {
-            "name": "lms"
-        },
-        "model": "config.epflunit",
-        "pk": 61
-    },
-    {
-        "fields": {
-            "name": "lsms"
-        },
-        "model": "config.epflunit",
-        "pk": 62
-    },
-    {
-        "fields": {
-            "name": "lte"
-        },
-        "model": "config.epflunit",
-        "pk": 63
-    },
-    {
-        "fields": {
-            "name": "lth2"
-        },
-        "model": "config.epflunit",
-        "pk": 64
-    },
-    {
-        "fields": {
-            "name": "lth3"
-        },
-        "model": "config.epflunit",
-        "pk": 65
-    },
-    {
-        "fields": {
-            "name": "ltqe"
-        },
-        "model": "config.epflunit",
-        "pk": 66
-    },
-    {
-        "fields": {
-            "name": "luts"
-        },
-        "model": "config.epflunit",
-        "pk": 67
-    },
-    {
-        "fields": {
-            "name": "manslab-co"
-        },
-        "model": "config.epflunit",
-        "pk": 68
-    },
-    {
-        "fields": {
-            "name": "mcs"
-        },
-        "model": "config.epflunit",
-        "pk": 69
-    },
-    {
-        "fields": {
-            "name": "reme"
-        },
-        "model": "config.epflunit",
-        "pk": 70
-    },
-    {
-        "fields": {
-            "name": "sgc-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 71
-    },
-    {
-        "fields": {
-            "name": "ssie-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 72
-    },
-    {
-        "fields": {
-            "name": "sub"
-        },
-        "model": "config.epflunit",
-        "pk": 73
-    },
-    {
-        "fields": {
-            "name": "topo"
-        },
-        "model": "config.epflunit",
-        "pk": 74
-    },
-    {
-        "fields": {
-            "name": "tox"
-        },
-        "model": "config.epflunit",
-        "pk": 75
-    },
-    {
-        "fields": {
-            "name": "transp-or"
-        },
-        "model": "config.epflunit",
-        "pk": 76
-    },
-    {
-        "fields": {
-            "name": "tsam"
-        },
-        "model": "config.epflunit",
-        "pk": 77
-    },
-    {
-        "fields": {
-            "name": "wire"
-        },
-        "model": "config.epflunit",
-        "pk": 78
-    },
-    {
-        "fields": {
-            "name": "sar-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 79
-    },
-    {
-        "fields": {
-            "name": "sber"
-        },
-        "model": "config.epflunit",
-        "pk": 80
-    },
-    {
-        "fields": {
-            "name": "antfr-ge"
-        },
-        "model": "config.epflunit",
-        "pk": 81
-    },
-    {
-        "fields": {
-            "name": "lemr"
-        },
-        "model": "config.epflunit",
-        "pk": 82
-    },
-    {
-        "fields": {
-            "name": "gel"
-        },
-        "model": "config.epflunit",
-        "pk": 83
-    },
-    {
-        "fields": {
-            "name": "acht"
-        },
-        "model": "config.epflunit",
-        "pk": 84
-    },
-    {
-        "fields": {
-            "name": "gr-acm"
-        },
-        "model": "config.epflunit",
-        "pk": 85
-    },
-    {
-        "fields": {
-            "name": "resslab"
-        },
-        "model": "config.epflunit",
-        "pk": 86
-    },
-    {
-        "fields": {
-            "name": "herus"
-        },
-        "model": "config.epflunit",
-        "pk": 87
-    },
-    {
-        "fields": {
-            "name": "slc-tous"
-        },
-        "model": "config.ldapgroup",
-        "pk": 1
-    },
-    {
-        "fields": {
-            "name": "enacproj-sll"
-        },
-        "model": "config.ldapgroup",
-        "pk": 2
-    },
-    {
-        "fields": {
-            "name": "toponas1_workspace"
-        },
-        "model": "config.ldapgroup",
-        "pk": 3
-    },
-    {
-        "fields": {
-            "name": "ecolnas2-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 4
-    },
-    {
-        "fields": {
-            "name": "enac1files-cdt"
-        },
-        "model": "config.ldapgroup",
-        "pk": 5
-    },
-    {
-        "fields": {
-            "name": "last"
-        },
-        "model": "config.ldapgroup",
-        "pk": 6
-    },
-    {
-        "fields": {
-            "name": "lipid"
-        },
-        "model": "config.ldapgroup",
-        "pk": 7
-    },
-    {
-        "fields": {
-            "name": "enacit-docsenacit"
-        },
-        "model": "config.ldapgroup",
-        "pk": 8
-    },
-    {
-        "fields": {
-            "name": "GR-Ludwig"
-        },
-        "model": "config.ldapgroup",
-        "pk": 9
-    },
-    {
-        "fields": {
-            "name": "Lipid_MES-LIPID"
-        },
-        "model": "config.ldapgroup",
-        "pk": 10
-    },
-    {
-        "fields": {
-            "name": "Lipid_PVOptProject"
-        },
-        "model": "config.ldapgroup",
-        "pk": 11
-    },
-    {
-        "fields": {
-            "name": "topolaser_workspace"
-        },
-        "model": "config.ldapgroup",
-        "pk": 12
-    },
-    {
-        "fields": {
-            "name": "enacproj-enacit1-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 14
-    },
-    {
-        "fields": {
-            "name": "enacproj-cetox-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 15
-    },
-    {
-        "fields": {
-            "name": "enacproj-enacuniteenseign-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 16
-    },
-    {
-        "fields": {
-            "name": "enacproj-semainesenac-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 17
-    },
-    {
-        "fields": {
-            "name": "enacproj-topolaser-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 18
-    },
-    {
-        "fields": {
-            "name": "enacproj-enacuejz-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 19
-    },
-    {
-        "fields": {
-            "name": "enacproj-leman-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 20
-    },
-    {
-        "fields": {
-            "name": "enacproj-cryo-nanosims-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 21
-    },
-    {
-        "fields": {
-            "name": "enacproj-espacetemps-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 22
-    },
-    {
-        "fields": {
-            "name": "aites-ita"
-        },
-        "model": "config.ldapgroup",
-        "pk": 23
-    },
-    {
-        "fields": {
-            "name": "itacet"
-        },
-        "model": "config.ldapgroup",
-        "pk": 24
-    },
-    {
-        "fields": {
-            "name": "enacproj-sarprojmaster-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 25
-    },
-    {
-        "fields": {
-            "name": "enacproj-enacpdcd-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 26
-    },
-    {
-        "fields": {
-            "name": "enacproj-use-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 27
-    },
-    {
-        "fields": {
-            "name": "enacproj-enacfvsm-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 28
-    },
-    {
-        "fields": {
-            "name": "enacproj-sarartdessin-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 29
-    },
-    {
-        "fields": {
-            "name": "enacproj-postcarworld-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 30
-    },
-    {
-        "fields": {
-            "name": "enacproj-ccimpacts-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 31
-    },
-    {
-        "fields": {
-            "name": "enacproj-mcm-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 32
-    },
-    {
-        "fields": {
-            "name": "enacproj-habitat-users"
-        },
-        "model": "config.ldapgroup",
-        "pk": 33
-    },
-    {
-        "fields": {
-            "name": "enacproj-habitat-readers"
-        },
-        "model": "config.ldapgroup",
-        "pk": 34
-    },
-    {
-        "fields": {
-            "name": "sd17-all"
-        },
-        "model": "config.ldapgroup",
-        "pk": 35
-    },
-    {
-        "fields": {
-            "category": "a",
-            "data": "[global]\r\nLinux_CIFS_method = gvfs\r\nLinux_mountcifs_filemode = 0770\r\nLinux_mountcifs_dirmode = 0770\r\nLinux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm\r\nLinux_gvfs_symlink = no\r\nrequire_network = EPFL-Intranet\r\nrealm = EPFL-AD\r\n\r\n[realm]\r\nname = EPFL-AD\r\ndomain = {auth_domain}\r\nusername = {username}\r\n\r\n[network]\r\nname = Internet\r\nping = www.epfl.ch\r\nping = enacit.epfl.ch\r\nping = enclair.epfl.ch\r\nerror_msg = Error, you are not connected to the network. You won't be able to connect to this resource.\r\n\r\n[network]\r\nname = EPFL-Intranet\r\nparent = Internet\r\ncifs = files0.epfl.ch\r\ncifs = files1.epfl.ch\r\ncifs = files8.epfl.ch\r\ncifs = files9.epfl.ch\r\ncifs = enac1files.epfl.ch\r\nerror_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to connect to this resource.",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "Global",
-            "rank": 0,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 1
-    },
-    {
-        "fields": {
-            "category": "a",
-            "data": "[CIFS_mount]\r\nname = nas3_individual\r\nlabel = {username} - Individual\r\nunc = \\\\files{last_sciper_digit}.epfl.ch\\data\\{username}\r\nlocal_path = {MNT_DIR}/{username}_on_files{last_sciper_digit}\r\nWindows_letter = Z:\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "NAS3 Individual",
-            "rank": 1,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 2
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas2_{group}_tier1\r\nlabel = {group} - Tier1\r\nunc = \\\\enacfiles1.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles1\r\n0.Windows_letter = Y:",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "NAS2 Tier1",
-            "rank": 11,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 3
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas2_{group}_tier2\r\nlabel = {group} - Tier2\r\nunc = \\\\enacfiles2.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles2\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "NAS2 Tier2",
-            "rank": 12,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 4
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas2_{group}_tier4\r\nlabel = {group} - Tier4\r\nunc = \\\\enacfiles4.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles4\r\n",
-            "enabled": true,
-            "epfl_units": [
-                3
-            ],
-            "ldap_groups": [],
-            "name": "NAS2 Tier4",
-            "rank": 14,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 5
-    },
-    {
-        "fields": {
-            "category": "b",
-            "data": "[realm]\r\nname = DOCLINUX\r\ndomain = WORKGROUP\r\nusername = doclinux\r\n\r\n#[CIFS_mount]\r\n#name = doclinux\r\n#label = doclinux@enac1web\r\n#realm = DOCLINUX\r\n#unc = \\\\enac1web.epfl.ch\\doclinux\r\n\r\n[CIFS_mount]\r\nname = test_espace\r\nunc = \\\\enacprint.epfl.ch\\_test enacdrives\r\n\r\n[CIFS_mount]\r\nname = test_dollar\r\nunc = \\\\enacprint.epfl.ch\\_testEnacDrives$\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "bancal",
-            "rank": 1000,
-            "users": [
-                1
-            ]
-        },
-        "model": "config.config",
-        "pk": 6
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = enacproj_slc\r\nlabel = SLC - Enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-slc\r\nlocal_path = {MNT_DIR}/slc_on_enacproj\r\nWindows_letter = W:\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                1
-            ],
-            "name": "enacproj.slc",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 7
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = enacproj_sll \r\nlabel = SLL - Enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-sll\r\nlocal_path = {MNT_DIR}/sll_on_enacproj\r\nWindows_letter = V:\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                2
-            ],
-            "name": "enacproj.sll",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 8
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas3_{group}_files\r\nlabel = {group} - Files\r\nunc = \\\\enac1files.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1files\r\n0.Windows_letter = Y:",
-            "enabled": true,
-            "epfl_units": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
-                34,
-                35,
-                37,
-                38,
-                41,
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48,
-                49,
-                50,
-                51,
-                52,
-                53,
-                54,
-                55,
-                56,
-                57,
-                58,
-                59,
-                61,
-                62,
-                63,
-                64,
-                65,
-                66,
-                67,
-                68,
-                69,
-                71,
-                72,
-                73,
-                74,
-                75,
-                76,
-                77,
-                78,
-                79,
-                80,
-                82,
-                83,
-                84,
-                85,
-                87
-            ],
-            "ldap_groups": [],
-            "name": "NAS3 Files",
-            "rank": 15,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 9
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas3_{group}_arch\r\nlabel = {group} - Arch\r\nunc = \\\\enac1arch.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1arch",
-            "enabled": true,
-            "epfl_units": [
-                1,
-                4,
-                7,
-                13,
-                26,
-                44,
-                55
-            ],
-            "ldap_groups": [],
-            "name": "NAS3 Arch",
-            "rank": 16,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 10
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas3_{group}_raw\r\nlabel = {group} - Raw\r\nunc = \\\\enac1raw.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1raw",
-            "enabled": true,
-            "epfl_units": [
-                7,
-                18,
-                44,
-                53,
-                55
-            ],
-            "ldap_groups": [],
-            "name": "NAS3 Raw",
-            "rank": 17,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 11
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[realm]\r\nname = toponas1\r\nusername = topo\r\ndomain = WORKGROUP\r\n\r\n[CIFS_mount]\r\nname = workspace_on_toponas1\r\nlabel = toponas1 - workspace\r\nunc = \\\\toponas1.epfl.ch\\workspace\r\nrealm = toponas1\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                3
-            ],
-            "name": "toponas1.epfl.ch",
-            "rank": 200,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 12
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = Users_on_naslhe\r\nlabel = naslhe - Users\r\nunc = \\\\naslhe.epfl.ch\\Users\r\n\r\n[CIFS_mount]\r\nname = Vol3_on_naslhe\r\nlabel = naslhe - Vol3\r\nunc = \\\\naslhe.epfl.ch\\Vol3\r\n\r\n[CIFS_mount]\r\nname = Vol4_on_naslhe\r\nlabel = naslhe - Vol4\r\nunc = \\\\naslhe.epfl.ch\\Vol4\r\n\r\n[CIFS_mount]\r\nname = Vol5_on_naslhe\r\nlabel = naslhe - Vol5\r\nunc = \\\\naslhe.epfl.ch\\Vol5\r\n\r\n[CIFS_mount]\r\nname = Vol6_on_naslhe\r\nlabel = naslhe - Vol6\r\nunc = \\\\naslhe.epfl.ch\\Vol6\r\n\r\n[CIFS_mount]\r\nname = Vol7_on_naslhe\r\nlabel = naslhe - Vol7\r\nunc = \\\\naslhe.epfl.ch\\Vol7\r\n\r\n[CIFS_mount]\r\nname = Vol8_on_naslhe\r\nlabel = naslhe - Vol8\r\nunc = \\\\naslhe.epfl.ch\\Vol8\r\n\r\n[CIFS_mount]\r\nname = Vol9_on_naslhe\r\nlabel = naslhe - Vol9\r\nunc = \\\\naslhe.epfl.ch\\Vol9\r\n\r\n[CIFS_mount]\r\nname = Vol10_on_naslhe\r\nlabel = naslhe - Vol10\r\nunc = \\\\naslhe.epfl.ch\\Vol10\r\n\r\n[CIFS_mount]\r\nname = Vol11_on_naslhe\r\nlabel = naslhe - Vol11\r\nunc = \\\\naslhe.epfl.ch\\Vol11\r\n\r\n[CIFS_mount]\r\nname = Vol12_on_naslhe\r\nlabel = naslhe - Vol12\r\nunc = \\\\naslhe.epfl.ch\\Vol12\r\n\r\n[CIFS_mount]\r\nname = Vol13_on_naslhe\r\nlabel = naslhe - Vol13\r\nunc = \\\\naslhe.epfl.ch\\Vol13\r\n\r\n[CIFS_mount]\r\nname = Vol14_on_naslhe\r\nlabel = naslhe - Vol14\r\nunc = \\\\naslhe.epfl.ch\\Vol14\r\n\r\n",
-            "enabled": true,
-            "epfl_units": [
-                56
-            ],
-            "ldap_groups": [],
-            "name": "naslhe.epfl.ch",
-            "rank": 200,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 13
-    },
-    {
-        "fields": {
-            "category": "b",
-            "data": "[realm]\r\nname = aphysnas2\r\nusername = Damien\r\ndomain = WORKGROUP\r\n\r\n[CIFS_mount]\r\nname = Meteo_on_aphysnas2\r\nlabel = aphysnas2 - Meteo\r\nunc = \\\\aphysnas2.epfl.ch\\Meteo\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = NAS_on_aphysnas2\r\nlabel = aphysnas2 - NAS\r\nunc = \\\\aphysnas2.epfl.ch\\NAS\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = home_on_aphysnas2\r\nlabel = aphysnas2 - home\r\nunc = \\\\aphysnas2.epfl.ch\\home\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = homes_on_aphysnas2\r\nlabel = aphysnas2 - homes\r\nunc = \\\\aphysnas2.epfl.ch\\homes\r\nrealm = aphysnas2\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "bouffard",
-            "rank": 1000,
-            "users": [
-                2
-            ]
-        },
-        "model": "config.config",
-        "pk": 14
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = public_on_grgnnas1\r\nlabel = grgnnas1 - public\r\nunc = \\\\grgnnas1.epfl.ch\\public\r\n",
-            "enabled": true,
-            "epfl_units": [
-                27
-            ],
-            "ldap_groups": [],
-            "name": "grgnnas1.epfl.ch",
-            "rank": 200,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 15
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = homes_on_ecolnas2\r\nlabel = ecolnas2 - homes\r\nunc = \\\\ecolnas2.epfl.ch\\homes\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                4
-            ],
-            "name": "ecolnas2",
-            "rank": 200,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 16
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = nas3_cdt_files\r\nlabel = cdt - Files\r\nunc = \\\\enac1files.epfl.ch\\cdt\r\nlocal_path = {MNT_DIR}/cdt_on_enac1files\r\nWindows_letter = Y:\r\n",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                5
-            ],
-            "name": "NAS3 - CDT",
-            "rank": 18,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 17
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = {username}_on_antfrgenas1\r\nlabel = {username} - antfrgenas1\r\nunc = \\\\antfrgenas1.epfl.ch\\antfr-ge\\5Users\\{username}\r\n\r\n[CIFS_mount]\r\nname = antfrgenas1\r\nlabel = antfrgenas1\r\nunc = \\\\antfrgenas1.epfl.ch\\antfr-ge\r\n",
-            "enabled": true,
-            "epfl_units": [
-                81
-            ],
-            "ldap_groups": [],
-            "name": "antfrgenas1.epfl.ch",
-            "rank": 200,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 18
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = enac-ideas_on_enacproj\r\nlabel = enac-ideas - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-enac-ideas",
-            "enabled": true,
-            "epfl_units": [
-                45,
-                57
-            ],
-            "ldap_groups": [],
-            "name": "enacproj.enac-ideas",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 19
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = gis-ge_on_enacproj\r\nlabel = gis-ge - enacproj\r\nunc = \\\\enacproj.epfl.ch\\gis-ge",
-            "enabled": false,
-            "epfl_units": [
-                25
-            ],
-            "ldap_groups": [],
-            "name": "enacproj.gis-ge",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 21
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = mes-lipid_on_enacproj\r\nlabel = mes-lipid - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-mes-lipid",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                10
-            ],
-            "name": "enacproj.mes-lipid",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 23
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = pvoptproject_on_enacproj\r\nlabel = pvoptproject - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-pvoptproject",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                11
-            ],
-            "name": "enacproj.pvoptproject",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 24
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = topo_laser_on_enacproj\r\nlabel = topo_laser - enacproj\r\nunc = \\\\enacproj.epfl.ch\\topo_laser",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                12
-            ],
-            "name": "enacproj.topo_laser",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 25
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas3_{group}_raw2\r\nlabel = {group} - Raw2\r\nunc = \\\\enac2raw.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac2raw",
-            "enabled": true,
-            "epfl_units": [
-                1
-            ],
-            "ldap_groups": [],
-            "name": "NAS3 Raw2",
-            "rank": 17,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 26
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname = proj-cetox\r\nunc = \\\\enac1files.epfl.ch\\proj-cetox",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                15
-            ],
-            "name": "enacproj.cetox",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 27
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-enac-unite-enseign\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-unite-enseign",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                16
-            ],
-            "name": "enacproj.enacuniteenseign",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 28
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-semaines-enac\r\nunc=\\\\enac1files.epfl.ch\\proj-semaines-enac",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                17
-            ],
-            "name": "enacproj.semainesenac",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 29
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-topo-laser\r\nunc=\\\\enac1files.epfl.ch\\proj-topo-laser",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                18
-            ],
-            "name": "enacproj.topolaser",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 30
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-enac-ue-jz\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-ue-jz",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                19
-            ],
-            "name": "enacproj.enacuejz",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 31
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-leman\r\nunc=\\\\enac1files.epfl.ch\\proj-leman",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                20
-            ],
-            "name": "enacproj.leman",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 32
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-cryo-nanosims\r\nunc=\\\\enac1files.epfl.ch\\proj-cryo-nanosims",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                21
-            ],
-            "name": "enacproj.cryonanosims",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 33
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-espace-temps\r\nunc=\\\\enac1files.epfl.ch\\proj-espace-temps",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                22
-            ],
-            "name": "enacproj.espacetemps",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 34
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-aites-ita\r\nunc=\\\\enac1files.epfl.ch\\proj-aites-ita",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                23
-            ],
-            "name": "enacproj.aites-ita",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 35
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-itacet\r\nunc=\\\\enac1files.epfl.ch\\proj-itacet",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                24
-            ],
-            "name": "enacproj.itacet",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 36
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=sar-proj-master\r\nunc=\\\\enac1files.epfl.ch\\proj-sar-proj-master",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                25
-            ],
-            "name": "enacproj.sarprojmaster",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 37
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-enac-pdcd\r\nlabel=enac-pdcd - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-pdcd",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                26
-            ],
-            "name": "enacproj.enac-pdcd",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 38
-    },
-    {
-        "fields": {
-            "category": "c",
-            "data": "[CIFS_mount]\r\nname = nas3_icom_files\r\nlabel = icom - Files\r\nunc = \\\\enac1files.epfl.ch\\icom\r\nlocal_path = {MNT_DIR}/icom_on_enac1files\r\n0.Windows_letter = Y:\r\n\r\n[CIFS_mount]\r\nname = nas3_resslab_files\r\nlabel = resslab - Files\r\nunc = \\\\enac1files.epfl.ch\\resslab\r\nlocal_path = {MNT_DIR}/resslab_on_enac1files\r\n\r\n",
-            "enabled": true,
-            "epfl_units": [
-                86
-            ],
-            "ldap_groups": [],
-            "name": "NAS3 Files - RESSLAB (temp 2016-03-02)",
-            "rank": 15,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 39
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-use\r\nlabel=USE - Enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-use",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                27
-            ],
-            "name": "enacproj.use",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 40
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-enac-fvsm\r\nlabel=enac-fvsm - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-fvsm",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                28
-            ],
-            "name": "enacproj.enac-fvsm",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 41
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-sar-art-du-dessin\r\nlabel=sar-art-du-dessin - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-sar-art-du-dessin",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                29
-            ],
-            "name": "enacproj.sarartdessin",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 42
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-postcarworld\r\nlabel=PostCarWorld - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-postcarworld",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                30
-            ],
-            "name": "enacproj.postcarworld",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 43
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-ccimpacts\r\nlabel=CCImpacts -enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-ccimpacts",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                31
-            ],
-            "name": "enacproj.ccimpacts",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 44
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-mcm\r\nlabel=mcm - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-mcm",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                32
-            ],
-            "name": "enacproj.mcm",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 45
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-habitat\r\nlabel=habitat - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-habitat",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                33,
-                34
-            ],
-            "name": "enacproj.habitat",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 46
-    },
-    {
-        "fields": {
-            "category": "d",
-            "data": "[CIFS_mount]\r\nname=proj-sd17\r\nlabel=SD17 - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-sd17",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [
-                35
-            ],
-            "name": "enacproj.sd17",
-            "rank": 100,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 47
-    },
-    {
-        "fields": {
-            "category": "b",
-            "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
-            "enabled": false,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "test",
-            "rank": 1000,
-            "users": [
-                1,
-                3
-            ]
-        },
-        "model": "config.config",
-        "pk": 48
-    },
-    {
-        "fields": {
-            "category": "a",
-            "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
-            "enabled": true,
-            "epfl_units": [],
-            "ldap_groups": [],
-            "name": "Global Msg",
-            "rank": 0,
-            "users": []
-        },
-        "model": "config.config",
-        "pk": 49
-    }
+  {
+    "fields": {
+      "name": "bancal"
+    },
+    "model": "config.user",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "bouffard"
+    },
+    "model": "config.user",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "bonjour"
+    },
+    "model": "config.user",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "enac-it"
+    },
+    "model": "config.epflunit",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "iie-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "ibeton"
+    },
+    "model": "config.epflunit",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "disal"
+    },
+    "model": "config.epflunit",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "name": "acm"
+    },
+    "model": "config.epflunit",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "name": "alice"
+    },
+    "model": "config.epflunit",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "name": "aphys"
+    },
+    "model": "config.epflunit",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "name": "aprl"
+    },
+    "model": "config.epflunit",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "name": "archizoom"
+    },
+    "model": "config.epflunit",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "name": "cclab"
+    },
+    "model": "config.epflunit",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "name": "cdt"
+    },
+    "model": "config.epflunit",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "name": "ceat"
+    },
+    "model": "config.epflunit",
+    "pk": 12
+  },
+  {
+    "fields": {
+      "name": "cnpa"
+    },
+    "model": "config.epflunit",
+    "pk": 13
+  },
+  {
+    "fields": {
+      "name": "cryos"
+    },
+    "model": "config.epflunit",
+    "pk": 14
+  },
+  {
+    "fields": {
+      "name": "east-co"
+    },
+    "model": "config.epflunit",
+    "pk": 15
+  },
+  {
+    "fields": {
+      "name": "echo"
+    },
+    "model": "config.epflunit",
+    "pk": 16
+  },
+  {
+    "fields": {
+      "name": "ecol"
+    },
+    "model": "config.epflunit",
+    "pk": 17
+  },
+  {
+    "fields": {
+      "name": "ecos"
+    },
+    "model": "config.epflunit",
+    "pk": 18
+  },
+  {
+    "fields": {
+      "name": "eesd"
+    },
+    "model": "config.epflunit",
+    "pk": 19
+  },
+  {
+    "fields": {
+      "name": "eflum"
+    },
+    "model": "config.epflunit",
+    "pk": 20
+  },
+  {
+    "fields": {
+      "name": "eml"
+    },
+    "model": "config.epflunit",
+    "pk": 21
+  },
+  {
+    "fields": {
+      "name": "enac-do"
+    },
+    "model": "config.epflunit",
+    "pk": 22
+  },
+  {
+    "fields": {
+      "name": "enac-oc"
+    },
+    "model": "config.epflunit",
+    "pk": 23
+  },
+  {
+    "fields": {
+      "name": "form"
+    },
+    "model": "config.epflunit",
+    "pk": 24
+  },
+  {
+    "fields": {
+      "name": "gis-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 25
+  },
+  {
+    "fields": {
+      "name": "gr-cel"
+    },
+    "model": "config.epflunit",
+    "pk": 26
+  },
+  {
+    "fields": {
+      "name": "gr-gn"
+    },
+    "model": "config.epflunit",
+    "pk": 27
+  },
+  {
+    "fields": {
+      "name": "gr-lud"
+    },
+    "model": "config.epflunit",
+    "pk": 28
+  },
+  {
+    "fields": {
+      "name": "gr-per"
+    },
+    "model": "config.epflunit",
+    "pk": 29
+  },
+  {
+    "fields": {
+      "name": "gr-tz"
+    },
+    "model": "config.epflunit",
+    "pk": 30
+  },
+  {
+    "fields": {
+      "name": "ia-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 31
+  },
+  {
+    "fields": {
+      "name": "ibois"
+    },
+    "model": "config.epflunit",
+    "pk": 32
+  },
+  {
+    "fields": {
+      "name": "icom"
+    },
+    "model": "config.epflunit",
+    "pk": 33
+  },
+  {
+    "fields": {
+      "name": "iic-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 34
+  },
+  {
+    "fields": {
+      "name": "imac"
+    },
+    "model": "config.epflunit",
+    "pk": 35
+  },
+  {
+    "fields": {
+      "name": "inter-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 36
+  },
+  {
+    "fields": {
+      "name": "lab-u"
+    },
+    "model": "config.epflunit",
+    "pk": 37
+  },
+  {
+    "fields": {
+      "name": "laba"
+    },
+    "model": "config.epflunit",
+    "pk": 38
+  },
+  {
+    "fields": {
+      "name": "labex"
+    },
+    "model": "config.epflunit",
+    "pk": 39
+  },
+  {
+    "fields": {
+      "name": "labex-co"
+    },
+    "model": "config.epflunit",
+    "pk": 40
+  },
+  {
+    "fields": {
+      "name": "lac"
+    },
+    "model": "config.epflunit",
+    "pk": 41
+  },
+  {
+    "fields": {
+      "name": "lamu"
+    },
+    "model": "config.epflunit",
+    "pk": 42
+  },
+  {
+    "fields": {
+      "name": "lapis"
+    },
+    "model": "config.epflunit",
+    "pk": 43
+  },
+  {
+    "fields": {
+      "name": "lasig"
+    },
+    "model": "config.epflunit",
+    "pk": 44
+  },
+  {
+    "fields": {
+      "name": "last"
+    },
+    "model": "config.epflunit",
+    "pk": 45
+  },
+  {
+    "fields": {
+      "name": "lasur"
+    },
+    "model": "config.epflunit",
+    "pk": 46
+  },
+  {
+    "fields": {
+      "name": "laure"
+    },
+    "model": "config.epflunit",
+    "pk": 47
+  },
+  {
+    "fields": {
+      "name": "lavoc"
+    },
+    "model": "config.epflunit",
+    "pk": 48
+  },
+  {
+    "fields": {
+      "name": "lbe"
+    },
+    "model": "config.epflunit",
+    "pk": 49
+  },
+  {
+    "fields": {
+      "name": "lcc"
+    },
+    "model": "config.epflunit",
+    "pk": 50
+  },
+  {
+    "fields": {
+      "name": "lce"
+    },
+    "model": "config.epflunit",
+    "pk": 51
+  },
+  {
+    "fields": {
+      "name": "lch"
+    },
+    "model": "config.epflunit",
+    "pk": 52
+  },
+  {
+    "fields": {
+      "name": "leso-pb"
+    },
+    "model": "config.epflunit",
+    "pk": 53
+  },
+  {
+    "fields": {
+      "name": "leure"
+    },
+    "model": "config.epflunit",
+    "pk": 54
+  },
+  {
+    "fields": {
+      "name": "lgb"
+    },
+    "model": "config.epflunit",
+    "pk": 55
+  },
+  {
+    "fields": {
+      "name": "lhe"
+    },
+    "model": "config.epflunit",
+    "pk": 56
+  },
+  {
+    "fields": {
+      "name": "lipid"
+    },
+    "model": "config.epflunit",
+    "pk": 57
+  },
+  {
+    "fields": {
+      "name": "liv"
+    },
+    "model": "config.epflunit",
+    "pk": 58
+  },
+  {
+    "fields": {
+      "name": "lmce"
+    },
+    "model": "config.epflunit",
+    "pk": 59
+  },
+  {
+    "fields": {
+      "name": "lmr"
+    },
+    "model": "config.epflunit",
+    "pk": 60
+  },
+  {
+    "fields": {
+      "name": "lms"
+    },
+    "model": "config.epflunit",
+    "pk": 61
+  },
+  {
+    "fields": {
+      "name": "lsms"
+    },
+    "model": "config.epflunit",
+    "pk": 62
+  },
+  {
+    "fields": {
+      "name": "lte"
+    },
+    "model": "config.epflunit",
+    "pk": 63
+  },
+  {
+    "fields": {
+      "name": "lth2"
+    },
+    "model": "config.epflunit",
+    "pk": 64
+  },
+  {
+    "fields": {
+      "name": "lth3"
+    },
+    "model": "config.epflunit",
+    "pk": 65
+  },
+  {
+    "fields": {
+      "name": "ltqe"
+    },
+    "model": "config.epflunit",
+    "pk": 66
+  },
+  {
+    "fields": {
+      "name": "luts"
+    },
+    "model": "config.epflunit",
+    "pk": 67
+  },
+  {
+    "fields": {
+      "name": "manslab-co"
+    },
+    "model": "config.epflunit",
+    "pk": 68
+  },
+  {
+    "fields": {
+      "name": "mcs"
+    },
+    "model": "config.epflunit",
+    "pk": 69
+  },
+  {
+    "fields": {
+      "name": "reme"
+    },
+    "model": "config.epflunit",
+    "pk": 70
+  },
+  {
+    "fields": {
+      "name": "sgc-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 71
+  },
+  {
+    "fields": {
+      "name": "ssie-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 72
+  },
+  {
+    "fields": {
+      "name": "sub"
+    },
+    "model": "config.epflunit",
+    "pk": 73
+  },
+  {
+    "fields": {
+      "name": "topo"
+    },
+    "model": "config.epflunit",
+    "pk": 74
+  },
+  {
+    "fields": {
+      "name": "tox"
+    },
+    "model": "config.epflunit",
+    "pk": 75
+  },
+  {
+    "fields": {
+      "name": "transp-or"
+    },
+    "model": "config.epflunit",
+    "pk": 76
+  },
+  {
+    "fields": {
+      "name": "tsam"
+    },
+    "model": "config.epflunit",
+    "pk": 77
+  },
+  {
+    "fields": {
+      "name": "wire"
+    },
+    "model": "config.epflunit",
+    "pk": 78
+  },
+  {
+    "fields": {
+      "name": "sar-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 79
+  },
+  {
+    "fields": {
+      "name": "sber"
+    },
+    "model": "config.epflunit",
+    "pk": 80
+  },
+  {
+    "fields": {
+      "name": "antfr-ge"
+    },
+    "model": "config.epflunit",
+    "pk": 81
+  },
+  {
+    "fields": {
+      "name": "lemr"
+    },
+    "model": "config.epflunit",
+    "pk": 82
+  },
+  {
+    "fields": {
+      "name": "gel"
+    },
+    "model": "config.epflunit",
+    "pk": 83
+  },
+  {
+    "fields": {
+      "name": "acht"
+    },
+    "model": "config.epflunit",
+    "pk": 84
+  },
+  {
+    "fields": {
+      "name": "gr-acm"
+    },
+    "model": "config.epflunit",
+    "pk": 85
+  },
+  {
+    "fields": {
+      "name": "resslab"
+    },
+    "model": "config.epflunit",
+    "pk": 86
+  },
+  {
+    "fields": {
+      "name": "herus"
+    },
+    "model": "config.epflunit",
+    "pk": 87
+  },
+  {
+    "fields": {
+      "name": "slc-tous"
+    },
+    "model": "config.ldapgroup",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "enacproj-sll"
+    },
+    "model": "config.ldapgroup",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "toponas1_workspace"
+    },
+    "model": "config.ldapgroup",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "ecolnas2-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "name": "enac1files-cdt"
+    },
+    "model": "config.ldapgroup",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "name": "last"
+    },
+    "model": "config.ldapgroup",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "name": "lipid"
+    },
+    "model": "config.ldapgroup",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "name": "enacit-docsenacit"
+    },
+    "model": "config.ldapgroup",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "name": "GR-Ludwig"
+    },
+    "model": "config.ldapgroup",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "name": "Lipid_MES-LIPID"
+    },
+    "model": "config.ldapgroup",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "name": "Lipid_PVOptProject"
+    },
+    "model": "config.ldapgroup",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "name": "topolaser_workspace"
+    },
+    "model": "config.ldapgroup",
+    "pk": 12
+  },
+  {
+    "fields": {
+      "name": "enacproj-enacit1-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 14
+  },
+  {
+    "fields": {
+      "name": "enacproj-cetox-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 15
+  },
+  {
+    "fields": {
+      "name": "enacproj-enacuniteenseign-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 16
+  },
+  {
+    "fields": {
+      "name": "enacproj-semainesenac-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 17
+  },
+  {
+    "fields": {
+      "name": "enacproj-topolaser-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 18
+  },
+  {
+    "fields": {
+      "name": "enacproj-enacuejz-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 19
+  },
+  {
+    "fields": {
+      "name": "enacproj-leman-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 20
+  },
+  {
+    "fields": {
+      "name": "enacproj-cryo-nanosims-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 21
+  },
+  {
+    "fields": {
+      "name": "enacproj-espacetemps-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 22
+  },
+  {
+    "fields": {
+      "name": "aites-ita"
+    },
+    "model": "config.ldapgroup",
+    "pk": 23
+  },
+  {
+    "fields": {
+      "name": "itacet"
+    },
+    "model": "config.ldapgroup",
+    "pk": 24
+  },
+  {
+    "fields": {
+      "name": "enacproj-sarprojmaster-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 25
+  },
+  {
+    "fields": {
+      "name": "enacproj-enacpdcd-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 26
+  },
+  {
+    "fields": {
+      "name": "enacproj-use-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 27
+  },
+  {
+    "fields": {
+      "name": "enacproj-enacfvsm-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 28
+  },
+  {
+    "fields": {
+      "name": "enacproj-sarartdessin-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 29
+  },
+  {
+    "fields": {
+      "name": "enacproj-postcarworld-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 30
+  },
+  {
+    "fields": {
+      "name": "enacproj-ccimpacts-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 31
+  },
+  {
+    "fields": {
+      "name": "enacproj-mcm-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 32
+  },
+  {
+    "fields": {
+      "name": "enacproj-habitat-users"
+    },
+    "model": "config.ldapgroup",
+    "pk": 33
+  },
+  {
+    "fields": {
+      "name": "enacproj-habitat-readers"
+    },
+    "model": "config.ldapgroup",
+    "pk": 34
+  },
+  {
+    "fields": {
+      "name": "sd17-all"
+    },
+    "model": "config.ldapgroup",
+    "pk": 35
+  },
+  {
+    "fields": {
+      "category": "a",
+      "data": "[global]\r\nLinux_CIFS_method = gvfs\r\nLinux_mountcifs_filemode = 0770\r\nLinux_mountcifs_dirmode = 0770\r\nLinux_mountcifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm\r\nLinux_gvfs_symlink = no\r\nrequire_network = EPFL-Intranet\r\nrealm = EPFL-AD\r\n\r\n[realm]\r\nname = EPFL-AD\r\ndomain = {auth_domain}\r\nusername = {username}\r\n\r\n[network]\r\nname = Internet\r\nping = www.epfl.ch\r\nping = enacit.epfl.ch\r\nping = enclair.epfl.ch\r\nerror_msg = Error, you are not connected to the network. You won't be able to connect to this resource.\r\n\r\n[network]\r\nname = EPFL-Intranet\r\nparent = Internet\r\ncifs = files0.epfl.ch\r\ncifs = files1.epfl.ch\r\ncifs = files8.epfl.ch\r\ncifs = files9.epfl.ch\r\ncifs = enac1files.epfl.ch\r\nerror_msg = Error, you are not connected to the intranet of EPFL. Run a VPN client to be able to connect to this resource.",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "Global",
+      "rank": 0,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "category": "a",
+      "data": "[CIFS_mount]\r\nname = nas3_individual\r\nlabel = {username} - Individual\r\nunc = \\\\files{last_sciper_digit}.epfl.ch\\data\\{username}\r\nlocal_path = {MNT_DIR}/{username}_on_files{last_sciper_digit}\r\nWindows_letter = Z:\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "NAS3 Individual",
+      "rank": 1,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas2_{group}_tier1\r\nlabel = {group} - Tier1\r\nunc = \\\\enacfiles1.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles1\r\n0.Windows_letter = Y:",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "NAS2 Tier1",
+      "rank": 11,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas2_{group}_tier2\r\nlabel = {group} - Tier2\r\nunc = \\\\enacfiles2.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles2\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "NAS2 Tier2",
+      "rank": 12,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas2_{group}_tier4\r\nlabel = {group} - Tier4\r\nunc = \\\\enacfiles4.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enacfiles4\r\n",
+      "enabled": true,
+      "epfl_units": [3],
+      "ldap_groups": [],
+      "name": "NAS2 Tier4",
+      "rank": 14,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "category": "b",
+      "data": "[realm]\r\nname = DOCLINUX\r\ndomain = WORKGROUP\r\nusername = doclinux\r\n\r\n#[CIFS_mount]\r\n#name = doclinux\r\n#label = doclinux@enac1web\r\n#realm = DOCLINUX\r\n#unc = \\\\enac1web.epfl.ch\\doclinux\r\n\r\n[CIFS_mount]\r\nname = test_espace\r\nunc = \\\\enacprint.epfl.ch\\_test enacdrives\r\n\r\n[CIFS_mount]\r\nname = test_dollar\r\nunc = \\\\enacprint.epfl.ch\\_testEnacDrives$\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "bancal",
+      "rank": 1000,
+      "users": [1]
+    },
+    "model": "config.config",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = enacproj_slc\r\nlabel = SLC - Enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-slc\r\nlocal_path = {MNT_DIR}/slc_on_enacproj\r\nWindows_letter = W:\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [1],
+      "name": "enacproj.slc",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = enacproj_sll \r\nlabel = SLL - Enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-sll\r\nlocal_path = {MNT_DIR}/sll_on_enacproj\r\nWindows_letter = V:\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [2],
+      "name": "enacproj.sll",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas3_{group}_files\r\nlabel = {group} - Files\r\nunc = \\\\enac1files.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1files\r\n0.Windows_letter = Y:",
+      "enabled": true,
+      "epfl_units": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+        22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 37, 38, 41, 42, 43,
+        44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62,
+        63, 64, 65, 66, 67, 68, 69, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 82,
+        83, 84, 85, 87
+      ],
+      "ldap_groups": [],
+      "name": "NAS3 Files",
+      "rank": 15,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas3_{group}_arch\r\nlabel = {group} - Arch\r\nunc = \\\\enac1arch.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1arch",
+      "enabled": true,
+      "epfl_units": [1, 4, 7, 13, 26, 44, 55],
+      "ldap_groups": [],
+      "name": "NAS3 Arch",
+      "rank": 16,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas3_{group}_raw\r\nlabel = {group} - Raw\r\nunc = \\\\enac1raw.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac1raw",
+      "enabled": true,
+      "epfl_units": [7, 18, 44, 53, 55],
+      "ldap_groups": [],
+      "name": "NAS3 Raw",
+      "rank": 17,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[realm]\r\nname = toponas1\r\nusername = topo\r\ndomain = WORKGROUP\r\n\r\n[CIFS_mount]\r\nname = workspace_on_toponas1\r\nlabel = toponas1 - workspace\r\nunc = \\\\toponas1.epfl.ch\\workspace\r\nrealm = toponas1\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [3],
+      "name": "toponas1.epfl.ch",
+      "rank": 200,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 12
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = Users_on_naslhe\r\nlabel = naslhe - Users\r\nunc = \\\\naslhe.epfl.ch\\Users\r\n\r\n[CIFS_mount]\r\nname = Vol3_on_naslhe\r\nlabel = naslhe - Vol3\r\nunc = \\\\naslhe.epfl.ch\\Vol3\r\n\r\n[CIFS_mount]\r\nname = Vol4_on_naslhe\r\nlabel = naslhe - Vol4\r\nunc = \\\\naslhe.epfl.ch\\Vol4\r\n\r\n[CIFS_mount]\r\nname = Vol5_on_naslhe\r\nlabel = naslhe - Vol5\r\nunc = \\\\naslhe.epfl.ch\\Vol5\r\n\r\n[CIFS_mount]\r\nname = Vol6_on_naslhe\r\nlabel = naslhe - Vol6\r\nunc = \\\\naslhe.epfl.ch\\Vol6\r\n\r\n[CIFS_mount]\r\nname = Vol7_on_naslhe\r\nlabel = naslhe - Vol7\r\nunc = \\\\naslhe.epfl.ch\\Vol7\r\n\r\n[CIFS_mount]\r\nname = Vol8_on_naslhe\r\nlabel = naslhe - Vol8\r\nunc = \\\\naslhe.epfl.ch\\Vol8\r\n\r\n[CIFS_mount]\r\nname = Vol9_on_naslhe\r\nlabel = naslhe - Vol9\r\nunc = \\\\naslhe.epfl.ch\\Vol9\r\n\r\n[CIFS_mount]\r\nname = Vol10_on_naslhe\r\nlabel = naslhe - Vol10\r\nunc = \\\\naslhe.epfl.ch\\Vol10\r\n\r\n[CIFS_mount]\r\nname = Vol11_on_naslhe\r\nlabel = naslhe - Vol11\r\nunc = \\\\naslhe.epfl.ch\\Vol11\r\n\r\n[CIFS_mount]\r\nname = Vol12_on_naslhe\r\nlabel = naslhe - Vol12\r\nunc = \\\\naslhe.epfl.ch\\Vol12\r\n\r\n[CIFS_mount]\r\nname = Vol13_on_naslhe\r\nlabel = naslhe - Vol13\r\nunc = \\\\naslhe.epfl.ch\\Vol13\r\n\r\n[CIFS_mount]\r\nname = Vol14_on_naslhe\r\nlabel = naslhe - Vol14\r\nunc = \\\\naslhe.epfl.ch\\Vol14\r\n\r\n",
+      "enabled": true,
+      "epfl_units": [56],
+      "ldap_groups": [],
+      "name": "naslhe.epfl.ch",
+      "rank": 200,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 13
+  },
+  {
+    "fields": {
+      "category": "b",
+      "data": "[realm]\r\nname = aphysnas2\r\nusername = Damien\r\ndomain = WORKGROUP\r\n\r\n[CIFS_mount]\r\nname = Meteo_on_aphysnas2\r\nlabel = aphysnas2 - Meteo\r\nunc = \\\\aphysnas2.epfl.ch\\Meteo\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = NAS_on_aphysnas2\r\nlabel = aphysnas2 - NAS\r\nunc = \\\\aphysnas2.epfl.ch\\NAS\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = home_on_aphysnas2\r\nlabel = aphysnas2 - home\r\nunc = \\\\aphysnas2.epfl.ch\\home\r\nrealm = aphysnas2\r\n\r\n[CIFS_mount]\r\nname = homes_on_aphysnas2\r\nlabel = aphysnas2 - homes\r\nunc = \\\\aphysnas2.epfl.ch\\homes\r\nrealm = aphysnas2\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "bouffard",
+      "rank": 1000,
+      "users": [2]
+    },
+    "model": "config.config",
+    "pk": 14
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = public_on_grgnnas1\r\nlabel = grgnnas1 - public\r\nunc = \\\\grgnnas1.epfl.ch\\public\r\n",
+      "enabled": true,
+      "epfl_units": [27],
+      "ldap_groups": [],
+      "name": "grgnnas1.epfl.ch",
+      "rank": 200,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 15
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = homes_on_ecolnas2\r\nlabel = ecolnas2 - homes\r\nunc = \\\\ecolnas2.epfl.ch\\homes\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [4],
+      "name": "ecolnas2",
+      "rank": 200,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 16
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = nas3_cdt_files\r\nlabel = cdt - Files\r\nunc = \\\\enac1files.epfl.ch\\cdt\r\nlocal_path = {MNT_DIR}/cdt_on_enac1files\r\nWindows_letter = Y:\r\n",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [5],
+      "name": "NAS3 - CDT",
+      "rank": 18,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 17
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = {username}_on_antfrgenas1\r\nlabel = {username} - antfrgenas1\r\nunc = \\\\antfrgenas1.epfl.ch\\antfr-ge\\5Users\\{username}\r\n\r\n[CIFS_mount]\r\nname = antfrgenas1\r\nlabel = antfrgenas1\r\nunc = \\\\antfrgenas1.epfl.ch\\antfr-ge\r\n",
+      "enabled": true,
+      "epfl_units": [81],
+      "ldap_groups": [],
+      "name": "antfrgenas1.epfl.ch",
+      "rank": 200,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 18
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = enac-ideas_on_enacproj\r\nlabel = enac-ideas - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-enac-ideas",
+      "enabled": true,
+      "epfl_units": [45, 57],
+      "ldap_groups": [],
+      "name": "enacproj.enac-ideas",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 19
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = gis-ge_on_enacproj\r\nlabel = gis-ge - enacproj\r\nunc = \\\\enacproj.epfl.ch\\gis-ge",
+      "enabled": false,
+      "epfl_units": [25],
+      "ldap_groups": [],
+      "name": "enacproj.gis-ge",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 21
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = mes-lipid_on_enacproj\r\nlabel = mes-lipid - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-mes-lipid",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [10],
+      "name": "enacproj.mes-lipid",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 23
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = pvoptproject_on_enacproj\r\nlabel = pvoptproject - enacproj\r\nunc = \\\\enac1files.epfl.ch\\proj-pvoptproject",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [11],
+      "name": "enacproj.pvoptproject",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 24
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = topo_laser_on_enacproj\r\nlabel = topo_laser - enacproj\r\nunc = \\\\enacproj.epfl.ch\\topo_laser",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [12],
+      "name": "enacproj.topo_laser",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 25
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas3_{group}_raw2\r\nlabel = {group} - Raw2\r\nunc = \\\\enac2raw.epfl.ch\\{group}\r\nlocal_path = {MNT_DIR}/{group}_on_enac2raw",
+      "enabled": true,
+      "epfl_units": [1],
+      "ldap_groups": [],
+      "name": "NAS3 Raw2",
+      "rank": 17,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 26
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname = proj-cetox\r\nunc = \\\\enac1files.epfl.ch\\proj-cetox",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [15],
+      "name": "enacproj.cetox",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 27
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-enac-unite-enseign\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-unite-enseign",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [16],
+      "name": "enacproj.enacuniteenseign",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 28
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-semaines-enac\r\nunc=\\\\enac1files.epfl.ch\\proj-semaines-enac",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [17],
+      "name": "enacproj.semainesenac",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 29
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-topo-laser\r\nunc=\\\\enac1files.epfl.ch\\proj-topo-laser",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [18],
+      "name": "enacproj.topolaser",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 30
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-enac-ue-jz\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-ue-jz",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [19],
+      "name": "enacproj.enacuejz",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 31
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-leman\r\nunc=\\\\enac1files.epfl.ch\\proj-leman",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [20],
+      "name": "enacproj.leman",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 32
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-cryo-nanosims\r\nunc=\\\\enac1files.epfl.ch\\proj-cryo-nanosims",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [21],
+      "name": "enacproj.cryonanosims",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 33
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-espace-temps\r\nunc=\\\\enac1files.epfl.ch\\proj-espace-temps",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [22],
+      "name": "enacproj.espacetemps",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 34
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-aites-ita\r\nunc=\\\\enac1files.epfl.ch\\proj-aites-ita",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [23],
+      "name": "enacproj.aites-ita",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 35
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-itacet\r\nunc=\\\\enac1files.epfl.ch\\proj-itacet",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [24],
+      "name": "enacproj.itacet",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 36
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=sar-proj-master\r\nunc=\\\\enac1files.epfl.ch\\proj-sar-proj-master",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [25],
+      "name": "enacproj.sarprojmaster",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 37
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-enac-pdcd\r\nlabel=enac-pdcd - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-pdcd",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [26],
+      "name": "enacproj.enac-pdcd",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 38
+  },
+  {
+    "fields": {
+      "category": "c",
+      "data": "[CIFS_mount]\r\nname = nas3_icom_files\r\nlabel = icom - Files\r\nunc = \\\\enac1files.epfl.ch\\icom\r\nlocal_path = {MNT_DIR}/icom_on_enac1files\r\n0.Windows_letter = Y:\r\n\r\n[CIFS_mount]\r\nname = nas3_resslab_files\r\nlabel = resslab - Files\r\nunc = \\\\enac1files.epfl.ch\\resslab\r\nlocal_path = {MNT_DIR}/resslab_on_enac1files\r\n\r\n",
+      "enabled": true,
+      "epfl_units": [86],
+      "ldap_groups": [],
+      "name": "NAS3 Files - RESSLAB (temp 2016-03-02)",
+      "rank": 15,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 39
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-use\r\nlabel=USE - Enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-use",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [27],
+      "name": "enacproj.use",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 40
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-enac-fvsm\r\nlabel=enac-fvsm - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-enac-fvsm",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [28],
+      "name": "enacproj.enac-fvsm",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 41
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-sar-art-du-dessin\r\nlabel=sar-art-du-dessin - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-sar-art-du-dessin",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [29],
+      "name": "enacproj.sarartdessin",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 42
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-postcarworld\r\nlabel=PostCarWorld - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-postcarworld",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [30],
+      "name": "enacproj.postcarworld",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 43
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-ccimpacts\r\nlabel=CCImpacts -enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-ccimpacts",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [31],
+      "name": "enacproj.ccimpacts",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 44
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-mcm\r\nlabel=mcm - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-mcm",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [32],
+      "name": "enacproj.mcm",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 45
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-habitat\r\nlabel=habitat - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-habitat",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [33, 34],
+      "name": "enacproj.habitat",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 46
+  },
+  {
+    "fields": {
+      "category": "d",
+      "data": "[CIFS_mount]\r\nname=proj-sd17\r\nlabel=SD17 - enacproj\r\nunc=\\\\enac1files.epfl.ch\\proj-sd17",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [35],
+      "name": "enacproj.sd17",
+      "rank": 100,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 47
+  },
+  {
+    "fields": {
+      "category": "b",
+      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
+      "enabled": false,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "test",
+      "rank": 1000,
+      "users": [1, 3]
+    },
+    "model": "config.config",
+    "pk": 48
+  },
+  {
+    "fields": {
+      "category": "a",
+      "data": "[msg]\r\nname = bug BADLOCK samba\r\ntext = 2016-04-25 :<br>Due to recent security update on clients machines, default method to connect to NAS from Linux doesn't work yet any more.<br>We have submitted the issue to the concerned maintainers and expect a fix in the next few days.<br>In the mean time, you can switch ENACdrives default mount method to <b>mount.cifs</b> by following the documentation <a href=\"http://enacit.epfl.ch/enacdrives/\">here</a>, chapter 4.4.4.<br>You can contact <a href=\"https://people.epfl.ch/Samuel.Bancal\">Samuel Bancal</a> for further information. ENAC-IT\r\nicon = critical",
+      "enabled": true,
+      "epfl_units": [],
+      "ldap_groups": [],
+      "name": "Global Msg",
+      "rank": 0,
+      "users": []
+    },
+    "model": "config.config",
+    "pk": 49
+  }
 ]

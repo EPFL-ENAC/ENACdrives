@@ -1,24 +1,22 @@
 % mount_filers Use Cases Workflows
 % enac.epfl.ch - Samuel Bancal
 
+## 2015.01.20 - SB ● 1st run GUI scenario #1 (abandoned)
 
-2015.01.20 - SB ● 1st run GUI scenario #1 (abandoned)
---------------------------------------------------------------------------------
-
-~~~ bash
+```bash
 mount_filers -l
-~~~
+```
 
-~~~ state
+```state
 [config]
 import = http://enacXXX.epfl.ch/mount_filers/config?version=__VERSION__
-~~~
+```
 
-~~~ operation
+```operation
 get http://enacXXX.epfl.ch/mount_filers/config?version=0.1
-~~~
+```
 
-~~~ out
+```out
 [config]
 import = http://enacXXX.epfl.ch/mount_filers/config?username=__EPFL_USERNAME__&version=__VERSION__
 
@@ -27,9 +25,9 @@ name = __EPFL_USERNAME__
 label = your EPFL username
 constraint = lowercase
 validate = http://enacXXX.epfl.ch/mount_filers/validate?username=__EPFL_USERNAME__
-~~~
+```
 
-~~~ operation
+```operation
 Save that config to $HOME/.mount_filers.cache/md5_hash
 
 Want to get new config URL http://enacXXX.epfl.ch/mount_filers/config?username=__EPFL_USERNAME__&version=__VERSION__
@@ -41,9 +39,9 @@ If not valid, show error msg and Holds until __EPFL_USERNAME__ is filled
 
 Free every operation waiting on __EPFL_USERNAME__
 get http://enacXXX.epfl.ch/mount_filers/config?username=bancal&version=0.1
-~~~
+```
 
-~~~ out
+```out
 [message]
 label = user : Samuel Bancal (bancal)
 rank = 1
@@ -123,25 +121,23 @@ server_name = enacfiles2.epfl.ch
 server_path = iie-ge
 local_path = __MNT_DIR__/iie-ge_on_enacfiles2
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
-~~~
+```
 
-~~~ operation
+```operation
 Save that config to $HOME/.mount_filers.cache/md5_hash
 
 Display message rank 1
 
 List all CIFS_Mount entries and wait for user interaction (mount/umount/open/star)
-~~~
+```
 
+## 2015.01.22 - SB ● 1st run GUI scenario #2 (take it)
 
-2015.01.22 - SB ● 1st run GUI scenario #2 (take it)
---------------------------------------------------------------------------------
-
-~~~ bash
+```bash
 mount_filers -l
-~~~
+```
 
-~~~ state
+```state
 [config]
 import = http://enacXXX.epfl.ch/mount_filers/config?version={VERSION}&username={USERID}
 
@@ -155,41 +151,41 @@ mount.cifs_filemode = 0770
 mount.cifs_dirmode  = 0770
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8
 gvfs_symlink = true
-~~~
+```
 
-~~~ operation
+```operation
 ask for "EPFL username" -> userid
 Validate with http://enacXXX.epfl.ch/mount_filers/validate?username={USERID} . 2 possible answers :
-~~~
+```
 
-~~~ out
+```out
 valid = False
-~~~
+```
 
-~~~ out
+```out
 valid = True
 userid = bancal
 userid_label = Bancal Samueé ENAC-IT-IIE-GE
-~~~
+```
 
-~~~ operation
+```operation
 if not valid: ask again
 
 save the following to $HOME/.mount_filers.conf
-~~~
+```
 
-~~~ out
+```out
 [config]
 userid = bancal
 userid_label = Bancal Samuel ENAC-IT|IIE-GE
-~~~
+```
 
-~~~ operation
+```operation
 get http://enacXXX.epfl.ch/mount_filers/config?username=bancal&version=0.1
 cache it in $HOME/.mount_filers.cache/md5_hash
-~~~
+```
 
-~~~ out
+```out
 [CIFS_realm]
 name = EPFL
 username = bancal
@@ -278,12 +274,9 @@ server_path = iie-ge
 local_path = {MNT_DIR}/iie-ge_on_enacfiles2
 mount.cifs_options = rw,nobrl,noserverino,iocharset=utf8,sec=ntlm
 stared = false
-~~~
+```
 
-~~~ operation
+```operation
 List all *_mount entries and wait for user interaction (mount/umount/open/star)
 Display message before "private"
-~~~
-
-
-
+```
