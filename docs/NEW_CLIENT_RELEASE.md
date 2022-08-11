@@ -14,18 +14,22 @@
 
 ```bash
 cd tools
-pipenv run bash build_enacdrives_deb.sh
+bash build_enacdrives_deb.sh
 ```
 
 ## Send package to enacrepo.epfl.ch
 
 ```bash
 cd ~/Projects/ENACdrives/deb_building/
+
+cp ../debmake/enacdrives_X.Y.Z-U20.04.XX/enacdrives*.deb \
+   ../debmake/enacdrives_X.Y.Z-U22.04.XX/enacdrives*.deb .
+
 sshfs enacit1@enacrepo:/data/web/enacrepo/ enacrepo.epfl.ch/
 
-reprepro -b enacrepo.epfl.ch/public/ list xenial
 reprepro -b enacrepo.epfl.ch/public/ list bionic
 reprepro -b enacrepo.epfl.ch/public/ list focal
+reprepro -b enacrepo.epfl.ch/public/ list jammy
 
 reprepro -b enacrepo.epfl.ch/public/ ls enacdrives
 
@@ -34,11 +38,11 @@ reprepro -b enacrepo.epfl.ch/public/ ls enacdrives
 echo UPDATESTARTUPTTY | gpg-connect-agent
 
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
-  includedeb xenial enacdrives_all.deb
+  includedeb bionic enacdrives_X.Y.Z-U20.04*.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
-  includedeb bionic enacdrives_all.deb
+  includedeb focal enacdrives_X.Y.Z-U20.04*.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
-  includedeb focal enacdrives_all.deb
+  includedeb jammy enacdrives_X.Y.Z-U22.04*.deb
 ```
 
 # WINDOWS

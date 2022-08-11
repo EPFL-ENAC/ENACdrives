@@ -13,7 +13,7 @@ conda install distro
 ```bash
 cd client/
 export PYTHONPATH=$(pwd)
-python bin/enacdrives
+python3 bin/enacdrives
 ```
 
 ## Windows
