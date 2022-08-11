@@ -531,7 +531,9 @@ def open_file_manager(mount):
                         r"server={server_name}(,|$)".format(**mount.settings), f
                     )
                     and re.search(
-                        r"share={server_share}(,|$)".format(**mount.settings), f
+                        r"share={server_share}(,|$)".format(**mount.settings),
+                        f,
+                        flags=re.IGNORECASE,
                     )
                     and re.search(
                         r"user={realm_username}(,|$)".format(**mount.settings), f
