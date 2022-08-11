@@ -49,7 +49,7 @@ X-Python3-Version: >= 3.2
 Package: ${PACKAGE}
 Architecture: all
 Multi-Arch: foreign
-Depends: libc6 (>= 2.15), cifs-utils, python3-pyqt5, DEPENDS_TO_SED\${misc:Depends}, \${python3:Depends}
+Depends: libc6 (>= 2.15), cifs-utils, python3-distro, python3-pyqt5, DEPENDS_TO_SED\${misc:Depends}, \${python3:Depends}
 Description: EPFL, ENAC and units NAS directory
   An application that let the user know which NAS he has access to and
   mount/umount them. It can be used with the graphical interface
