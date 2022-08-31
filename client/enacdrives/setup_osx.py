@@ -10,15 +10,23 @@ from setuptools import setup
 
 APP = ["ENACdrives.py"]
 DATA_FILES = [
-    "enacdrives.png", "mounted.png", "umounted.png", "bookmark_on.png",
-    "bookmark_off.png", "warning.png", "warning_48.png", "critical_48.png",
-    "info_48.png", "msg_48.png"]
+    "enacdrives.png",
+    "mounted.png",
+    "umounted.png",
+    "bookmark_on.png",
+    "bookmark_off.png",
+    "warning.png",
+    "warning_48.png",
+    "critical_48.png",
+    "info_48.png",
+    "msg_48.png",
+]
 OPTIONS = {
     "argv_emulation": True,
     # "frameworks": ["libQtCore.4.dylib", "libQtGui.4.dylib"],
     "iconfile": "enacdrives.icns",
     "includes": ["sip", "PyQt4", "PyQt4.QtCore", "PyQt4.QtGui"],
-    "qt_plugins": ["QtGui", "QtCore"]
+    "qt_plugins": ["QtGui", "QtCore"],
 }
 
 setup(

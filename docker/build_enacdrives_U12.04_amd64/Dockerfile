@@ -1,14 +1,14 @@
 # Copy this docker description to ENACdrives project folder with :
-# rsync -avH --delete --force /home/sbancal/docker/build_enacdrives_U12.04_amd64/ /home/sbancal/Projects/enacdrives/docker/build_enacdrives_U12.04_amd64/
+# rsync -avH --delete --force /home/sbancal/docker/build_enacdrives_U12.04_amd64/ /home/sbancal/Projects/ENACdrives/docker/build_enacdrives_U12.04_amd64/
 
 # Build with :
 # docker build -t build_enacdrives_amd64 .
 
 # Run interactively with :
-# docker run -it -v ~/Projects/enacdrives:/enacdrives build_enacdrives_amd64 /bin/bash
+# docker run -it -v ~/Projects/ENACdrives:/enacdrives build_enacdrives_amd64 /bin/bash
 
 # build new release with :
-# docker run -v ~/Projects/enacdrives:/enacdrives build_enacdrives_amd64 python3 setup.py build
+# docker run -v ~/Projects/ENACdrives:/enacdrives build_enacdrives_amd64 python3 setup.py build
 
 
 FROM ubuntu:16.04

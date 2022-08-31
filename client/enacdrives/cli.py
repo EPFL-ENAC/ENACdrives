@@ -11,8 +11,17 @@ import getpass
 import datetime
 
 from enacdrives import conf
-from enacdrives.utility import Output, CONST, Key_Chain, validate_username, Networks_Check, enacit1logs_notify, validate_release_number
+from enacdrives.utility import (
+    Output,
+    CONST,
+    Key_Chain,
+    validate_username,
+    Networks_Check,
+    enacit1logs_notify,
+    validate_release_number,
+)
 from enacdrives.cifs_mount import CIFS_Mount
+
 if CONST.OS_SYS == "Linux":
     from enacdrives.lin_stack import os_check
 elif CONST.OS_SYS == "Windows":
@@ -21,7 +30,7 @@ elif CONST.OS_SYS == "Darwin":
     from enacdrives.osx_stack import os_check
 
 
-class CLI():
+class CLI:
     UI_TYPE = "CLI"
 
     def __init__(self, args):
@@ -55,12 +64,15 @@ class CLI():
 
         os_check(self)
 
-
     def set_username(self, args):
         if args.username is not None:
             validation_answer = validate_username(args.username)
             if validation_answer == "ok":
-                Output.cli("\033[01;37m*** ENACdrives username set to {} ***\033[00m".format(args.username))
+                Output.cli(
+                    "\033[01;37m*** ENACdrives username set to {} ***\033[00m".format(
+                        args.username
+                    )
+                )
                 conf.save_username(args.username)
             else:
                 Output.error(validation_answer)
@@ -86,7 +98,9 @@ class CLI():
                     self.cfg["CIFS_mount"][m_name]["entry"].settings["bookmark"] = True
                 else:
                     self.execution_status(1)
-                    Output.warning("Skipping to add bookmark {}: Unknown entry.".format(m_name))
+                    Output.warning(
+                        "Skipping to add bookmark {}: Unknown entry.".format(m_name)
+                    )
 
         if self.args.rm_bookmark is not None:
             self.execution_status(0)
@@ -96,7 +110,9 @@ class CLI():
                     self.cfg["CIFS_mount"][m_name]["entry"].settings["bookmark"] = False
                 else:
                     self.execution_status(1)
-                    Output.warning("Skipping to rm bookmark {}: Unknown entry.".format(m_name))
+                    Output.warning(
+                        "Skipping to rm bookmark {}: Unknown entry.".format(m_name)
+                    )
 
         if self.returncode is not None:
             self.show_summary()
@@ -139,9 +155,15 @@ class CLI():
             for entry in umount_list:
                 required_network = entry.settings.get("require_network")
                 if required_network is not None:
-                    net_status, net_msg = self.networks_check.get_status(required_network)
+                    net_status, net_msg = self.networks_check.get_status(
+                        required_network
+                    )
                     if not net_status:
-                        print("! Skip Umounting {} : {}".format(entry.settings["name"], net_msg))
+                        print(
+                            "! Skip Umounting {} : {}".format(
+                                entry.settings["name"], net_msg
+                            )
+                        )
                         self.execution_status(1)
                         continue
                 print("- Umounting {}".format(entry.settings["name"]))
@@ -155,9 +177,15 @@ class CLI():
             for entry in mount_list:
                 required_network = entry.settings.get("require_network")
                 if required_network is not None:
-                    net_status, net_msg = self.networks_check.get_status(required_network)
+                    net_status, net_msg = self.networks_check.get_status(
+                        required_network
+                    )
                     if not net_status:
-                        print("! Skip Mounting {} : {}".format(entry.settings["name"], net_msg))
+                        print(
+                            "! Skip Mounting {} : {}".format(
+                                entry.settings["name"], net_msg
+                            )
+                        )
                         self.execution_status(1)
                         continue
                 print("+ Mounting {}".format(entry.settings["name"]))
@@ -173,14 +201,14 @@ class CLI():
         special_chars = {
             "unicode": {
                 "stared": "\u272F",
-                "unstared": " ",   # "\u274F"  # "\u274d"
+                "unstared": " ",  # "\u274F"  # "\u274d"
                 "no_network": "\u2757",
                 "mounted": "\u2713",
                 "umounted": "\u2717",
             },
             "ascii": {
                 "stared": "*",
-                "unstared": " ",   # "\u274F"  # "\u274d"
+                "unstared": " ",  # "\u274F"  # "\u274d"
                 "no_network": "!",
                 "mounted": "v",
                 "umounted": "x",
@@ -190,7 +218,9 @@ class CLI():
 
         def is_bookmarked(entry):
             if entry.settings["bookmark"]:
-                return "\033[01;33m{}\033[00m".format(special_chars[display_mode]["stared"])
+                return "\033[01;33m{}\033[00m".format(
+                    special_chars[display_mode]["stared"]
+                )
             else:
                 return "{}".format(special_chars[display_mode]["unstared"])
 
@@ -199,16 +229,26 @@ class CLI():
             if required_network is not None:
                 net_status, net_msg = self.networks_check.get_status(required_network)
                 if not net_status:
-                    return "\033[01;31m{}\033[00m {}".format(special_chars[display_mode]["no_network"], net_msg)
+                    return "\033[01;31m{}\033[00m {}".format(
+                        special_chars[display_mode]["no_network"], net_msg
+                    )
             if entry.is_mounted():
-                return "\033[01;32m{}\033[00m on {}".format(special_chars[display_mode]["mounted"], entry.settings["local_path"])
+                return "\033[01;32m{}\033[00m on {}".format(
+                    special_chars[display_mode]["mounted"], entry.settings["local_path"]
+                )
             else:
-                return "\033[01;31m{}\033[00m".format(special_chars[display_mode]["umounted"])
+                return "\033[01;31m{}\033[00m".format(
+                    special_chars[display_mode]["umounted"]
+                )
 
         if self.cfg["global"].get("username") is None:
             Output.cli("\033[01;37m*** ENACdrives entries summary ***\033[00m")
         else:
-            Output.cli("\033[01;37m*** ENACdrives entries summary for user {} ***\033[00m".format(self.cfg["global"]["username"]))
+            Output.cli(
+                "\033[01;37m*** ENACdrives entries summary for user {} ***\033[00m".format(
+                    self.cfg["global"]["username"]
+                )
+            )
         name_width = 1
         label_width = 1
         for entry in self.entries:
@@ -224,14 +264,34 @@ class CLI():
                     if iteration_max <= 0:
                         break
             try:
-                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
+                Output.cli(
+                    "{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(
+                        is_bookmarked(entry),
+                        entry.settings["name"],
+                        entry.settings["label"],
+                        is_mounted(entry),
+                        name_width=name_width,
+                        label_width=label_width,
+                    )
+                )
             except UnicodeEncodeError:  # UnicodeEncodeError: 'ascii' codec can't encode character '\u2717' in position 86: ordinal not in range(128)
                 display_mode = "ascii"
-                Output.cli("{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(is_bookmarked(entry), entry.settings["name"], entry.settings["label"], is_mounted(entry), name_width=name_width, label_width=label_width))
+                Output.cli(
+                    "{}  \033[00;37m{:<{name_width}}\033[00m  \033[01;37m{:<{label_width}}\033[00m  {}".format(
+                        is_bookmarked(entry),
+                        entry.settings["name"],
+                        entry.settings["label"],
+                        is_mounted(entry),
+                        name_width=name_width,
+                        label_width=label_width,
+                    )
+                )
         if len(self.entries) == 0:
             Output.cli("No entry found.")
         if self.cfg["global"].get("username") is None:
-            Output.warning("username not defined. You can set it with argument --username=username")
+            Output.warning(
+                "username not defined. You can set it with argument --username=username"
+            )
             self.execution_status(1)
 
     def get_password(self, realm, password_mistyped):
@@ -261,10 +321,19 @@ class CLI():
                 post = " !!!\033[00m"
             Output.cli(pre + self.cfg["msg"][msg]["text"] + post)
 
+
 def main_CLI(args):
-    Output.verbose("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.verbose("*" * 10 + " " + str(datetime.datetime.now()) + " " + "*" * 10)
     Output.verbose("ENACdrives " + CONST.FULL_VERSION)
-    Output.verbose("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION + "\n")
+    Output.verbose(
+        "Detected OS : "
+        + CONST.OS_DISTRIB
+        + " "
+        + CONST.OS_SYS
+        + " "
+        + CONST.OS_VERSION
+        + "\n"
+    )
     Output.debug("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
     Output.debug("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
     Output.debug("LOCAL_UID:" + str(CONST.LOCAL_UID))
@@ -276,9 +345,9 @@ def main_CLI(args):
     Output.debug("DEFAULT_MNT_DIR:" + CONST.DEFAULT_MNT_DIR + "\n")
 
     release_number_validation = validate_release_number()
-    if release_number_validation == 'too old':
+    if release_number_validation == "too old":
         Output.warning(CONST.NEED_TO_UPDATE_MSG)
-    elif release_number_validation == 'newer':
+    elif release_number_validation == "newer":
         Output.normal(CONST.NEWER_THAN_PROD_MSG)
     if args.version:
         Output.cli("ENACdrives " + CONST.FULL_VERSION)

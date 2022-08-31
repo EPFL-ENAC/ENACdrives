@@ -1,0 +1,19 @@
+# https://app.vagrantup.com/ubuntu/boxes/bionic64
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "ubuntu/bionic64"
+    config.vm.provision :shell, path: "VagrantBootstrap.sh"
+    config.vm.provider "virtualbox" do |v|
+        v.name = "TestENACdrivesU18.04"
+        v.memory = 4096
+        v.cpus = 4
+        v.customize ['modifyvm', :id, '--graphicscontroller', 'vmsvga']
+        v.customize ["modifyvm", :id, "--vram", "64"]
+        v.customize ["storageattach", :id,
+            "--storagectl", "IDE",
+            "--port", "0", "--device", "1",
+            "--type", "dvddrive",
+            "--medium", "emptydrive"
+        ]
+    end
+end

@@ -1,7 +1,7 @@
 import sys
 
 sys_path = sys.path
-sys_path.insert(0, '/home/sbancal/Projects/enacdrives/client')
+sys_path.insert(0, "/home/sbancal/Projects/ENACdrives/client")
 sys.path = sys_path
 
 from enacdrives import utility

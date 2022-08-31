@@ -9,9 +9,19 @@ import pprint
 import datetime
 import webbrowser
 from PyQt5 import QtGui, QtCore, QtWidgets
-from enacdrives.utility import CONST, Key_Chain, CancelOperationException, Output, validate_username, validate_release_number, Networks_Check, enacit1logs_notify
+from enacdrives.utility import (
+    CONST,
+    Key_Chain,
+    CancelOperationException,
+    Output,
+    validate_username,
+    validate_release_number,
+    Networks_Check,
+    enacit1logs_notify,
+)
 from enacdrives.cifs_mount import CIFS_Mount
 from enacdrives import conf
+
 if CONST.OS_SYS == "Linux":
     from enacdrives.lin_stack import os_check
 elif CONST.OS_SYS == "Windows":
@@ -21,22 +31,23 @@ elif CONST.OS_SYS == "Darwin":
 
 
 class Unsupported_OS(QtWidgets.QHBoxLayout):
-
     def __init__(self, os):
         super(Unsupported_OS, self).__init__()
         error_png = QtWidgets.QLabel()
         error_png.setGeometry(0, 0, 48, 48)
         error_png.setPixmap(QtGui.QPixmap(CONST.WARNING_PNG_48))
         label = QtWidgets.QLabel(
-            "We're sorry but ENACdrives is not supported on {}. See <a href='{}'>full documentation</a>.".format(os, CONST.DOC_URL),
-            openExternalLinks=True)
+            "We're sorry but ENACdrives is not supported on {}. See <a href='{}'>full documentation</a>.".format(
+                os, CONST.DOC_URL
+            ),
+            openExternalLinks=True,
+        )
         self.addWidget(error_png)
         self.addWidget(label)
         self.addStretch(1)
 
 
 class UI_Download_New_Release(QtWidgets.QWidget):
-
     def __init__(self):
         super(UI_Download_New_Release, self).__init__()
 
@@ -51,8 +62,8 @@ class UI_Download_New_Release(QtWidgets.QWidget):
         hlayout.addStretch(1)
         self.setLayout(hlayout)
 
-class UI_Download_Newer_Than_Prod_Release(QtWidgets.QWidget):
 
+class UI_Download_Newer_Than_Prod_Release(QtWidgets.QWidget):
     def __init__(self):
         super(UI_Download_Newer_Than_Prod_Release, self).__init__()
 
@@ -66,6 +77,7 @@ class UI_Download_Newer_Than_Prod_Release(QtWidgets.QWidget):
         hlayout.addStretch(1)
         self.setLayout(hlayout)
 
+
 class UI_Msg(QtWidgets.QWidget):
 
     ICONS = {
@@ -74,6 +86,7 @@ class UI_Msg(QtWidgets.QWidget):
         "warning": CONST.WARNING_PNG_48,
         "critical": CONST.CRITICAL_PNG_48,
     }
+
     def __init__(self, text, icon):
         super(UI_Msg, self).__init__()
 
@@ -89,8 +102,8 @@ class UI_Msg(QtWidgets.QWidget):
 
     def destroy(self):
         """
-            This Msg has to be deleted.
-            Happens when switching username.
+        This Msg has to be deleted.
+        Happens when switching username.
         """
         self.icon_png.setParent(None)
         self.label.setParent(None)
@@ -99,7 +112,6 @@ class UI_Msg(QtWidgets.QWidget):
 
 
 class UI_Username_Box(QtWidgets.QWidget):
-
     def __init__(self, ui, username=None):
         super(UI_Username_Box, self).__init__()
 
@@ -119,14 +131,18 @@ class UI_Username_Box(QtWidgets.QWidget):
         self._set_username(username)
 
     def get_widgets_order(self):
-        return [self.bt_change_username, ]
+        return [
+            self.bt_change_username,
+        ]
 
     def _set_username(self, username):
         if username is None:
             username = "..."
         else:
             self.bt_change_username.setText("Change user")
-        self.identified_label.setText("Drives available for username <b>{}</b>".format(username))
+        self.identified_label.setText(
+            "Drives available for username <b>{}</b>".format(username)
+        )
 
     def _save_username(self, username):
         self.ui.switch_username(username)
@@ -160,7 +176,6 @@ class HLine(QtWidgets.QFrame):
 
 
 class UI_Mount_Entry(QtWidgets.QHBoxLayout):
-
     def __init__(self, ui, mount_instance):
         super(UI_Mount_Entry, self).__init__()
 
@@ -180,12 +195,16 @@ class UI_Mount_Entry(QtWidgets.QHBoxLayout):
 
         # Windows Letters : Z: -> A:
         if CONST.OS_SYS == "Windows":
-            self.possible_win_letters = ["{}:".format(chr(i)) for i in range(90, 64, -1)]
+            self.possible_win_letters = [
+                "{}:".format(chr(i)) for i in range(90, 64, -1)
+            ]
             self.possible_win_letters.insert(0, "")
             self.win_letter = QtWidgets.QComboBox()
             for l in self.possible_win_letters:
                 self.win_letter.addItem(l)
-            self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
+            self.win_letter.setCurrentIndex(
+                self.possible_win_letters.index(self.settings.get("Windows_letter", ""))
+            )
             self.win_letter.currentIndexChanged.connect(self.win_letter_changed)
             self.ui.windows_letter_manager.add_mount_entry(self)
 
@@ -260,7 +279,11 @@ class UI_Mount_Entry(QtWidgets.QHBoxLayout):
                 self.bt_open.setEnabled(True)
                 if CONST.OS_SYS == "Windows":
                     self.win_letter.setEnabled(False)
-                    self.win_letter.setCurrentIndex(self.possible_win_letters.index(self.settings.get("Windows_letter", "")))
+                    self.win_letter.setCurrentIndex(
+                        self.possible_win_letters.index(
+                            self.settings.get("Windows_letter", "")
+                        )
+                    )
             else:
                 self.bt_mount.setText("Connect")
                 self.label_status.setPixmap(QtGui.QPixmap(CONST.UMOUNTED_PNG))
@@ -289,8 +312,8 @@ class UI_Mount_Entry(QtWidgets.QHBoxLayout):
 
     def destroy(self):
         """
-            This Mount_Entry has to be deleted.
-            Happens when switching username.
+        This Mount_Entry has to be deleted.
+        Happens when switching username.
         """
         self.bt_bookmark.setParent(None)
         self.label_status.setParent(None)
@@ -322,13 +345,15 @@ class GUI(QtWidgets.QMainWindow):
         self.msgs = []
         self.load_config()
 
-        self.username_box = UI_Username_Box(self, self.cfg.get("global", {}).get("username"))
+        self.username_box = UI_Username_Box(
+            self, self.cfg.get("global", {}).get("username")
+        )
 
         self.vbox_layout = QtWidgets.QVBoxLayout()
         release_number_validation = validate_release_number()
-        if release_number_validation == 'too old':
+        if release_number_validation == "too old":
             self.vbox_layout.addWidget(UI_Download_New_Release())
-        elif release_number_validation == 'newer':
+        elif release_number_validation == "newer":
             self.vbox_layout.addWidget(UI_Download_Newer_Than_Prod_Release())
 
         self.vbox_layout.addLayout(self.msgs_layout)
@@ -368,7 +393,9 @@ class GUI(QtWidgets.QMainWindow):
         self.refresh_timer.timeout.connect(self._refresh_entries)
         self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
         self.last_refresh_dt = now
-        self.refresh_timer.start(CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000)  # every 3s.
+        self.refresh_timer.start(
+            CONST.GUI_FOCUS_REFRESH_INTERVAL.seconds * 1000
+        )  # every 3s.
 
         os_check(self)
 
@@ -390,7 +417,9 @@ class GUI(QtWidgets.QMainWindow):
 
     def get_password(self, realm, password_mistyped=False):
         if password_mistyped:
-            msg = "Password was mistyped, try again.<br>Give your <b>{}</b> password".format(realm)
+            msg = "Password was mistyped, try again.<br>Give your <b>{}</b> password".format(
+                realm
+            )
         else:
             msg = "Give your <b>{}</b> password".format(realm)
         password, ok = QtWidgets.QInputDialog.getText(
@@ -409,8 +438,10 @@ class GUI(QtWidgets.QMainWindow):
         now = datetime.datetime.now()
         if self.isActiveWindow():
             self.regular_refresh_upto = now + CONST.GUI_FOCUS_LOST_STILL_FULL_REFRESH
-        elif (self.regular_refresh_upto < now and
-              self.last_refresh_dt + CONST.GUI_NOFOCUS_REFRESH_INTERVAL > now):
+        elif (
+            self.regular_refresh_upto < now
+            and self.last_refresh_dt + CONST.GUI_NOFOCUS_REFRESH_INTERVAL > now
+        ):
             return
         self.last_refresh_dt = now
         self.networks_check.scan()
@@ -462,7 +493,9 @@ class GUI(QtWidgets.QMainWindow):
             self.entries_layer.addLayout(entry)
 
         for msg in self.cfg["msg"]:
-            msg_item = UI_Msg(self.cfg["msg"][msg]["text"], self.cfg["msg"][msg]["icon"])
+            msg_item = UI_Msg(
+                self.cfg["msg"][msg]["text"], self.cfg["msg"][msg]["icon"]
+            )
             self.msgs.append(msg_item)
             self.msgs_layout.addWidget(msg_item)
 
@@ -481,6 +514,7 @@ class GUI(QtWidgets.QMainWindow):
         # http://stackoverflow.com/a/28667119/446302
         def _func_to_call():
             self.resize(self.minimumSizeHint())
+
         QtCore.QTimer.singleShot(500, _func_to_call)
 
     def show_about(self):
@@ -511,7 +545,9 @@ A project developped and brought to you by ENAC-IT @ EPFL
 </ul>
 
 License : pending ...
-""".format(CONST.VERSION, CONST.VERSION_DATE)
+""".format(
+            CONST.VERSION, CONST.VERSION_DATE
+        )
         about_box = QtWidgets.QMessageBox()
         about_box.setIconPixmap(QtGui.QPixmap(CONST.ENACDRIVES_PNG))
         about_box.setText(msg)
@@ -523,9 +559,16 @@ License : pending ...
 
 
 def main_GUI():
-    Output.verbose("*"*10 + " " + str(datetime.datetime.now()) + " " + "*"*10)
+    Output.verbose("*" * 10 + " " + str(datetime.datetime.now()) + " " + "*" * 10)
     Output.verbose("ENACdrives " + CONST.FULL_VERSION)
-    Output.verbose("Detected OS : " + CONST.OS_DISTRIB + " " + CONST.OS_SYS + " " + CONST.OS_VERSION)
+    Output.verbose(
+        "Detected OS : "
+        + CONST.OS_DISTRIB
+        + " "
+        + CONST.OS_SYS
+        + " "
+        + CONST.OS_VERSION
+    )
     Output.debug("LOCAL_USERNAME:" + CONST.LOCAL_USERNAME)
     Output.debug("LOCAL_GROUPNAME:" + CONST.LOCAL_GROUPNAME)
     Output.debug("LOCAL_UID:" + str(CONST.LOCAL_UID))

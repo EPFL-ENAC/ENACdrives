@@ -6,53 +6,84 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Config',
+            name="Config",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
-                ('rank', models.IntegerField(default=0)),
-                ('name', models.CharField(max_length=256)),
-                ('data', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        primary_key=True,
+                        serialize=False,
+                        auto_created=True,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("rank", models.IntegerField(default=0)),
+                ("name", models.CharField(max_length=256)),
+                ("data", models.TextField(blank=True)),
             ],
         ),
         migrations.CreateModel(
-            name='EpflUnit',
+            name="EpflUnit",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
-                ('name', models.CharField(max_length=256)),
+                (
+                    "id",
+                    models.AutoField(
+                        primary_key=True,
+                        serialize=False,
+                        auto_created=True,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=256)),
             ],
         ),
         migrations.CreateModel(
-            name='LdapGroup',
+            name="LdapGroup",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
-                ('name', models.CharField(max_length=256)),
+                (
+                    "id",
+                    models.AutoField(
+                        primary_key=True,
+                        serialize=False,
+                        auto_created=True,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=256)),
             ],
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
-                ('name', models.CharField(max_length=256)),
+                (
+                    "id",
+                    models.AutoField(
+                        primary_key=True,
+                        serialize=False,
+                        auto_created=True,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=256)),
             ],
         ),
         migrations.AddField(
-            model_name='config',
-            name='epfl_units',
-            field=models.ManyToManyField(blank=True, to='config.EpflUnit'),
+            model_name="config",
+            name="epfl_units",
+            field=models.ManyToManyField(blank=True, to="config.EpflUnit"),
         ),
         migrations.AddField(
-            model_name='config',
-            name='ldap_groups',
-            field=models.ManyToManyField(blank=True, to='config.LdapGroup'),
+            model_name="config",
+            name="ldap_groups",
+            field=models.ManyToManyField(blank=True, to="config.LdapGroup"),
         ),
         migrations.AddField(
-            model_name='config',
-            name='users',
-            field=models.ManyToManyField(blank=True, to='config.User'),
+            model_name="config",
+            name="users",
+            field=models.ManyToManyField(blank=True, to="config.User"),
         ),
     ]

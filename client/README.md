@@ -13,14 +13,14 @@ conda install distro
 ```bash
 cd client/
 export PYTHONPATH=$(pwd)
-python bin/enacdrives
+python3 bin/enacdrives
 ```
 
 ## Windows
 
 ### Prepare env :
 
-+ install Anaconda
+- install Anaconda
 
 ```bash
 conda install distro
@@ -43,7 +43,7 @@ cd client
 pyinstaller -y enacdrives.spec
 ```
 
-+ Compress the folder `dist/enacdrives` to `dist/enacdrives.zip`
-+ send it to Nicolas Dubois so that he :
-  + gets it signed (EPFL)
-  + prepares a nice installer
+- Compress the folder `dist/enacdrives` to `dist/enacdrives.zip`
+- send it to Nicolas Dubois so that he :
+  - gets it signed (EPFL)
+  - prepares a nice installer

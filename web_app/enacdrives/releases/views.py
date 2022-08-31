@@ -30,14 +30,16 @@ def http_admin(request):
         return HttpResponseForbidden()
 
     debug_logger = logging.getLogger("debug")
-    
+
     installers = {}
     current_installer_id = {}
     for arch in mo.Arch.objects.all():
-        installers[arch] = mo.Installer.objects.filter(arch=arch).order_by("upload_date")
+        installers[arch] = mo.Installer.objects.filter(arch=arch).order_by(
+            "upload_date"
+        )
         if arch.current_installer is not None:
             current_installer_id[arch] = arch.current_installer.id
-    
+
     params = {
         "installers": installers,
         "current_installer_id": current_installer_id,
@@ -46,7 +48,7 @@ def http_admin(request):
         "upload_url": reverse("do_upload"),
         "enable_url": reverse("do_enable"),
     }
-    
+
     params.update(csrf(request))
     debug_logger.debug("params: {}".format(params))
     return render_to_response("admin.html", params, RequestContext(request))
@@ -62,9 +64,9 @@ def do_upload(request):
         username = request.META["REMOTE_USER"]
     except KeyError:
         return HttpResponseForbidden()
-    
+
     debug_logger = logging.getLogger("debug")
-    
+
     try:
         uploaded_file = request.FILES["file"]
         filename = uploaded_file.name
@@ -76,11 +78,13 @@ def do_upload(request):
             "msg": e.__str__(),
         }
         return HttpResponse(json.dumps(response), content_type="application/json")
-    
+
     arch, _ = mo.Arch.objects.get_or_create(os=file_attributes["os"])
-    
+
     now = datetime.datetime.now()
-    storage_name = "{:04}-{:02}-{:02}-{:02}{:02}{:02}-{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second, filename)
+    storage_name = "{:04}-{:02}-{:02}-{:02}{:02}{:02}-{}".format(
+        now.year, now.month, now.day, now.hour, now.minute, now.second, filename
+    )
     dest_path = os.path.join(app_settings.APACHE_PRIVATE_DIR, storage_name)
     try:
         # Uploaded file is big -> TemporaryUploadedFile
@@ -92,7 +96,7 @@ def do_upload(request):
         for chunk in uploaded_file.chunks():
             destination.write(chunk)
         destination.close()
-    
+
     inst = mo.Installer(
         upload_username=username,
         upload_date=now,
@@ -102,7 +106,7 @@ def do_upload(request):
         storage_name=storage_name,
     )
     inst.save()
-    
+
     response = {
         "status": "ok",
     }
@@ -120,17 +124,11 @@ def do_enable(request):
     except KeyError:
         return HttpResponseForbidden()
     debug_logger.debug("AC")
-    
+
     arch_id = ut.validate_input(request.POST.get, "arch", "int")
     installer_id = ut.validate_input(request.POST.get, "inst", "int")
-    arch = get_object_or_404(
-        mo.Arch,
-        id=arch_id
-    )
-    inst = get_object_or_404(
-        mo.Installer,
-        id=installer_id
-    )
+    arch = get_object_or_404(mo.Arch, id=arch_id)
+    inst = get_object_or_404(mo.Installer, id=installer_id)
     if inst.arch == arch:
         arch.current_installer = inst
         arch.save()
@@ -140,7 +138,7 @@ def do_enable(request):
         return HttpResponse(json.dumps(response), content_type="application/json")
     response = {
         "status": "error",
-        "msg": "This installer is not of the right Architecture."
+        "msg": "This installer is not of the right Architecture.",
     }
     return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -157,19 +155,21 @@ def do_download(request):
     except:
         answer = "This OS has no release."
         return HttpResponse(answer, content_type="text/plain; charset=utf-8")
-    
+
     response = HttpResponse(content_type="application/force-download")
     response["Content-Disposition"] = "attachment; filename={}".format(inst.file_name)
-    response["X-Sendfile"] = os.path.join(app_settings.APACHE_PRIVATE_DIR, inst.storage_name)
+    response["X-Sendfile"] = os.path.join(
+        app_settings.APACHE_PRIVATE_DIR, inst.storage_name
+    )
     # It"s usually a good idea to set the "Content-Length" header too.
     # You can also set any other required headers: Cache-Control, etc.
     return response
-    
+
 
 def api_latest_release_number(request):
     if request.method != "GET":
         raise Http404
-    
+
     try:
         o_s = ut.validate_input(request.GET.get, "os", "os")
         arch = mo.Arch.objects.get(os=o_s)
@@ -183,12 +183,14 @@ def api_latest_release_number(request):
 def api_latest_release_date(request):
     if request.method != "GET":
         raise Http404
-    
+
     try:
         o_s = ut.validate_input(request.GET.get, "os", "os")
         arch = mo.Arch.objects.get(os=o_s)
         inst = arch.current_installer
-        answer = "{:02}-{:02}-{:04}".format(inst.upload_date.day, inst.upload_date.month, inst.upload_date.year)
+        answer = "{:02}-{:02}-{:04}".format(
+            inst.upload_date.day, inst.upload_date.month, inst.upload_date.year
+        )
     except:
         answer = "This OS has no release."
     return HttpResponse(answer, content_type="text/plain; charset=utf-8")

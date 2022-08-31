@@ -103,11 +103,12 @@ def conf_filter(data, iteration_num):
 
     return "\n".join(result)
 
+
 def split_filter(st):
     """
-        split filter into 2 elements :
-        + operator (=|<|<=|>|>=)
-        + string to be checked
+    split filter into 2 elements :
+    + operator (=|<|<=|>|>=)
+    + string to be checked
     """
     m = re.match(r"^ *([=<>]+)? *['\"]?([^'\"]*)['\"]?$", st)
     if m:
@@ -115,10 +116,11 @@ def split_filter(st):
     else:
         raise Exception("Unrecognized filter '{}' (1)".format(st))
 
+
 def get_list_versions(filter_version, version):
     """
-        transform string into list of int for both filter_version and version
-        adapt length of verion's list to match length of filter.
+    transform string into list of int for both filter_version and version
+    adapt length of verion's list to match length of filter.
     """
     l_filter_version = [int(s) for s in re.findall(r"\d+", filter_version)]
     l_version = [int(s) for s in re.findall(r"\d+", version)]
@@ -128,9 +130,10 @@ def get_list_versions(filter_version, version):
         l_version.pop()
     return l_filter_version, l_version
 
+
 def compare_versions(the_filter, value):
     """
-        compare version from value with the_filter
+    compare version from value with the_filter
     """
     op_filter, st_filter = split_filter(the_filter)
     if op_filter is None:
@@ -186,10 +189,11 @@ def compare_versions(the_filter, value):
         else:
             raise Exception("Unrecognized filter '{}' (2)".format(the_filter))
 
+
 def client_filter(conf, request):
     """
-        return True if that conf is to be included for that client
-        based on client_filter_os, client_filter_os_version and client_filter_version
+    return True if that conf is to be included for that client
+    based on client_filter_os, client_filter_os_version and client_filter_version
     """
 
     if conf.client_filter_os != "":
@@ -211,7 +215,7 @@ def client_filter(conf, request):
 
 def is_client_in_minimal_releases(minimal_releases, request):
     """
-        return True if the client's version matches minimal_releases expected
+    return True if the client's version matches minimal_releases expected
     """
     client_os = validate_input(request.GET.get, "os")
     client_version = validate_input(request.GET.get, "version")
@@ -220,10 +224,11 @@ def is_client_in_minimal_releases(minimal_releases, request):
             return False
     return True
 
+
 def remove_all_mount(original_config):
     """
-        return config_given as original_config, without all [CIFS_mount] entries
-        useful for clients that are not supported anymore.
+    return config_given as original_config, without all [CIFS_mount] entries
+    useful for clients that are not supported anymore.
     """
     config_given = ""
     current_section = ""

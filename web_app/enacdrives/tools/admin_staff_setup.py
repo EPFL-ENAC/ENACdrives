@@ -41,5 +41,6 @@ def main():
             u.save()
             print("Added user '{0}' as admin.".format(adm_name))
 
+
 if __name__ == "__main__":
     main()

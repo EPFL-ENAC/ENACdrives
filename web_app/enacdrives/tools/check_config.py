@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import subprocess
+
 # import pickle
 # from smb.SMBConnection import SMBConnection
 # # from .util import getConnectionInfo
@@ -25,7 +26,7 @@ sys.path.append(my_path)
 application = get_wsgi_application()
 
 
-# my_path = '/home/sbancal/Projects/enacdrives/web_app/enacdrives'  # TODO REMOVE THIS
+# my_path = '/home/sbancal/Projects/ENACdrives/web_app/enacdrives'  # TODO REMOVE THIS
 
 # CRED_FILE = os.path.join(my_path, 'enacmoni.cred')
 # with open(CRED_FILE, 'rb') as f:
@@ -42,58 +43,59 @@ application = get_wsgi_application()
 from config import models as mo
 
 
-CIFS_UNIT_CONFIG = ({
-    "server": "enac1files.epfl.ch",
-    "config name": "NAS3 Files",
-    "shares_to_ignore": (
-        r'.*\$$',  # all shares finished by a "$"
-        r'proj-.*$',  # all proj- shares
-        r'technologie_du_bati_2',
-        r'technologie_du_bati_4',
-        r'si_topsolid_debug_files',
-        r'gestion-unites-enac',
-        r'enac-prom-acad',
-        r'camipro-2018',
-        r'infra-sculpture',
-        r'ecombine',
-        r'biomining',
-        r'lablysi',
-        r'sar-web',
-        r'uhna',
-        r'wanhabitats',
-        r'phlebicite',
-        r'antfr-ge',
-        r'digiwalls-ibois-eesd',
-        r's_pine',
-    ),
-    "units_to_ignore": (),
-}, {
-    "server": "enac1arch.epfl.ch",
-    "config name": "NAS3 Arch",
-    "shares_to_ignore": (
-        r'.*\$$',  # all shares finished by a "$"
-        r'oldlabs',
-        r'enac-webcom',
-        r'ssie-winprofiles',
-        r'sgc-winprofiles',
-        r'sar-winprofiles',
-    ),
-    "units_to_ignore": (),
-}, {
-    "server": "enac1raw.epfl.ch",
-    "config name": "NAS3 Raw",
-    "shares_to_ignore": (
-        r'.*\$$',  # all shares finished by a "$"
-    ),
-    "units_to_ignore": (),
-}, {
-    "server": "enac2raw.epfl.ch",
-    "config name": "NAS3 Raw2",
-    "shares_to_ignore": (
-        r'.*\$$',  # all shares finished by a "$"
-    ),
-    "units_to_ignore": (),
-})
+CIFS_UNIT_CONFIG = (
+    {
+        "server": "enac1files.epfl.ch",
+        "config name": "NAS3 Files",
+        "shares_to_ignore": (
+            r".*\$$",  # all shares finished by a "$"
+            r"proj-.*$",  # all proj- shares
+            r"technologie_du_bati_2",
+            r"technologie_du_bati_4",
+            r"si_topsolid_debug_files",
+            r"gestion-unites-enac",
+            r"enac-prom-acad",
+            r"camipro-2018",
+            r"infra-sculpture",
+            r"ecombine",
+            r"biomining",
+            r"lablysi",
+            r"sar-web",
+            r"uhna",
+            r"wanhabitats",
+            r"phlebicite",
+            r"antfr-ge",
+            r"digiwalls-ibois-eesd",
+            r"s_pine",
+        ),
+        "units_to_ignore": (),
+    },
+    {
+        "server": "enac1arch.epfl.ch",
+        "config name": "NAS3 Arch",
+        "shares_to_ignore": (
+            r".*\$$",  # all shares finished by a "$"
+            r"oldlabs",
+            r"enac-webcom",
+            r"ssie-winprofiles",
+            r"sgc-winprofiles",
+            r"sar-winprofiles",
+        ),
+        "units_to_ignore": (),
+    },
+    {
+        "server": "enac1raw.epfl.ch",
+        "config name": "NAS3 Raw",
+        "shares_to_ignore": (r".*\$$",),  # all shares finished by a "$"
+        "units_to_ignore": (),
+    },
+    {
+        "server": "enac2raw.epfl.ch",
+        "config name": "NAS3 Raw2",
+        "shares_to_ignore": (r".*\$$",),  # all shares finished by a "$"
+        "units_to_ignore": (),
+    },
+)
 
 CREDENTIALS_FILE = os.path.join(my_path, "enacmoni.cred")
 
@@ -105,7 +107,7 @@ def list_smb_shares(cfg):
 
     # parse output
     for line in output.split("\n"):
-        match = re.match(r'\s*(\S+)\s+Disk\s.*$', line)
+        match = re.match(r"\s*(\S+)\s+Disk\s.*$", line)
         if match:
             valid_share = True
             share = match.group(1).lower()
@@ -136,7 +138,7 @@ def check_config(cfg):
     Output.write()
 
 
-class Output():
+class Output:
     def __init__(self, dest=None):
         if dest is not None:
             self.output = dest
