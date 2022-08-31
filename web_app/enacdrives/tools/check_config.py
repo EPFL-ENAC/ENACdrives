@@ -77,7 +77,7 @@ CIFS_UNIT_CONFIG = (
             r".*\$$",  # all shares finished by a "$"
             r"oldlabs",
             r"enac-webcom",
-            r"ssie-winprofiles",
+            r"ssie-salles",
             r"sgc-winprofiles",
             r"sar-winprofiles",
         ),
@@ -102,7 +102,7 @@ CREDENTIALS_FILE = os.path.join(my_path, "enacmoni.cred")
 
 def list_smb_shares(cfg):
     shares = []
-    cmd = ["smbclient", "-A", CREDENTIALS_FILE, "-L", cfg["server"]]
+    cmd = ["smbclient", "-A", CREDENTIALS_FILE, "-L", cfg["server"], "-m", "SMB3"]
     output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL).decode()
 
     # parse output
