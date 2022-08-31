@@ -77,7 +77,7 @@ CIFS_UNIT_CONFIG = (
             r".*\$$",  # all shares finished by a "$"
             r"oldlabs",
             r"enac-webcom",
-            r"ssie-winprofiles",
+            r"ssie-salles",
             r"sgc-winprofiles",
             r"sar-winprofiles",
         ),
