@@ -75,8 +75,8 @@ def bytes_decode(b):
 
 class CONST:
 
-    VERSION_DATE = "2022-08-11"
-    VERSION = "1.2.5"
+    VERSION_DATE = "2022-11-04"
+    VERSION = "1.2.6"
     FULL_VERSION = VERSION_DATE + " " + VERSION
 
     DOC_URL = "https://go.epfl.ch/KB0016347"
@@ -231,7 +231,7 @@ class CONST:
     CONFIG_URL = "http://enacdrives.epfl.ch/config/get?username={username}&version={version}&os={os}&os_version={os_version}".format(
         username="{username}",
         version=VERSION,
-        os=OS_DISTRIB + "-" + OS_SYS,
+        os=urllib.parse.quote(OS_DISTRIB + "-" + OS_SYS),
         os_version=OS_VERSION,
     )
     VALIDATE_USERNAME_URL = (
