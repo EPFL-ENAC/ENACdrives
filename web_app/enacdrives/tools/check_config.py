@@ -68,6 +68,7 @@ CIFS_UNIT_CONFIG = (
             r"digiwalls-ibois-eesd",
             r"s_pine",
             r"vaertical",
+            r"ivea",
         ),
         "units_to_ignore": (),
     },
