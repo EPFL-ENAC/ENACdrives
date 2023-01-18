@@ -69,6 +69,7 @@ CIFS_UNIT_CONFIG = (
             r"s_pine",
             r"vaertical",
             r"ivea",
+            r"icarus",
         ),
         "units_to_ignore": (),
     },
