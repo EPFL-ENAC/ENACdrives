@@ -71,6 +71,7 @@ CIFS_UNIT_CONFIG = (
             r"ivea",
             r"icarus",
             r"geome",
+            r"academic-alpole",
         ),
         "units_to_ignore": (),
     },
