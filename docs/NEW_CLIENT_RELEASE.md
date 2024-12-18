@@ -23,13 +23,15 @@ bash build_enacdrives_deb.sh
 cd ~/Projects/ENACdrives/deb_building/
 
 cp ../debmake/enacdrives_X.Y.Z-U20.04.XX/enacdrives*.deb \
-   ../debmake/enacdrives_X.Y.Z-U22.04.XX/enacdrives*.deb .
+   ../debmake/enacdrives_X.Y.Z-U22.04.XX/enacdrives*.deb \
+   ../debmake/enacdrives_X.Y.Z-U24.04.XX/enacdrives*.deb .
 
 sshfs enacit1@enacrepo:/data/web/enacrepo/ enacrepo.epfl.ch/
 
 reprepro -b enacrepo.epfl.ch/public/ list bionic
 reprepro -b enacrepo.epfl.ch/public/ list focal
 reprepro -b enacrepo.epfl.ch/public/ list jammy
+reprepro -b enacrepo.epfl.ch/public/ list noble
 
 reprepro -b enacrepo.epfl.ch/public/ ls enacdrives
 
@@ -43,6 +45,8 @@ reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
   includedeb focal enacdrives_X.Y.Z-U20.04*.deb
 reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
   includedeb jammy enacdrives_X.Y.Z-U22.04*.deb
+reprepro -b enacrepo.epfl.ch/public/ --ask-passphrase \
+  includedeb noble enacdrives_1.2.6-U24.04.1_all.deb
 ```
 
 # WINDOWS
