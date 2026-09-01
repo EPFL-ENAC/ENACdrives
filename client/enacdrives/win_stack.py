@@ -17,6 +17,8 @@ import win32wnet
 import win32netcon
 import pywintypes
 import subprocess
+import ctypes
+
 from enacdrives.utility import (
     CONST,
     Output,
@@ -24,6 +26,7 @@ from enacdrives.utility import (
     debug_send,
     NonBlockingQtProcess,
 )
+from ctypes import wintypes
 
 
 class WIN_CONST:
@@ -47,52 +50,102 @@ def os_check(ui):
 
 
 def cifs_uncache_is_mounted(mount):
-    NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+    # NonBlockingQtProcess.invalidate_cmd_cache(["wmic", "logicaldisk"])
+    pass
+
+
+# def cifs_is_mounted(mount, cb):
+#     def _cb(success, output, exit_code):
+#         lines = output.split("\n")
+#         items = re.findall(r"(\S+)", lines[0])
+#         caption = "Caption"
+#         after_caption = items[items.index("Caption") + 1]
+#         providername = "ProviderName"
+#         after_providername = items[items.index("ProviderName") + 1]
+#         caption_start = lines[0].index(caption)
+#         caption_end = lines[0].index(after_caption)
+#         providername_start = lines[0].index(providername)
+#         providername_end = lines[0].index(after_providername)
+
+#         # Look for 'server' and for 'server.domain.name'
+#         server_names = [
+#             mount.settings["server_name"],
+#             re.findall(r"[^.]+", mount.settings["server_name"])[0],
+#         ]
+#         for server_name in server_names:
+#             i_search = r"^\\{server_name}\{server_path}".format(
+#                 server_name=server_name,
+#                 server_path=mount.settings["server_path"],
+#             )
+#             i_search = i_search.replace("\\", "\\\\")
+#             i_search = i_search.replace("$", r"\$")
+#             i_search += "$"
+#             # Output.debug("i_search='{0}'".format(i_search))
+#             for l in lines[1:]:
+#                 try:
+#                     drive_letter = l[caption_start:caption_end].strip()
+#                     provider = l[providername_start:providername_end].strip()
+#                     # Output.debug("{} <- {}".format(drive_letter, provider))
+#                     if re.search(i_search, provider, flags=re.IGNORECASE):
+#                         mount.settings["Windows_letter"] = drive_letter
+#                         # Output.debug("MATCH!")
+#                         cb(True)
+#                         return
+#                 except IndexError:
+#                     pass
+#         cb(False)
+
+#     cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
+#     NonBlockingQtProcess(cmd, _cb, cache=True)
 
 
 def cifs_is_mounted(mount, cb):
-    def _cb(success, output, exit_code):
-        lines = output.split("\n")
-        items = re.findall(r"(\S+)", lines[0])
-        caption = "Caption"
-        after_caption = items[items.index("Caption") + 1]
-        providername = "ProviderName"
-        after_providername = items[items.index("ProviderName") + 1]
-        caption_start = lines[0].index(caption)
-        caption_end = lines[0].index(after_caption)
-        providername_start = lines[0].index(providername)
-        providername_end = lines[0].index(after_providername)
+    mpr = ctypes.WinDLL("mpr")
 
-        # Look for 'server' and for 'server.domain.name'
-        server_names = [
-            mount.settings["server_name"],
-            re.findall(r"[^.]+", mount.settings["server_name"])[0],
-        ]
-        for server_name in server_names:
-            i_search = r"^\\{server_name}\{server_path}".format(
-                server_name=server_name,
-                server_path=mount.settings["server_path"],
-            )
-            i_search = i_search.replace("\\", "\\\\")
-            i_search = i_search.replace("$", r"\$")
-            i_search += "$"
-            # Output.debug("i_search='{0}'".format(i_search))
-            for l in lines[1:]:
-                try:
-                    drive_letter = l[caption_start:caption_end].strip()
-                    provider = l[providername_start:providername_end].strip()
-                    # Output.debug("{} <- {}".format(drive_letter, provider))
-                    if re.search(i_search, provider, flags=re.IGNORECASE):
-                        mount.settings["Windows_letter"] = drive_letter
-                        # Output.debug("MATCH!")
-                        cb(True)
-                        return
-                except IndexError:
-                    pass
-        cb(False)
+    mpr.WNetGetConnectionW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    mpr.WNetGetConnectionW.restype = wintypes.DWORD
 
-    cmd = ["wmic", "logicaldisk"]  # List all Logical Disks
-    NonBlockingQtProcess(cmd, _cb, cache=True)
+    server_name = mount.settings["server_name"]
+    server_path = mount.settings["server_path"]
+
+    server_names = [
+        server_name,
+        server_name.split(".", 1)[0],
+    ]
+
+    expected_paths = [
+        f"\\\\{name}\\{server_path}".rstrip("\\").lower() for name in server_names
+    ]
+
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        drive = f"{letter}:"
+
+        buffer_size = wintypes.DWORD(1024)
+        buffer = ctypes.create_unicode_buffer(buffer_size.value)
+
+        result = mpr.WNetGetConnectionW(
+            drive,
+            buffer,
+            ctypes.byref(buffer_size),
+        )
+
+        if result != 0:
+            continue
+
+        remote_path = buffer.value.rstrip("\\").lower()
+
+        print(f"{drive} -> {remote_path}")
+
+        if remote_path in expected_paths:
+            mount.settings["Windows_letter"] = drive
+            cb(True)
+            return
+
+    cb(False)
 
 
 def cifs_mount(mount):
