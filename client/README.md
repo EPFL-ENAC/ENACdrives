@@ -23,12 +23,12 @@ python3 bin/enacdrives
 - install Miniconda
 
 ```powershell
-conda create -n py38 python=3.8
-conda activate py38
+conda create -n py310 python=3.10
+conda activate py310
 conda install distro
 conda install pyinstaller
 conda install pywin32
-conda install pyqt
+conda install pyqt=5
 setx PYTHONPATH C:\ThePathToThe\enacdrives\client
 # You'll have to run a new terminal so that this is taken
 ```

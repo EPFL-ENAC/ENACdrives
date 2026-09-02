@@ -27,6 +27,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False,
+          version="version.txt",
           icon='share\\pixmaps\\enacdrives\\enacdrives.ico')
 coll = COLLECT(exe,
                a.binaries,
