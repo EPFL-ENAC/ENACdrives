@@ -45,6 +45,9 @@ python bin/enacdrives
 ```powershell
 cd client
 pyinstaller -y enacdrives.spec
+copy share\pixmaps\enacdrives\* dist\enacdrives\
+cd dist\enacdrives\_internal
+move-Item .\MSVCP140.dll, .\MSVCP140_1.dll ..
 ```
 
 - Compress the folder `dist/enacdrives` to `dist/enacdrives.zip`
